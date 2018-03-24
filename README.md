@@ -1,6 +1,6 @@
-cli
+cli-framework
 ===
-cli is a simple command line interface framework
+cli-framework is a simple command line interface framework
 
 
 ## Getting Started
@@ -15,7 +15,7 @@ package main
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -36,7 +36,7 @@ import (
   "fmt"
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -70,7 +70,7 @@ import (
   "fmt"
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -133,7 +133,7 @@ import (
   "fmt"
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -162,7 +162,7 @@ import (
   "fmt"
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -206,7 +206,7 @@ import (
   "os"
   "fmt"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -259,7 +259,7 @@ package main
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli"
 )
 
 func main() {
@@ -300,7 +300,7 @@ package main
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -341,7 +341,7 @@ import (
   "os"
   "sort"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
@@ -406,7 +406,7 @@ package main
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/hackwave/cli-framework"
 )
 
 func main() {
