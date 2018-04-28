@@ -4,25 +4,6 @@ cli-framework is a simple command line interface framework
 
 
 ## Getting Started
-
-<!-- {
-  "args": ["&#45;&#45;help"],
-  "output": "A new cli application"
-} -->
-``` go
-package main
-
-import (
-  "os"
-
-  cli "github.com/hackwave/cli-framework"
-)
-
-func main() {
-  cli.NewApp().Run(os.Args)
-}
-```
-
 This app will run and show help text, but is not very useful. Let's give an
 action to execute and some help documentation:
 
@@ -42,6 +23,11 @@ import (
 func main() {
   app := cli.NewApp()
   app.Name = "boom"
+  app.Version = &cli.Version{
+  	Major: 0,
+	Minor: 1,
+	Patch: 0, 
+  }
   app.Usage = "make an explosive entrance"
   app.Action = func(c *cli.Context) error {
     fmt.Println("boom! I say!")
