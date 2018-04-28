@@ -11,6 +11,6 @@ type Version struct {
 	Patch int
 }
 
-func String() string {
-	return fmt.Sprintf(""+strconv.Itoa(Major)+"."+strconv.Itoa(Minor)+"."+strconv.Itoa(Path))
+func (self Version) String() string {
+	return fmt.Sprintf(""+strconv.Itoa(self.Major)+"."+strconv.Itoa(self.Minor)+"."+strconv.Itoa(self.Patch))
 }
