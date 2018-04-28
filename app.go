@@ -28,7 +28,7 @@ type App struct {
 	// Description of the program argument format.
 	ArgsUsage string
 	// Version of the program
-	Version string
+	Version
 	// Description of the program
 	Description string
 	// List of commands to execute
@@ -100,7 +100,11 @@ func NewApp() *App {
 		HelpName:     filepath.Base(os.Args[0]),
 		Usage:        "A new cli application",
 		UsageText:    "",
-		Version:      "0.1.0",
+		Version:      Version{
+			Major: 0,
+			Minor: 1,
+			Patch: 0,
+		},
 		BashComplete: DefaultAppComplete,
 		Action:       helpCommand.Action,
 		Compiled:     compileTime(),

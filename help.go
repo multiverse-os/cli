@@ -176,7 +176,7 @@ func ShowVersion(c *Context) {
 }
 
 func printVersion(c *Context) {
-	fmt.Fprintf(c.App.Writer, "%v version %v\n", c.App.Name, c.App.Version)
+	fmt.Fprintf(c.App.Writer, "%v version %v\n", c.App.Name, c.App.Version.String())
 }
 
 // ShowCompletions prints the lists of commands within a given context
