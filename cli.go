@@ -99,23 +99,28 @@ func New(cmd *CLI) *CLI {
 		cmd.Name = filepath.Base(os.Args[0])
 	}
 	if cmd.HelpName == "" {
-		HelpName = filepath.Base(os.Args[0])
+		cmd.HelpName = filepath.Base(os.Args[0])
 	}
 	if cmd.Usage == "" {
-		Usage = "A new command-line interface"
+		cmd.Usage = "A new command-line interface"
 	}
 	if cmd.Version == nil {
-	Version:
-		Version{
+		cmd.Version = Version{
 			Major: 0,
 			Minor: 1,
 			Patch: 0,
 		}
 	}
-	BashComplete = DefaultCLIComplete
-	Action = helpCommand.Action
-	Compiled = compileTime()
-	Writer = os.Stdout
+	if cmd.BashComplete == nil {
+		cmd.BashComplete = DefaultCLIComplete
+	}
+	if cmd.Action == nil {
+		cmd.Action = helpCommand.Action
+	}
+	if cmd.Writer == nil {
+		cmd.Writer = os.Stdout
+	}
+	cmd.Compiled = compileTime()
 	return cmd
 }
 
