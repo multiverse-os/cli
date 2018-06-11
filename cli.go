@@ -94,22 +94,29 @@ func compileTime() time.Time {
 
 // New creates a new cli CLIlication with some reasonable defaults for Name,
 // Usage, Version and Action.
-func New() *CLI {
-	return &CLI{
-		Name:      filepath.Base(os.Args[0]),
-		HelpName:  filepath.Base(os.Args[0]),
-		Usage:     "A new command-line interface",
-		UsageText: "",
-		Version: Version{
+func New(cmd *CLI) *CLI {
+	if cmd.Name == "" {
+		cmd.Name = filepath.Base(os.Args[0])
+	}
+	if cmd.HelpName == "" {
+		HelpName = filepath.Base(os.Args[0])
+	}
+	if cmd.Usage == "" {
+		Usage = "A new command-line interface"
+	}
+	if cmd.Version == nil {
+	Version:
+		Version{
 			Major: 0,
 			Minor: 1,
 			Patch: 0,
-		},
-		BashComplete: DefaultCLIComplete,
-		Action:       helpCommand.Action,
-		Compiled:     compileTime(),
-		Writer:       os.Stdout,
+		}
 	}
+	BashComplete = DefaultCLIComplete
+	Action = helpCommand.Action
+	Compiled = compileTime()
+	Writer = os.Stdout
+	return cmd
 }
 
 // Setup runs initialization code to ensure all data structures are ready for
