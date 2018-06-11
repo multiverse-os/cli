@@ -21,20 +21,21 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
-  app.Name = "boom"
-  app.Version = &cli.Version{
+  cmd := cli.New()
+  cmd.Name = "boom"
+	// NOTE: This makes more sense as 'cmd' over 'app', because the application version (the backing library or protocol) is separate from the CLI version
+  cmd.Version = &cli.Version{
   	Major: 0,
-	Minor: 1,
-	Patch: 0, 
+	  Minor: 1,
+	  Patch: 0, 
   }
-  app.Usage = "make an explosive entrance"
-  app.Action = func(c *cli.Context) error {
+  cmd.Usage = "make an explosive entrance"
+  cmd.Action = func(c *cli.Context) error {
     fmt.Println("boom! I say!")
     return nil
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -60,15 +61,15 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
-  app.Name = "greet"
-  app.Usage = "fight the loneliness!"
-  app.Action = func(c *cli.Context) error {
+  cmd := cli.New()
+  cmd.Name = "greet"
+  cmd.Usage = "fight the loneliness!"
+  cmd.Action = func(c *cli.Context) error {
     fmt.Println("Hello friend!")
     return nil
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -123,14 +124,12 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
-
-  app.Action = func(c *cli.Context) error {
+  cmd := cli.New()
+  cmd.Action = func(c *cli.Context) error {
     fmt.Printf("Hello %q", c.Args().Get(0))
     return nil
   }
-
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -152,9 +151,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag {
+  cmd.Flags = []cli.Flag {
     cli.StringFlag{
       Name: "lang",
       Value: "english",
@@ -162,7 +161,7 @@ func main() {
     },
   }
 
-  app.Action = func(c *cli.Context) error {
+  cmd.Action = func(c *cli.Context) error {
     name := "Nefertiti"
     if c.NArg() > 0 {
       name = c.Args().Get(0)
@@ -175,7 +174,7 @@ func main() {
     return nil
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -198,9 +197,9 @@ import (
 func main() {
   var language string
 
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag {
+  cmd.Flags = []cli.Flag {
     cli.StringFlag{
       Name:        "lang",
       Value:       "english",
@@ -209,7 +208,7 @@ func main() {
     },
   }
 
-  app.Action = func(c *cli.Context) error {
+  cmd.Action = func(c *cli.Context) error {
     name := "someone"
     if c.NArg() > 0 {
       name = c.Args()[0]
@@ -222,11 +221,11 @@ func main() {
     return nil
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
-See full list of flags at http://godoc.org/github.com/urfave/cli
+A full list of flags can be found within the source code under the file `flag.go`.
 
 #### Placeholder Values
 
@@ -249,16 +248,16 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag{
+  cmd.Flags = []cli.Flag{
     cli.StringFlag{
       Name:  "config, c",
       Usage: "Load configuration from `FILE`",
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -290,9 +289,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag {
+  cmd.Flags = []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
@@ -300,7 +299,7 @@ func main() {
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -331,9 +330,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag {
+  cmd.Flags = []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
@@ -345,7 +344,7 @@ func main() {
     },
   }
 
-  app.Commands = []cli.Command{
+  cmd.Commands = []cli.Command{
     {
       Name:    "complete",
       Aliases: []string{"c"},
@@ -364,10 +363,10 @@ func main() {
     },
   }
 
-  sort.Sort(cli.FlagsByName(app.Flags))
-  sort.Sort(cli.CommandsByName(app.Commands))
+  sort.Sort(cli.FlagsByName(cmd.Flags))
+  sort.Sort(cli.CommandsByName(cmd.Commands))
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -396,9 +395,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag {
+  cmd.Flags = []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
@@ -407,7 +406,7 @@ func main() {
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -428,9 +427,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag {
+  cmd.Flags = []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
@@ -439,7 +438,7 @@ func main() {
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -461,9 +460,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Flags = []cli.Flag {
+  cmd.Flags = []cli.Flag {
     cli.StringFlag{
       Name: "password, p",
       Usage: "password for the mysql database",
@@ -471,7 +470,7 @@ func main() {
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -529,22 +528,22 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
   flags := []cli.Flag{
     altsrc.NewIntFlag(cli.IntFlag{Name: "test"}),
     cli.StringFlag{Name: "load"},
   }
 
-  app.Action = func(c *cli.Context) error {
+  cmd.Action = func(c *cli.Context) error {
     fmt.Println("yaml ist rad")
     return nil
   }
 
-  app.Before = altsrc.InitInputSourceWithContext(flags, altsrc.NewYamlSourceFromFlagFunc("load"))
-  app.Flags = flags
+  cmd.Before = altsrc.InitInputSourceWithContext(flags, altsrc.NewYamlSourceFromFlagFunc("load"))
+  cmd.Flags = flags
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -576,9 +575,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Commands = []cli.Command{
+  cmd.Commands = []cli.Command{
     {
       Name:    "add",
       Aliases: []string{"a"},
@@ -622,7 +621,7 @@ func main() {
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -644,9 +643,9 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
+  cmd := cli.New()
 
-  app.Commands = []cli.Command{
+  cmd.Commands = []cli.Command{
     {
       Name: "noop",
     },
@@ -660,7 +659,7 @@ func main() {
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -692,21 +691,21 @@ import (
 )
 
 func main() {
-  app := cli.NewApp()
-  app.Flags = []cli.Flag{
+  cmd := cli.New()
+  cmd.Flags = []cli.Flag{
     cli.BoolTFlag{
       Name:  "ginger-crouton",
       Usage: "is it in the soup?",
     },
   }
-  app.Action = func(ctx *cli.Context) error {
+  cmd.Action = func(ctx *cli.Context) error {
     if !ctx.Bool("ginger-crouton") {
       return cli.NewExitError("it is not in the soup", 86)
     }
     return nil
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -734,9 +733,9 @@ import (
 func main() {
   tasks := []string{"cook", "clean", "laundry", "eat", "sleep", "code"}
 
-  app := cli.NewApp()
-  app.EnableBashCompletion = true
-  app.Commands = []cli.Command{
+  cmd := cli.New()
+  cmd.EnableBashCompletion = true
+  cmd.Commands = []cli.Command{
     {
       Name:  "complete",
       Aliases: []string{"c"},
@@ -757,7 +756,7 @@ func main() {
     },
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -806,14 +805,14 @@ func main() {
     Hidden: true,
   }
 
-  app := cli.NewApp()
-  app.EnableBashCompletion = true
-  app.Commands = []cli.Command{
+  cmd := cli.New()
+  cmd.EnableBashCompletion = true
+  cmd.Commands = []cli.Command{
     {
       Name: "wat",
     },
   }
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 ```
 
@@ -847,10 +846,10 @@ func main() {
     Usage: "print only the version",
   }
 
-  app := cli.NewApp()
-  app.Name = "partay"
-  app.Version = "19.99.0"
-  app.Run(os.Args)
+  cmd := cli.New()
+  cmd.Name = "partay"
+  cmd.Version = "19.99.0"
+  cmd.Run(os.Args)
 }
 ```
 
@@ -879,10 +878,10 @@ func main() {
     fmt.Printf("version=%s revision=%s\n", c.App.Version, Revision)
   }
 
-  app := cli.NewApp()
-  app.Name = "partay"
-  app.Version = "19.99.0"
-  app.Run(os.Args)
+  cmd := cli.New()
+  cmd.Name = "partay"
+  cmd.Version = "19.99.0"
+  cmd.Run(os.Args)
 }
 ```
 
@@ -958,15 +957,15 @@ func (g *genericType) String() string {
 }
 
 func main() {
-  app := cli.NewApp()
-  app.Name = "kənˈtrīv"
-  app.Version = "19.99.0"
-  app.Compiled = time.Now()
-  app.HelpName = "contrive"
-  app.Usage = "demonstrate available API"
-  app.UsageText = "contrive - demonstrating the available API"
-  app.ArgsUsage = "[args and such]"
-  app.Commands = []cli.Command{
+  cmd := cli.New()
+  cmd.Name = "kənˈtrīv"
+  cmd.Version = "19.99.0"
+  cmd.Compiled = time.Now()
+  cmd.HelpName = "contrive"
+  cmd.Usage = "demonstrate available API"
+  cmd.UsageText = "contrive - demonstrating the available API"
+  cmd.ArgsUsage = "[args and such]"
+  cmd.Commands = []cli.Command{
     cli.Command{
       Name:        "doo",
       Aliases:     []string{"do"},
@@ -1016,7 +1015,7 @@ func main() {
       },
     },
   }
-  app.Flags = []cli.Flag{
+  cmd.Flags = []cli.Flag{
     cli.BoolFlag{Name: "fancy"},
     cli.BoolTFlag{Name: "fancier"},
     cli.DurationFlag{Name: "howlong, H", Value: time.Second * 3},
@@ -1031,24 +1030,24 @@ func main() {
     cli.UintFlag{Name: "age"},
     cli.Uint64Flag{Name: "bigage"},
   }
-  app.EnableBashCompletion = true
-  app.HideHelp = false
-  app.HideVersion = false
-  app.BashComplete = func(c *cli.Context) {
+  cmd.EnableBashCompletion = true
+  cmd.HideHelp = false
+  cmd.HideVersion = false
+  cmd.BashComplete = func(c *cli.Context) {
     fmt.Fprintf(c.App.Writer, "lipstick\nkiss\nme\nlipstick\nringo\n")
   }
-  app.Before = func(c *cli.Context) error {
+  cmd.Before = func(c *cli.Context) error {
     fmt.Fprintf(c.App.Writer, "HEEEERE GOES\n")
     return nil
   }
-  app.After = func(c *cli.Context) error {
+  cmd.After = func(c *cli.Context) error {
     fmt.Fprintf(c.App.Writer, "Phew!\n")
     return nil
   }
-  app.CommandNotFound = func(c *cli.Context, command string) {
+  cmd.CommandNotFound = func(c *cli.Context, command string) {
     fmt.Fprintf(c.App.Writer, "Thar be no %q here.\n", command)
   }
-  app.OnUsageError = func(c *cli.Context, err error, isSubcommand bool) error {
+  cmd.OnUsageError = func(c *cli.Context, err error, isSubcommand bool) error {
     if isSubcommand {
       return err
     }
@@ -1056,7 +1055,7 @@ func main() {
     fmt.Fprintf(c.App.Writer, "WRONG: %#v\n", err)
     return nil
   }
-  app.Action = func(c *cli.Context) error {
+  cmd.Action = func(c *cli.Context) error {
     cli.DefaultAppComplete(c)
     cli.HandleExitCoder(errors.New("not an exit coder, though"))
     cli.ShowAppHelp(c)
@@ -1079,7 +1078,7 @@ func main() {
 
     fmt.Printf("%#v\n", c.App.Command("doo"))
     if c.Bool("infinite") {
-      c.App.Run([]string{"app", "doo", "wop"})
+      c.App.Run([]string{"cmd", "doo", "wop"})
     }
 
     if c.Bool("forevar") {
@@ -1141,17 +1140,17 @@ func main() {
   }
 
   if os.Getenv("HEXY") != "" {
-    app.Writer = &hexWriter{}
-    app.ErrWriter = &hexWriter{}
+    cmd.Writer = &hexWriter{}
+    cmd.ErrWriter = &hexWriter{}
   }
 
-  app.Metadata = map[string]interface{}{
+  cmd.Metadata = map[string]interface{}{
     "layers":     "many",
     "explicable": false,
     "whatever-values": 19.99,
   }
 
-  app.Run(os.Args)
+  cmd.Run(os.Args)
 }
 
 func wopAction(c *cli.Context) error {
