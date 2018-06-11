@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// OsExiter is the function used when the app exits. If not set defaults to os.Exit.
+// OsExiter is the function used when the cli exits. If not set defaults to os.Exit.
 var OsExiter = os.Exit
 
 // ErrWriter is used to write errors to the user. This can be anything
@@ -38,7 +38,7 @@ type ErrorFormatter interface {
 	Format(s fmt.State, verb rune)
 }
 
-// ExitCoder is the interface checked by `App` and `Command` for a custom exit
+// ExitCoder is the interface checked by `CLI` and `Command` for a custom exit
 // code
 type ExitCoder interface {
 	error

@@ -9,32 +9,32 @@ import (
 	"testing"
 )
 
-func Test_ShowAppHelp_NoVersion(t *testing.T) {
+func Test_ShowCLIHelp_NoVersion(t *testing.T) {
 	output := new(bytes.Buffer)
-	app := NewApp()
+	app := New()
 	app.Writer = output
 
 	app.Version = ""
 
 	c := NewContext(app, nil, nil)
 
-	ShowAppHelp(c)
+	ShowCLIHelp(c)
 
 	if bytes.Index(output.Bytes(), []byte("VERSION:")) != -1 {
 		t.Errorf("expected\n%snot to include %s", output.String(), "VERSION:")
 	}
 }
 
-func Test_ShowAppHelp_HideVersion(t *testing.T) {
+func Test_ShowCLIHelp_HideVersion(t *testing.T) {
 	output := new(bytes.Buffer)
-	app := NewApp()
+	app := New()
 	app.Writer = output
 
 	app.HideVersion = true
 
 	c := NewContext(app, nil, nil)
 
-	ShowAppHelp(c)
+	ShowCLIHelp(c)
 
 	if bytes.Index(output.Bytes(), []byte("VERSION:")) != -1 {
 		t.Errorf("expected\n%snot to include %s", output.String(), "VERSION:")
@@ -52,7 +52,7 @@ func Test_Help_Custom_Flags(t *testing.T) {
 		Usage: "show help",
 	}
 
-	app := App{
+	app := CLI{
 		Flags: []Flag{
 			BoolFlag{Name: "foo, h"},
 		},
@@ -82,7 +82,7 @@ func Test_Version_Custom_Flags(t *testing.T) {
 		Usage: "show version",
 	}
 
-	app := App{
+	app := CLI{
 		Flags: []Flag{
 			BoolFlag{Name: "foo, v"},
 		},
@@ -102,7 +102,7 @@ func Test_Version_Custom_Flags(t *testing.T) {
 }
 
 func Test_helpCommand_Action_ErrorIfNoTopic(t *testing.T) {
-	app := NewApp()
+	app := New()
 
 	set := flag.NewFlagSet("test", 0)
 	set.Parse([]string{"foo"})
@@ -130,7 +130,7 @@ func Test_helpCommand_Action_ErrorIfNoTopic(t *testing.T) {
 }
 
 func Test_helpCommand_InHelpOutput(t *testing.T) {
-	app := NewApp()
+	app := New()
 	output := &bytes.Buffer{}
 	app.Writer = output
 	app.Run([]string{"test", "--help"})
@@ -147,7 +147,7 @@ func Test_helpCommand_InHelpOutput(t *testing.T) {
 }
 
 func Test_helpSubcommand_Action_ErrorIfNoTopic(t *testing.T) {
-	app := NewApp()
+	app := New()
 
 	set := flag.NewFlagSet("test", 0)
 	set.Parse([]string{"foo"})
@@ -174,8 +174,8 @@ func Test_helpSubcommand_Action_ErrorIfNoTopic(t *testing.T) {
 	}
 }
 
-func TestShowAppHelp_CommandAliases(t *testing.T) {
-	app := &App{
+func TestShowCLIHelp_CommandAliases(t *testing.T) {
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name:    "frobbly",
@@ -197,7 +197,7 @@ func TestShowAppHelp_CommandAliases(t *testing.T) {
 }
 
 func TestShowCommandHelp_CommandAliases(t *testing.T) {
-	app := &App{
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name:    "frobbly",
@@ -223,7 +223,7 @@ func TestShowCommandHelp_CommandAliases(t *testing.T) {
 }
 
 func TestShowSubcommandHelp_CommandAliases(t *testing.T) {
-	app := &App{
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name:    "frobbly",
@@ -245,7 +245,7 @@ func TestShowSubcommandHelp_CommandAliases(t *testing.T) {
 }
 
 func TestShowCommandHelp_Customtemplate(t *testing.T) {
-	app := &App{
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name: "frobbly",
@@ -287,7 +287,7 @@ EXAMPLES:
 }
 
 func TestShowSubcommandHelp_CommandUsageText(t *testing.T) {
-	app := &App{
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name:      "frobbly",
@@ -307,7 +307,7 @@ func TestShowSubcommandHelp_CommandUsageText(t *testing.T) {
 }
 
 func TestShowSubcommandHelp_SubcommandUsageText(t *testing.T) {
-	app := &App{
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name: "frobbly",
@@ -330,8 +330,8 @@ func TestShowSubcommandHelp_SubcommandUsageText(t *testing.T) {
 	}
 }
 
-func TestShowAppHelp_HiddenCommand(t *testing.T) {
-	app := &App{
+func TestShowCLIHelp_HiddenCommand(t *testing.T) {
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name: "frobbly",
@@ -362,8 +362,8 @@ func TestShowAppHelp_HiddenCommand(t *testing.T) {
 	}
 }
 
-func TestShowAppHelp_CustomAppTemplate(t *testing.T) {
-	app := &App{
+func TestShowCLIHelp_CustomCLITemplate(t *testing.T) {
+	app := &CLI{
 		Commands: []Command{
 			{
 				Name: "frobbly",
@@ -387,7 +387,7 @@ func TestShowAppHelp_CustomAppTemplate(t *testing.T) {
 				"RUNTIME":  goruntime,
 			}
 		},
-		CustomAppHelpTemplate: `NAME:
+		CustomCLIHelpTemplate: `NAME:
   {{.Name}} - {{.Usage}}
 
 USAGE:

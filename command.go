@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Command is a subcommand for a cli.App.
+// Command is a subcommand for a cli.CLI.
 type Command struct {
 	// The name of the command
 	Name string
@@ -100,7 +100,7 @@ type Commands []Command
 // Run invokes the command given the context, parses ctx.Args() to generate command-specific flags
 func (c Command) Run(ctx *Context) (err error) {
 	if len(c.Subcommands) > 0 {
-		return c.startApp(ctx)
+		return c.startCLI(ctx)
 	}
 
 	if !c.HideHelp && (HelpFlag != BoolFlag{}) {
@@ -113,7 +113,7 @@ func (c Command) Run(ctx *Context) (err error) {
 
 	set, err := c.parseFlags(ctx.Args().Tail())
 
-	context := NewContext(ctx.App, set, ctx)
+	context := NewContext(ctx.CLI, set, ctx)
 	context.Command = c
 	if checkCommandCompletions(context, c.Name) {
 		return nil
@@ -122,11 +122,11 @@ func (c Command) Run(ctx *Context) (err error) {
 	if err != nil {
 		if c.OnUsageError != nil {
 			err := c.OnUsageError(context, err, false)
-			context.App.handleExitCoder(context, err)
+			context.CLI.handleExitCoder(context, err)
 			return err
 		}
-		fmt.Fprintln(context.App.Writer, "Incorrect Usage:", err.Error())
-		fmt.Fprintln(context.App.Writer)
+		fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
+		fmt.Fprintln(context.CLI.Writer)
 		ShowCommandHelp(context, c.Name)
 		return err
 	}
@@ -139,7 +139,7 @@ func (c Command) Run(ctx *Context) (err error) {
 		defer func() {
 			afterErr := c.After(context)
 			if afterErr != nil {
-				context.App.handleExitCoder(context, err)
+				context.CLI.handleExitCoder(context, err)
 				if err != nil {
 					err = NewMultiError(err, afterErr)
 				} else {
@@ -153,7 +153,7 @@ func (c Command) Run(ctx *Context) (err error) {
 		err = c.Before(context)
 		if err != nil {
 			ShowCommandHelp(context, c.Name)
-			context.App.handleExitCoder(context, err)
+			context.CLI.handleExitCoder(context, err)
 			return err
 		}
 	}
@@ -165,7 +165,7 @@ func (c Command) Run(ctx *Context) (err error) {
 	err = HandleAction(c.Action, context)
 
 	if err != nil {
-		context.App.handleExitCoder(context, err)
+		context.CLI.handleExitCoder(context, err)
 	}
 	return err
 }
@@ -268,11 +268,11 @@ func (c Command) HasName(name string) bool {
 	return false
 }
 
-func (c Command) startApp(ctx *Context) error {
-	app := NewApp()
-	app.Metadata = ctx.App.Metadata
+func (c Command) startCLI(ctx *Context) error {
+	app := New()
+	app.Metadata = ctx.CLI.Metadata
 	// set the name and usage
-	app.Name = fmt.Sprintf("%s %s", ctx.App.Name, c.Name)
+	app.Name = fmt.Sprintf("%s %s", ctx.CLI.Name, c.Name)
 	if c.HelpName == "" {
 		app.HelpName = c.HelpName
 	} else {
@@ -284,19 +284,19 @@ func (c Command) startApp(ctx *Context) error {
 	app.ArgsUsage = c.ArgsUsage
 
 	// set CommandNotFound
-	app.CommandNotFound = ctx.App.CommandNotFound
-	app.CustomAppHelpTemplate = c.CustomHelpTemplate
+	app.CommandNotFound = ctx.CLI.CommandNotFound
+	app.CustomCLIHelpTemplate = c.CustomHelpTemplate
 
 	// set the flags and commands
 	app.Commands = c.Subcommands
 	app.Flags = c.Flags
 	app.HideHelp = c.HideHelp
 
-	app.Version = ctx.App.Version
-	app.HideVersion = ctx.App.HideVersion
-	app.Compiled = ctx.App.Compiled
-	app.Writer = ctx.App.Writer
-	app.ErrWriter = ctx.App.ErrWriter
+	app.Version = ctx.CLI.Version
+	app.HideVersion = ctx.CLI.HideVersion
+	app.Compiled = ctx.CLI.Compiled
+	app.Writer = ctx.CLI.Writer
+	app.ErrWriter = ctx.CLI.ErrWriter
 
 	app.categories = CommandCategories{}
 	for _, command := range c.Subcommands {
@@ -306,7 +306,7 @@ func (c Command) startApp(ctx *Context) error {
 	sort.Sort(app.categories)
 
 	// bash completion
-	app.EnableBashCompletion = ctx.App.EnableBashCompletion
+	app.EnableBashCompletion = ctx.CLI.EnableBashCompletion
 	if c.BashComplete != nil {
 		app.BashComplete = c.BashComplete
 	}

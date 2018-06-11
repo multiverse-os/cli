@@ -9,33 +9,33 @@ type CommandCategory struct {
 	Commands Commands
 }
 
-func (c CommandCategories) Less(i, j int) bool {
-	return lexicographicLess(c[i].Name, c[j].Name)
+func (self CommandCategories) Less(i, j int) bool {
+	return lexicographicLess(self[i].Name, self[j].Name)
 }
 
-func (c CommandCategories) Len() int {
-	return len(c)
+func (self CommandCategories) Len() int {
+	return len(self)
 }
 
-func (c CommandCategories) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
+func (self CommandCategories) Swap(i, j int) {
+	self[i], self[j] = self[j], self[i]
 }
 
 // AddCommand adds a command to a category.
-func (c CommandCategories) AddCommand(category string, command Command) CommandCategories {
-	for _, commandCategory := range c {
+func (self CommandCategories) AddCommand(category string, command Command) CommandCategories {
+	for _, commandCategory := range self {
 		if commandCategory.Name == category {
 			commandCategory.Commands = append(commandCategory.Commands, command)
-			return c
+			return self
 		}
 	}
-	return append(c, &CommandCategory{Name: category, Commands: []Command{command}})
+	return append(self, &CommandCategory{Name: category, Commands: []Command{command}})
 }
 
 // VisibleCommands returns a slice of the Commands with Hidden=false
-func (c *CommandCategory) VisibleCommands() []Command {
+func (self *CommandCategory) VisibleCommands() []Command {
 	ret := []Command{}
-	for _, command := range c.Commands {
+	for _, command := range self.Commands {
 		if !command.Hidden {
 			ret = append(ret, command)
 		}

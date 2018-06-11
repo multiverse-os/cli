@@ -14,7 +14,7 @@ import (
 // can be used to retrieve context-specific Args and
 // parsed command-line options.
 type Context struct {
-	App           *App
+	CLI           *CLI
 	Command       Command
 	shellComplete bool
 	flagSet       *flag.FlagSet
@@ -22,9 +22,9 @@ type Context struct {
 	parentContext *Context
 }
 
-// NewContext creates a new context. For use in when invoking an App or Command action.
-func NewContext(app *App, set *flag.FlagSet, parentCtx *Context) *Context {
-	c := &Context{App: app, flagSet: set, parentContext: parentCtx}
+// NewContext creates a new context. For use in when invoking an CLI or Command action.
+func NewContext(cli *CLI, set *flag.FlagSet, parentCtx *Context) *Context {
+	c := &Context{CLI: cli, flagSet: set, parentContext: parentCtx}
 
 	if parentCtx != nil {
 		c.shellComplete = parentCtx.shellComplete
@@ -79,8 +79,8 @@ func (c *Context) IsSet(name string) bool {
 		// See https://github.com/urfave/cli/issues/294 for additional discussion
 		flags := c.Command.Flags
 		if c.Command.Name == "" { // cannot == Command{} since it contains slice types
-			if c.App != nil {
-				flags = c.App.Flags
+			if c.CLI != nil {
+				flags = c.CLI.Flags
 			}
 		}
 		for _, f := range flags {
@@ -148,9 +148,9 @@ func (c *Context) FlagNames() (names []string) {
 	return
 }
 
-// GlobalFlagNames returns a slice of global flag names used by the app.
+// GlobalFlagNames returns a slice of global flag names used by the cli.
 func (c *Context) GlobalFlagNames() (names []string) {
-	for _, flag := range c.App.Flags {
+	for _, flag := range c.CLI.Flags {
 		name := strings.Split(flag.GetName(), ",")[0]
 		if name == "help" || name == "version" {
 			continue
@@ -170,7 +170,7 @@ func (c *Context) value(name string) interface{} {
 	return c.flagSet.Lookup(name).Value.(flag.Getter).Get()
 }
 
-// Args contains apps console arguments
+// Args contains clis console arguments
 type Args []string
 
 // Args returns the command line arguments associated with the context.
@@ -210,7 +210,7 @@ func (a Args) Fourth() string {
 }
 
 func (a Args) Last() string {
-	return a.Get(len(a)-1)
+	return a.Get(len(a) - 1)
 }
 
 // Tail returns the rest of the arguments (not the first one)
