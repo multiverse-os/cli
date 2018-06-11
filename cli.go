@@ -104,7 +104,7 @@ func New(cmd *CLI) *CLI {
 	if cmd.Usage == "" {
 		cmd.Usage = "A new command-line interface"
 	}
-	if cmd.Version == nil {
+	if cmd.Version.Major == 0 && cmd.Version.Minor == 0 && cmd.Version.Patch == 0 {
 		cmd.Version = Version{
 			Major: 0,
 			Minor: 1,

@@ -269,7 +269,7 @@ func (c Command) HasName(name string) bool {
 }
 
 func (c Command) startCLI(ctx *Context) error {
-	app := New()
+	app := New(nil)
 	app.Metadata = ctx.CLI.Metadata
 	// set the name and usage
 	app.Name = fmt.Sprintf("%s %s", ctx.CLI.Name, c.Name)
