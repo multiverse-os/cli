@@ -846,7 +846,11 @@ func main() {
 
   cmd := cli.New(nil)
   cmd.Name = "partay"
-  cmd.Version = "19.99.0"
+  cmd.Version = Version{
+                  Major: 19,
+                  Minor: 99,
+                  Path:  0,
+                }
   cmd.Run(os.Args)
 }
 ```
@@ -878,7 +882,11 @@ func main() {
 
   cmd := cli.New(nil)
   cmd.Name = "partay"
-  cmd.Version = "19.99.0"
+  cmd.Version = Version{
+                  Major: 19,
+                  Minor: 99,
+                  Path:  0,
+                }
   cmd.Run(os.Args)
 }
 ```
