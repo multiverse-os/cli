@@ -7,47 +7,23 @@ import (
 	"strings"
 	"text/tabwriter"
 	"text/template"
+
+	text "github.com/multiverse-os/cli-framework/text"
+	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
-// CLIHelpTemplate is the text template for the Default help topic.
-// cli.go uses text/template to render templates. You can
-// render custom help text by setting this variable.
-const (
-	lightPurple = "\x1b[1;35m"
-	blue        = "\x1b[34;1m"
-	lightGray   = "\x1b[37;0m"
-	white       = "\x1b[0;1m"
-	reset       = "\x1b[0;m"
-)
-
-const (
-	titleColor   = "\x1b[1;35m"
-	commandColor = "\x1b[34;1m"
-	versionColor = "\x1b[37;0m"
-	headerColor  = "\x1b[0;1m"
-	resetColor   = "\x1b[0;m"
-)
-
-func repeat(c string, times int) string {
-	aggregate := ""
-	for i := 1; i <= times; i++ {
-		aggregate += c
-	}
-	return aggregate
-}
-
-var CLIHelpTemplate = fmt.Sprintf(titleColor) + `{{.Name}} ` + fmt.Sprintf(versionColor) + `v{{.Version}}
-` + fmt.Sprintf(headerColor) + repeat("=", 80) + fmt.Sprintf(resetColor) + `{{if .Description}}
+var CLIHelpTemplate = fmt.Sprintf(color.HeaderColor) + `{{.Name}} ` + fmt.Sprintf(color.VersionColor) + `v{{.Version}}
+` + fmt.Sprintf(color.SubheaderColor) + text.repeat("=", 80) + fmt.Sprintf(color.ResetColor) + `{{if .Description}}
 {{.Description}}
 {{end}}
-` + fmt.Sprintf(headerColor) + `Usage:` + fmt.Sprintf(resetColor) + `
-   {{if .UsageText}}{{.UsageText}}{{else}}` + fmt.Sprintf(commandColor) + `{{.HelpName}} ` + fmt.Sprintf(resetColor) + `{{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
+` + fmt.Sprintf(color.SubheaderColor) + `Usage:` + fmt.Sprintf(color.ResetColor) + `
+   {{if .UsageText}}{{.UsageText}}{{else}}` + fmt.Sprintf(color.CommandColor) + `{{.HelpName}} ` + fmt.Sprintf(color.ResetColor) + `{{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
-` + fmt.Sprintf(headerColor) + `Global Options:` + fmt.Sprintf(resetColor) + `
+` + fmt.Sprintf(color.SubheaderColor) + `Global Options:` + fmt.Sprintf(color.ResetColor) + `
    {{range $index, $option := .VisibleFlags}}{{if $index}}
    {{end}}{{$option}}{{end}}
 
-` + fmt.Sprintf(headerColor) + `Commands:` + fmt.Sprintf(resetColor) + `{{range .VisibleCategories}}{{if .Name}}
+` + fmt.Sprintf(color.SubheaderColor) + `Commands:` + fmt.Sprintf(color.ResetColor) + `{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}
      {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}
 `
