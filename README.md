@@ -7,9 +7,6 @@ cli-framework is a simple command line interface framework
 This app will run and show help text, but is not very useful. Let's give an
 action to execute and some help documentation:
 
-<!-- {
-  "output": "boom! I say!"
-} -->
 ``` go
 package main
 
@@ -17,7 +14,7 @@ import (
   "fmt"
   "os"
 
-  cli "github.com/hackwave/cli-framework"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
@@ -37,80 +34,18 @@ func main() {
 }
 ```
 
-Running this already gives you a ton of functionality, plus support for things
-like subcommands and flags, which are covered below.
+Defining an action allows the developer to override the default action which
+would be to display the help text. Action can be omitted to display help when
+defining commands, subcommands, and flags which are defined below.
 
 ## Examples
-
-Start by creating a directory named `greet`, and within it, add a file,
-`greet.go` with the following code in it:
-
-<!-- {
-  "output": "Hello friend!"
-} -->
-``` go
-package main
-
-import (
-  "fmt"
-  "os"
-
-  cli "github.com/hackwave/cli-framework"
-)
-
-func main() {
-  cmd := cli.New(nil)
-  cmd.Name = "greet"
-  cmd.Usage = "fight the loneliness!"
-  cmd.Action = func(c *cli.Context) error {
-    fmt.Println("Hello friend!")
-    return nil
-  }
-
-  cmd.Run(os.Args)
-}
-```
-
-Install our command to the `$GOPATH/bin` directory:
-
-```
-$ go install
-```
-
-Finally run our new command:
-
-```
-$ greet
-Hello friend!
-```
-
-cli also generates neat help text:
-
-```
-$ greet help
-NAME:
-    greet - fight the loneliness!
-
-USAGE:
-    greet [global options] command [command options] [arguments...]
-
-VERSION:
-    0.0.0
-
-COMMANDS:
-    help, h  Shows a list of commands or help for one command
-
-GLOBAL OPTIONS
-    --version Shows version information
-```
+Below you will find a collection of examples to illustrate the various ways
+the `cli-framework` can be used. 
 
 ### Arguments
 
 You can lookup arguments by calling the `Args` function on `cli.Context`, e.g.:
 
-<!-- {
-  "output": "Hello \""
-} -->
 ``` go
 package main
 
@@ -118,15 +53,17 @@ import (
   "fmt"
   "os"
 
-  cli "github.com/hackwave/cli-framework"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
-  cmd := cli.New(nil)
-  cmd.Action = func(c *cli.Context) error {
-    fmt.Printf("Hello %q", c.Args().Get(0))
-    return nil
-  }
+  cmd := cli.New(&cli.CLI{
+    Action: func(c *cli.Context) error {
+      fmt.Printf("Hello %q", c.Args().Get(0))
+      return nil
+    }
+  })
+
   cmd.Run(os.Args)
 }
 ```
@@ -135,9 +72,6 @@ func main() {
 
 Setting and querying flags is simple.
 
-<!-- {
-  "output": "Hello Nefertiti"
-} -->
 ``` go
 package main
 
@@ -149,17 +83,15 @@ import (
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag {
+  cmd := cli.New(&cli.CLI{
+  Flags = []cli.Flag {
     cli.StringFlag{
       Name: "lang",
       Value: "english",
       Usage: "language for the greeting",
     },
-  }
-
-  cmd.Action = func(c *cli.Context) error {
+  },
+  Action: func(c *cli.Context) error {
     name := "Nefertiti"
     if c.NArg() > 0 {
       name = c.Args().Get(0)
@@ -170,7 +102,7 @@ func main() {
       fmt.Println("Hello", name)
     }
     return nil
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -179,9 +111,6 @@ func main() {
 You can also set a destination variable for a flag, to which the content will be
 scanned.
 
-<!-- {
-  "output": "Hello someone"
-} -->
 ``` go
 package main
 
@@ -189,24 +118,22 @@ import (
   "os"
   "fmt"
 
-  cli "github.com/hackwave/cli-framework"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
   var language string
 
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag {
+  cmd := cli.New(&cli.CLI{
+  Flags: []cli.Flag {
     cli.StringFlag{
       Name:        "lang",
       Value:       "english",
       Usage:       "language for the greeting",
       Destination: &language,
     },
-  }
-
-  cmd.Action = func(c *cli.Context) error {
+  },
+  Action: func(c *cli.Context) error {
     name := "someone"
     if c.NArg() > 0 {
       name = c.Args()[0]
@@ -217,7 +144,7 @@ func main() {
       fmt.Println("Hello", name)
     }
     return nil
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -232,10 +159,6 @@ Such placeholders are indicated with back quotes.
 
 For example this:
 
-<!-- {
-  "args": ["&#45;&#45;help"],
-  "output": "&#45;&#45;config FILE, &#45;c FILE"
-} -->
 ```go
 package main
 
@@ -246,14 +169,13 @@ import (
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag{
+  cmd := cli.New(&cli.CLI{
+    Flags: []cli.Flag{
     cli.StringFlag{
       Name:  "config, c",
       Usage: "Load configuration from `FILE`",
     },
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -268,15 +190,11 @@ Will result in help output like:
 Note that only the first placeholder is used. Subsequent back-quoted words will
 be left as-is.
 
-#### Alternate Names
+#### Flag Name Aliasing
 
 You can set alternate (or short) names for flags by providing a comma-delimited
 list for the `Name`. e.g.
 
-<!-- {
-  "args": ["&#45;&#45;help"],
-  "output": "&#45;&#45;lang value, &#45;l value.*language for the greeting.*default: \"english\""
-} -->
 ``` go
 package main
 
@@ -287,15 +205,14 @@ import (
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag {
+  cmd := cli.New(&cli.CLI{
+  Flags: []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
       Usage: "language for the greeting",
     },
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -313,10 +230,6 @@ or `CommandsByName` with `sort`.
 
 For example this:
 
-<!-- {
-  "args": ["&#45;&#45;help"],
-  "output": "add a task to the list\n.*complete a task on the list\n.*\n\n.*\n.*Load configuration from FILE\n.*Language for the greeting.*"
-} -->
 ``` go
 package main
 
@@ -328,9 +241,8 @@ import (
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag {
+  cmd := cli.New(&cli.CLI{
+  Flags: []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
@@ -340,9 +252,8 @@ func main() {
       Name: "config, c",
       Usage: "Load configuration from `FILE`",
     },
-  }
-
-  cmd.Commands = []cli.Command{
+  },
+  Commands: []cli.Command{
     {
       Name:    "complete",
       Aliases: []string{"c"},
@@ -359,7 +270,7 @@ func main() {
         return nil
       },
     },
-  }
+  })
 
   sort.Sort(cli.FlagsByName(cmd.Flags))
   sort.Sort(cli.CommandsByName(cmd.Commands))
@@ -379,10 +290,6 @@ Will result in help output like:
 
 You can also have the default value set from the environment via `EnvVar`.  e.g.
 
-<!-- {
-  "args": ["&#45;&#45;help"],
-  "output": "language for the greeting.*APP_LANG"
-} -->
 ``` go
 package main
 
@@ -393,16 +300,15 @@ import (
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag {
+  cmd := cli.New(&cli.CLI{
+  Flags: []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
       Usage: "language for the greeting",
       EnvVar: "APP_LANG",
     },
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -411,157 +317,43 @@ func main() {
 The `EnvVar` may also be given as a comma-delimited "cascade", where the first
 environment variable that resolves is used as the default.
 
-<!-- {
-  "args": ["&#45;&#45;help"],
-  "output": "language for the greeting.*LEGACY_COMPAT_LANG.*APP_LANG.*LANG"
-} -->
 ``` go
 package main
 
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag {
+  cmd := cli.New(&cli.CLI{
+  Flags: []cli.Flag {
     cli.StringFlag{
       Name: "lang, l",
       Value: "english",
       Usage: "language for the greeting",
       EnvVar: "LEGACY_COMPAT_LANG,APP_LANG,LANG",
     },
-  }
+  })
 
   cmd.Run(os.Args)
 }
 ```
 
-#### Values from files
+#### Order of operations
 
-You can also have the default value set from file via `FilePath`.  e.g.
+The order of operations to assign flag value is (highest to lowest):
 
-<!-- {
-  "args": ["&#45;&#45;help"],
-  "output": "password for the mysql database"
-} -->
-``` go
-package main
-
-import (
-  "os"
-
-  "github.com/urfave/cli"
-)
-
-func main() {
-  cmd := cli.New(nil)
-
-  cmd.Flags = []cli.Flag {
-    cli.StringFlag{
-      Name: "password, p",
-      Usage: "password for the mysql database",
-      FilePath: "/etc/mysql/password",
-    },
-  }
-
-  cmd.Run(os.Args)
-}
-```
-
-Note that default values set from file (e.g. `FilePath`) take precedence over
-default values set from the enviornment (e.g. `EnvVar`).
-
-#### Values from alternate input sources (YAML, TOML, and others)
-
-There is a separate package altsrc that adds support for getting flag values
-from other file input sources.
-
-Currently supported input source formats:
-* YAML
-* TOML
-
-In order to get values for a flag from an alternate input source the following
-code would be added to wrap an existing cli.Flag like below:
-
-``` go
-  altsrc.NewIntFlag(cli.IntFlag{Name: "test"})
-```
-
-Initialization must also occur for these flags. Below is an example initializing
-getting data from a yaml file below.
-
-``` go
-  command.Before = altsrc.InitInputSourceWithContext(command.Flags, NewYamlSourceFromFlagFunc("load"))
-```
-
-The code above will use the "load" string as a flag name to get the file name of
-a yaml file from the cli.Context.  It will then use that file name to initialize
-the yaml input source for any flags that are defined on that command.  As a note
-the "load" flag used would also have to be defined on the command flags in order
-for this code snipped to work.
-
-Currently only the aboved specified formats are supported but developers can
-add support for other input sources by implementing the
-altsrc.InputSourceContext for their given sources.
-
-Here is a more complete sample of a command using YAML support:
-
-<!-- {
-  "args": ["test-cmd", "&#45;&#45;help"],
-  "output": "&#45&#45;test value.*default: 0"
-} -->
-``` go
-package notmain
-
-import (
-  "fmt"
-  "os"
-
-  "github.com/urfave/cli"
-  "github.com/urfave/cli/altsrc"
-)
-
-func main() {
-  cmd := cli.New(nil)
-
-  flags := []cli.Flag{
-    altsrc.NewIntFlag(cli.IntFlag{Name: "test"}),
-    cli.StringFlag{Name: "load"},
-  }
-
-  cmd.Action = func(c *cli.Context) error {
-    fmt.Println("yaml ist rad")
-    return nil
-  }
-
-  cmd.Before = altsrc.InitInputSourceWithContext(flags, altsrc.NewYamlSourceFromFlagFunc("load"))
-  cmd.Flags = flags
-
-  cmd.Run(os.Args)
-}
-```
-
-#### Precedence
-
-The precedence for flag value sources is as follows (highest to lowest):
-
-0. Command line flag value from user
-0. Environment variable (if specified)
-0. Configuration file (if specified)
-0. Default defined on the flag
+1. Command line flag value from user
+2. Environment variable (if specified)
+3. Configuration file (if specified)
+4. Default defined on the flag
 
 ### Subcommands
 
 Subcommands can be defined for a more git-like command line app.
 
-<!-- {
-  "args": ["template", "add"],
-  "output": "new task template: .+"
-} -->
 ```go
 package main
 
@@ -569,13 +361,12 @@ import (
   "fmt"
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Commands = []cli.Command{
+  cmd := cli.New(&cli.CLI{
+  Commands: []cli.Command{
     {
       Name:    "add",
       Aliases: []string{"a"},
@@ -617,7 +408,7 @@ func main() {
         },
       },
     },
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -637,13 +428,12 @@ package main
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
-  cmd := cli.New(nil)
-
-  cmd.Commands = []cli.Command{
+  cmd := cli.New(&cli.CLI{
+  Commands: []cli.Command{
     {
       Name: "noop",
     },
@@ -655,7 +445,7 @@ func main() {
       Name:     "remove",
       Category: "Template actions",
     },
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -685,23 +475,23 @@ package main
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
-  cmd := cli.New(nil)
-  cmd.Flags = []cli.Flag{
+  cmd := cli.New(&cli.CLI{
+  Flags: []cli.Flag{
     cli.BoolTFlag{
       Name:  "ginger-crouton",
       Usage: "is it in the soup?",
     },
   }
-  cmd.Action = func(ctx *cli.Context) error {
+  Action: func(ctx *cli.Context) error {
     if !ctx.Bool("ginger-crouton") {
       return cli.NewExitError("it is not in the soup", 86)
     }
     return nil
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -714,10 +504,6 @@ flag on the `App` object.  By default, this setting will only auto-complete to
 show an app's subcommands, but you can write your own completion methods for
 the App or its subcommands.
 
-<!-- {
-  "args": ["complete", "&#45;&#45;generate&#45;bash&#45;completion"],
-  "output": "laundry"
-} -->
 ``` go
 package main
 
@@ -725,7 +511,7 @@ import (
   "fmt"
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
@@ -752,7 +538,7 @@ func main() {
         }
       },
     },
-  }
+  })
 
   cmd.Run(os.Args)
 }
@@ -784,17 +570,13 @@ to the name of their program (as above).
 The default bash completion flag (`--generate-bash-completion`) is defined as
 `cli.BashCompletionFlag`, and may be redefined if desired, e.g.:
 
-<!-- {
-  "args": ["&#45;&#45;compgen"],
-  "output": "wat\nhelp\nh"
-} -->
 ``` go
 package main
 
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
@@ -803,13 +585,14 @@ func main() {
     Hidden: true,
   }
 
-  cmd := cli.New(nil)
-  cmd.EnableBashCompletion = true
-  cmd.Commands = []cli.Command{
-    {
-      Name: "wat",
-    },
-  }
+  cmd := cli.New(&cli.CLI{
+    EnableBashCompletion: true,
+    Commands: []cli.Command{
+      {
+       Name: "wat",
+      },
+  })
+
   cmd.Run(os.Args)
 }
 ```
@@ -835,7 +618,7 @@ package main
 import (
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
@@ -857,10 +640,6 @@ func main() {
 
 Alternatively, the version printer at `cli.VersionPrinter` may be overridden, e.g.:
 
-<!-- {
-  "args": ["&#45;&#45version"],
-  "output": "version=19\\.99\\.0 revision=fafafaf"
-} -->
 ``` go
 package main
 
@@ -868,7 +647,7 @@ import (
   "fmt"
   "os"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 var (
@@ -896,9 +675,6 @@ func main() {
 **Notice**: This is a contrived (functioning) example meant strictly for API
 demonstration purposes.  Use of one's imagination is encouraged.
 
-<!-- {
-  "output": "made it!\nPhew!"
-} -->
 ``` go
 package main
 
@@ -911,7 +687,7 @@ import (
   "os"
   "time"
 
-  "github.com/urfave/cli"
+  cli "github.com/multiverse-os/cli-framework"
 )
 
 func init() {
