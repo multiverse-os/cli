@@ -12,18 +12,18 @@ import (
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
-var CLIHelpTemplate = fmt.Sprintf(color.HeaderColor) + `{{.Name}} ` + fmt.Sprintf(color.VersionColor) + `v{{.Version}}
-` + fmt.Sprintf(color.SubheaderColor) + text.repeat("=", 80) + fmt.Sprintf(color.ResetColor) + `{{if .Description}}
+var CLIHelpTemplate = fmt.Sprintf(color.Header) + `{{.Name}} ` + fmt.Sprintf(color.Version) + `v{{.Version}}
+` + fmt.Sprintf(color.Subheader) + text.repeat("=", 80) + fmt.Sprintf(color.Reset) + `{{if .Description}}
 {{.Description}}
 {{end}}
-` + fmt.Sprintf(color.SubheaderColor) + `Usage:` + fmt.Sprintf(color.ResetColor) + `
-   {{if .UsageText}}{{.UsageText}}{{else}}` + fmt.Sprintf(color.CommandColor) + `{{.HelpName}} ` + fmt.Sprintf(color.ResetColor) + `{{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
+` + fmt.Sprintf(color.Subheader) + `Usage:` + fmt.Sprintf(color.Reset) + `
+   {{if .UsageText}}{{.UsageText}}{{else}}` + fmt.Sprintf(color.Subheader) + `{{.HelpName}} ` + fmt.Sprintf(color.Reset) + `{{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
-` + fmt.Sprintf(color.SubheaderColor) + `Global Options:` + fmt.Sprintf(color.ResetColor) + `
+` + fmt.Sprintf(color.Subheader) + `Global Options:` + fmt.Sprintf(color.Reset) + `
    {{range $index, $option := .VisibleFlags}}{{if $index}}
    {{end}}{{$option}}{{end}}
 
-` + fmt.Sprintf(color.SubheaderColor) + `Commands:` + fmt.Sprintf(color.ResetColor) + `{{range .VisibleCategories}}{{if .Name}}
+` + fmt.Sprintf(color.Subheader) + `Commands:` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}
      {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}
 `
@@ -31,18 +31,18 @@ var CLIHelpTemplate = fmt.Sprintf(color.HeaderColor) + `{{.Name}} ` + fmt.Sprint
 // CommandHelpTemplate is the text template for the command help topic.
 // cli.go uses text/template to render templates. You can
 // render custom help text by setting this variable.
-var CommandHelpTemplate = fmt.Sprintf(commandColor) + `{{.HelpName}}` + fmt.Sprintf(resetColor) + ` - {{.Usage}}
+var CommandHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{.Usage}}
 
-` + fmt.Sprintf(headerColor) + `Usage:` + fmt.Sprintf(resetColor) + `
+` + fmt.Sprintf(color.Header) + `Usage:` + fmt.Sprintf(color.Reset) + `
    {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
 
-` + fmt.Sprintf(headerColor) + `Category:` + fmt.Sprintf(resetColor) + `
+` + fmt.Sprintf(color.Header) + `Category:` + fmt.Sprintf(color.Reset) + `
    {{.Category}}{{end}}{{if .Description}}
 
-` + fmt.Sprintf(headerColor) + `Description:` + fmt.Sprintf(resetColor) + `
+` + fmt.Sprintf(color.Header) + `Description:` + fmt.Sprintf(color.Reset) + `
    {{.Description}}{{end}}{{if .VisibleFlags}}
 
-` + fmt.Sprintf(headerColor) + `Options:` + fmt.Sprintf(resetColor) + `
+` + fmt.Sprintf(color.Header) + `Options:` + fmt.Sprintf(color.Reset) + `
    {{range .VisibleFlags}}{{.}}
    {{end}}{{end}}
 `
@@ -51,16 +51,16 @@ var CommandHelpTemplate = fmt.Sprintf(commandColor) + `{{.HelpName}}` + fmt.Spri
 // cli.go uses text/template to render templates. You can
 // render custom help text by setting this variable.
 var SubcommandHelpTemplate = `Name:
-   ` + fmt.Sprintf(commandColor) + `{{.HelpName}}` + fmt.Sprintf(resetColor) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
+   ` + fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
 
-` + fmt.Sprintf(headerColor) + `Usage:` + fmt.Sprintf(resetColor) + `
+` + fmt.Sprintf(color.Header) + `Usage:` + fmt.Sprintf(color.Reset) + `
    {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
-` + fmt.Sprintf(headerColor) + `Commands:` + fmt.Sprintf(resetColor) + `{{range .VisibleCategories}}{{if .Name}}
+` + fmt.Sprintf(color.Header) + `Commands:` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}
      {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
 {{end}}{{if .VisibleFlags}}
-` + fmt.Sprintf(headerColor) + `Options:` + fmt.Sprintf(resetColor) + `
+` + fmt.Sprintf(color.Header) + `Options:` + fmt.Sprintf(color.Reset) + `
    {{range .VisibleFlags}}{{.}}
    {{end}}{{end}}
 `
@@ -91,7 +91,6 @@ var helpSubcommand = Command{
 		if args.Present() {
 			return ShowCommandHelp(c, args.First())
 		}
-
 		return ShowSubcommandHelp(c)
 	},
 }
@@ -231,7 +230,6 @@ func checkCommandHelp(c *Context, name string) bool {
 		ShowCommandHelp(c, name)
 		return true
 	}
-
 	return false
 }
 
@@ -240,7 +238,6 @@ func checkSubcommandHelp(c *Context) bool {
 		ShowSubcommandHelp(c)
 		return true
 	}
-
 	return false
 }
 
@@ -248,14 +245,11 @@ func checkShellCompleteFlag(a *CLI, arguments []string) (bool, []string) {
 	if !a.EnableBashCompletion {
 		return false, arguments
 	}
-
 	pos := len(arguments) - 1
 	lastArg := arguments[pos]
-
 	if lastArg != "--"+BashCompletionFlag.GetName() {
 		return false, arguments
 	}
-
 	return true, arguments[:pos]
 }
 
@@ -263,7 +257,6 @@ func checkCompletions(c *Context) bool {
 	if !c.shellComplete {
 		return false
 	}
-
 	if args := c.Args(); args.Present() {
 		name := args.First()
 		if cmd := c.CLI.Command(name); cmd != nil {
@@ -271,7 +264,6 @@ func checkCompletions(c *Context) bool {
 			return false
 		}
 	}
-
 	ShowCompletions(c)
 	return true
 }

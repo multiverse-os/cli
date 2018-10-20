@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	cli "github.com/hackwave/cli-framework"
+	cli "github.com/multiverse-os/cli-framework"
 )
 
 func main() {
