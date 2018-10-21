@@ -220,7 +220,7 @@ func (self *CLI) Run(arguments []string) (err error) {
 	}
 
 	if !self.HideVersion && checkVersion(context) {
-		ShowVersion(context)
+		PrintVersion(context)
 		return nil
 	}
 

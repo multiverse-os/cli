@@ -12,25 +12,21 @@ import (
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
-var CLIHelpTemplate = fmt.Sprintf(color.Header) + `{{.Name}} ` + fmt.Sprintf(color.Version) + `v{{.Version}}
-` + fmt.Sprintf(color.Subheader) + text.repeat("=", 80) + fmt.Sprintf(color.Reset) + `{{if .Description}}
+var CLIHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.Name}} ` + fmt.Sprintf(color.Strong) + `v{{.Version}}
+` + fmt.Sprintf(color.Subheader) + text.Repeat("=", 80) + fmt.Sprintf(color.Reset) + `{{if .Description}}
 {{.Description}}
 {{end}}
-` + fmt.Sprintf(color.Subheader) + `Usage:` + fmt.Sprintf(color.Reset) + `
+` + fmt.Sprintf(color.Strong) + `Usage:` + fmt.Sprintf(color.Reset) + `
    {{if .UsageText}}{{.UsageText}}{{else}}` + fmt.Sprintf(color.Subheader) + `{{.HelpName}} ` + fmt.Sprintf(color.Reset) + `{{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
-` + fmt.Sprintf(color.Subheader) + `Global Options:` + fmt.Sprintf(color.Reset) + `
-   {{range $index, $option := .VisibleFlags}}{{if $index}}
-   {{end}}{{$option}}{{end}}
+  {{if .VisibleFlags }}
+` + fmt.Sprintf(color.Strong) + `Global Options:` + fmt.Sprintf(color.Reset) + `
+     {{range $index, $option := .VisibleFlags}}{{if $index}}{{end}}{{$option}}{{end}}
 
-` + fmt.Sprintf(color.Subheader) + `Commands:` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
-   {{.Name}}:{{end}}{{range .VisibleCommands}}
-     {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}
+` + fmt.Sprintf(color.Strong) + `Commands:` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
+     {{.Name}}:{{end}}{{range .VisibleCommands}}{{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}
 `
 
-// CommandHelpTemplate is the text template for the command help topic.
-// cli.go uses text/template to render templates. You can
-// render custom help text by setting this variable.
 var CommandHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{.Usage}}
 
 ` + fmt.Sprintf(color.Header) + `Usage:` + fmt.Sprintf(color.Reset) + `
@@ -43,13 +39,9 @@ var CommandHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.S
    {{.Description}}{{end}}{{if .VisibleFlags}}
 
 ` + fmt.Sprintf(color.Header) + `Options:` + fmt.Sprintf(color.Reset) + `
-   {{range .VisibleFlags}}{{.}}
-   {{end}}{{end}}
+   {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
-// SubcommandHelpTemplate is the text template for the subcommand help topic.
-// cli.go uses text/template to render templates. You can
-// render custom help text by setting this variable.
 var SubcommandHelpTemplate = `Name:
    ` + fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
 
@@ -57,12 +49,9 @@ var SubcommandHelpTemplate = `Name:
    {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
 ` + fmt.Sprintf(color.Header) + `Commands:` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
-   {{.Name}}:{{end}}{{range .VisibleCommands}}
-     {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
-{{end}}{{if .VisibleFlags}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}{{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{if .VisibleFlags}}
 ` + fmt.Sprintf(color.Header) + `Options:` + fmt.Sprintf(color.Reset) + `
-   {{range .VisibleFlags}}{{.}}
-   {{end}}{{end}}
+   {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
 var helpCommand = Command{
@@ -102,9 +91,6 @@ type helpPrinter func(w io.Writer, templ string, data interface{})
 // is used. The function signature is:
 // func(w io.Writer, templ string, data interface{})
 var HelpPrinter helpPrinter = printHelp
-
-// VersionPrinter prints the version for the CLI
-var VersionPrinter = printVersion
 
 // ShowCLIHelpAndExit - Prints the list of subcommands for the cli and exits with exit code.
 func ShowCLIHelpAndExit(c *Context, exitCode int) {
@@ -163,12 +149,7 @@ func ShowSubcommandHelp(c *Context) error {
 	return ShowCommandHelp(c, c.Command.Name)
 }
 
-// ShowVersion prints the version number of the CLI
-func ShowVersion(c *Context) {
-	VersionPrinter(c)
-}
-
-func printVersion(c *Context) {
+func PrintVersion(c *Context) {
 	fmt.Fprintf(c.CLI.Writer, "%v version %v\n", c.CLI.Name, c.CLI.Version.String())
 }
 
