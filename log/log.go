@@ -11,6 +11,24 @@ import (
 // TODO: Should be able to specify log location, default to standard /var/log/{program_name}
 // should be able to output JSON logs
 
+type Logger struct {
+	AppName   string
+	Path      string
+	Filename  string
+	Verbosity int
+	StdOut    bool
+	JSON      bool
+}
+
+var Logger = Logger{
+	AppName:   "",
+	Path:      "/var/log/{app_name}",
+	Filename:  "{app_name}.log",
+	Verbosity: 1,
+	StdOut:    true,
+	JSON:      false,
+}
+
 type LogType int
 
 const (
@@ -22,12 +40,15 @@ const (
 )
 
 func Print(logType LogType, text string) {
-	fmt.Println("")
 	switch logType {
 	case INFO:
-		fmt.Println(color.Info("[INFO] ") + text)
+		if Logger.StdOut {
+			fmt.Println(color.Info("[INFO] ") + text)
+		}
 	case WARNING:
-		fmt.Println(color.Warning("[Warning] ") + text)
+		if Logger.StdOut {
+			fmt.Println(color.Warning("[Warning] ") + text)
+		}
 	case ERROR:
 		Error(errors.New(text))
 	case FATAL:
