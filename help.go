@@ -74,7 +74,7 @@ var helpCommand = Command{
 var helpSubcommand = Command{
 	Name:      "help",
 	Aliases:   []string{"h"},
-	Usage:     "Shows a list of commands or help for one command",
+	Usage:     "List of available commands or details for a specified command",
 	ArgsUsage: "[command]",
 	Action: func(c *Context) error {
 		args := c.Args()
