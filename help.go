@@ -13,18 +13,17 @@ import (
 )
 
 var CLIHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.Name}} ` + fmt.Sprintf(color.Strong) + `v{{.Version}}
-` + fmt.Sprintf(color.Subheader) + text.Repeat("=", 80) + fmt.Sprintf(color.Reset) + `{{if .Description}}
+` + fmt.Sprintf(color.Reset) + text.Repeat("=", 80) + `{{if .Description}}
 {{.Description}}
 {{end}}
 ` + fmt.Sprintf(color.Strong) + `Usage:` + fmt.Sprintf(color.Reset) + `
    {{if .UsageText}}{{.UsageText}}{{else}}` + fmt.Sprintf(color.Subheader) + `{{.HelpName}} ` + fmt.Sprintf(color.Reset) + `{{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
-
-  {{if .VisibleFlags }}
 ` + fmt.Sprintf(color.Strong) + `Global Options:` + fmt.Sprintf(color.Reset) + `
-     {{range $index, $option := .VisibleFlags}}{{if $index}}{{end}}{{$option}}{{end}}
-
+   {{range $index, $option := .VisibleFlags}}{{if $index}}
+   {{end}}{{$option}}{{end}}
 ` + fmt.Sprintf(color.Strong) + `Commands:` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
-     {{.Name}}:{{end}}{{range .VisibleCommands}}{{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}
+    ` + fmt.Sprintf(color.Subheader) + ` {{join .Names ", "}}` + fmt.Sprintf(color.Reset) + `{{"\t"}}{{.Usage}}{{end}}{{end}}
 `
 
 var CommandHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{.Usage}}
