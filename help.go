@@ -14,44 +14,39 @@ import (
 
 // TODO: Why are commands VisibleCategories? This section is practically unreadable and very hard to customize
 // TODO: All lines should be checked for length of 80 and broken into new line if so with the correct tab spacing prefixing it
-var CLIHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.Name}} ` + fmt.Sprintf(color.Strong) + `v{{.Version}}
-` + fmt.Sprintf(color.Reset) + text.Repeat("=", 80) + `{{if .Description}}
-{{.Description}}
-{{end}}
-` + fmt.Sprintf(color.Strong) + `Usage` + fmt.Sprintf(color.Reset) + `
-   {{if .UsageText}}{{.UsageText}}{{else}}` + fmt.Sprintf(color.Subheader) + `{{.HelpName}} ` + fmt.Sprintf(color.Reset) + `{{if .VisibleFlags}}[flag options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
-{{if .VisibleFlags}}{{"\n"}}` + fmt.Sprintf(color.Strong) + `Flag Options` + fmt.Sprintf(color.Reset) + `
+var CLIHelpTemplate = fmt.Sprintf(color.SubheaderCode) + `{{.Name}} ` + fmt.Sprintf(color.StrongCode) + `v{{.Version}}{{"\n"}}` +
+	fmt.Sprintf(color.Reset) + text.Repeat("=", 80) + `{{if .Description}}{{.Description}}{{end}}` +
+	fmt.Sprintf(color.StrongCode) + `{{"\n"}}Usage` + fmt.Sprintf(color.Reset) + `{{"\n\t\t"}}{{if .UsageText}}{{.UsageText}}{{else}}` +
+	fmt.Sprintf(color.SubheaderCode) + `{{.HelpName}} ` + fmt.Sprintf(color.Reset) + `{{if .VisibleFlags}}[flag options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .VisibleFlags}}{{"\n"}}` + fmt.Sprintf(color.StrongCode) + `Flag Options` + fmt.Sprintf(color.Reset) + `
    {{range $index, $option := .VisibleFlags}}{{if $index}}
    {{end}}{{$option}}{{end}}{{end}}
-{{if .VisibleCategories}}{{"\n"}}` + fmt.Sprintf(color.Strong) + `Commands` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
+{{if .VisibleCategories}}{{"\n"}}` + fmt.Sprintf(color.StrongCode) + `Commands` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}
-    ` + fmt.Sprintf(color.Subheader) + ` {{join .Names ", "}}` + fmt.Sprintf(color.Reset) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}
+    ` + fmt.Sprintf(color.SubheaderCode) + ` {{join .Names ", "}}` + fmt.Sprintf(color.Reset) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}
 `
 
-var CommandHelpTemplate = fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{.Usage}}
+var CommandHelpTemplate = fmt.Sprintf(color.SubheaderCode) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{.Usage}}{{"\n"}}` + fmt.Sprintf(color.HeaderCode) + `Usage` + fmt.Sprintf(color.Reset) +
+	`{{"\n"}}{{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
 
-` + fmt.Sprintf(color.Header) + `Usage` + fmt.Sprintf(color.Reset) + `
-   {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
-
-` + fmt.Sprintf(color.Header) + `Category` + fmt.Sprintf(color.Reset) + `
+` + fmt.Sprintf(color.HeaderCode) + `Category` + fmt.Sprintf(color.Reset) + `
    {{.Category}}{{end}}{{if .Description}}
 
-` + fmt.Sprintf(color.Header) + `Description` + fmt.Sprintf(color.Reset) + `
+` + fmt.Sprintf(color.HeaderCode) + `Description` + fmt.Sprintf(color.Reset) + `
    {{.Description}}{{end}}{{if .VisibleFlags}}
 
-` + fmt.Sprintf(color.Header) + `Options` + fmt.Sprintf(color.Reset) + `
+` + fmt.Sprintf(color.HeaderCode) + `Options` + fmt.Sprintf(color.Reset) + `
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
 var SubcommandHelpTemplate = `Name
-   ` + fmt.Sprintf(color.Subheader) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
+   ` + fmt.Sprintf(color.SubheaderCode) + `{{.HelpName}}` + fmt.Sprintf(color.Reset) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
 
-` + fmt.Sprintf(color.Header) + `Usage` + fmt.Sprintf(color.Reset) + `
+` + fmt.Sprintf(color.HeaderCode) + `Usage` + fmt.Sprintf(color.Reset) + `
    {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
-` + fmt.Sprintf(color.Header) + `Commands` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
+` + fmt.Sprintf(color.HeaderCode) + `Commands` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}{{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{if .VisibleFlags}}
-` + fmt.Sprintf(color.Header) + `Options` + fmt.Sprintf(color.Reset) + `
+` + fmt.Sprintf(color.HeaderCode) + `Options` + fmt.Sprintf(color.Reset) + `
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
