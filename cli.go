@@ -10,12 +10,14 @@ import (
 	"time"
 
 	log "github.com/multiverse-os/cli-framework/log"
+	text "github.com/multiverse-os/cli-framework/text"
+	"github.com/multiverse-os/cli-framework/text/color"
 )
 
 // TODO: Move all text into locales so we can support localization
 type CLI struct {
-	Name        string
-	ColorOutput bool
+	Name   string
+	NoANSI bool
 	// TODO: Is this redudant between usage text and description?
 	Usage string
 	// Text to override the USAGE section of help
@@ -44,19 +46,19 @@ type CLI struct {
 	// The action to execute when no subcommands are specified
 	// Expects a `cli.ActionFunc` but will accept the *deprecated* signature of `func(*cli.Context) {}`
 	// *Note*: support for the deprecated `Action` signature will be removed in a future version
-	Action interface{}
-	// Execute this function if the proper command cannot be found
+
+	// Functions
+	//////////////////////////////////////////////////////////////////////////////
+	Action          interface{}
 	CommandNotFound CommandNotFoundFunc
-	// Execute this function if an usage error occurs
-	OnUsageError OnUsageErrorFunc
-	CompiledOn   time.Time
+	OnUsageError    OnUsageErrorFunc
+	ExitErrHandler  ExitErrHandlerFunc
+
+	CompiledOn time.Time
 	// Writer writer to write output to
 	Writer io.Writer
 	// ErrWriter writes error output
 	ErrWriter io.Writer
-	// Execute this function to handle ExitErrors. If not provided, HandleExitCoder is provided to
-	// function as a default, so this is optional.
-	ExitErrHandler ExitErrHandlerFunc
 	// Other custom info
 	Metadata map[string]interface{}
 	// Carries a function which returns app specific info.
@@ -65,29 +67,26 @@ type CLI struct {
 	// cli.go uses text/template to render templates. You can
 	// render custom help text by setting this variable.
 	CustomCLIHelpTemplate string
-	// TODO: Is this necessary?
-	didSetup bool
 }
 
 func New(cmd *CLI) *CLI {
 	if cmd.Name == "" {
-		// The folder name of the executable; same as go build default for executable name
 		var err error
 		cmd.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
 			log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
 		}
 	}
-	if cmd.Usage == "" {
-		cmd.Usage = "A new command-line interface"
+	if &cmd.Version == nil {
+		cmd.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
-	if cmd.Version.Major == 0 && cmd.Version.Minor == 0 && cmd.Version.Patch == 0 {
-		cmd.Version = Version{
-			Major: 0,
-			Minor: 1,
-			Patch: 0,
-		}
-	}
+	//if cmd.Version.Major == 0 && cmd.Version.Minor == 0 && cmd.Version.Patch == 0 {
+	//	cmd.Version = Version{
+	//		Major: 0,
+	//		Minor: 1,
+	//		Patch: 0,
+	//	}
+	//}
 	if cmd.BashComplete == nil {
 		cmd.BashComplete = DefaultCLIComplete
 	}
@@ -108,12 +107,7 @@ func New(cmd *CLI) *CLI {
 // `Run` or inspection prior to `Run`.  It is internally called by `Run`, but
 // will return early if setup has already happened.
 func (self *CLI) Setup() {
-	if self.didSetup {
-		return
-	}
-
-	self.didSetup = true
-
+	//log.Info("Logging to '" + self.LogFile() + "'")
 	newCmds := []Command{}
 	for _, c := range self.Commands {
 		newCmds = append(newCmds, c)
@@ -146,11 +140,8 @@ func (self *CLI) Setup() {
 	}
 }
 
-// Run is the entry point to the cli app. Parses the arguments slice and routes
-// to the proper flag/args combination
 func (self *CLI) Run(arguments []string) (err error) {
 	self.Setup()
-
 	// handle the completion flag separately from the flagset since
 	// completion could be attempted after a flag, but before its value was put
 	// on the command line. this causes the flagset to interpret the completion
@@ -158,13 +149,10 @@ func (self *CLI) Run(arguments []string) (err error) {
 	// note that we can only do this because the shell autocomplete function
 	// always appends the completion flag at the end of the command
 	shellComplete, arguments := checkShellCompleteFlag(self, arguments)
-
-	// parse flags
 	set, err := flagSet(self.Name, self.Flags)
 	if err != nil {
 		return err
 	}
-
 	set.SetOutput(ioutil.Discard)
 	err = set.Parse(arguments[1:])
 	nerr := normalizeFlags(self.Flags, set)
@@ -372,9 +360,25 @@ func (self *CLI) Command(name string) *Command {
 	return nil
 }
 
-// Categories returns a slice containing all the categories with the commands they contain
 func (self *CLI) Categories() CommandCategories {
 	return self.categories
+}
+
+func (self *CLI) VisibleFlags() []Flag {
+	return visibleFlags(self.Flags)
+}
+
+func (self *CLI) HasVisibleFlags() bool {
+	return (len(self.Flags) > 0)
+}
+
+func (self *CLI) hasFlag(flag Flag) bool {
+	for _, f := range self.Flags {
+		if flag == f {
+			return true
+		}
+	}
+	return false
 }
 
 func (self *CLI) VisibleCategories() []*CommandCategory {
@@ -394,7 +398,6 @@ func (self *CLI) VisibleCategories() []*CommandCategory {
 	return ret
 }
 
-// VisibleCommands returns a slice of the Commands with Hidden=false
 func (self *CLI) VisibleCommands() []Command {
 	ret := []Command{}
 	for _, command := range self.Commands {
@@ -403,6 +406,10 @@ func (self *CLI) VisibleCommands() []Command {
 		}
 	}
 	return ret
+}
+
+func (self *CLI) HasVisibleCommands() bool {
+	return (len(self.VisibleCommands()) > 0)
 }
 
 func (self *CLI) errWriter() io.Writer {
@@ -442,4 +449,13 @@ func HandleAction(action interface{}, context *Context) error {
 	}
 
 	return errInvalidActionType
+}
+
+func (self *CLI) LogFile() string {
+	return (self.Logger.Path + self.Logger.Filename)
+}
+
+func (self *CLI) PrintBanner() {
+	fmt.Println(color.Header(self.Name) + "  " + color.Strong("v"+self.Version.String()))
+	fmt.Println(color.Light(text.Repeat("=", 80)))
 }

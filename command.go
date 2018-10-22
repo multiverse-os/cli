@@ -176,59 +176,48 @@ func (c *Command) parseFlags(args Args) (*flag.FlagSet, error) {
 		return nil, err
 	}
 	set.SetOutput(ioutil.Discard)
-
 	if c.SkipFlagParsing {
 		return set, set.Parse(append([]string{"--"}, args...))
 	}
-
 	if c.UseShortOptionHandling {
 		args = translateShortOptions(args)
 	}
-
 	if !c.SkipArgReorder {
 		args = reorderArgs(args)
 	}
-
 	err = set.Parse(args)
 	if err != nil {
 		return nil, err
 	}
-
 	err = normalizeFlags(c.Flags, set)
 	if err != nil {
 		return nil, err
 	}
-
 	return set, nil
 }
 
 // reorderArgs moves all flags before arguments as this is what flag expects
 func reorderArgs(args []string) []string {
 	var nonflags, flags []string
-
 	readFlagValue := false
 	for i, arg := range args {
 		if arg == "--" {
 			nonflags = append(nonflags, args[i:]...)
 			break
 		}
-
 		if readFlagValue && !strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") {
 			readFlagValue = false
 			flags = append(flags, arg)
 			continue
 		}
 		readFlagValue = false
-
 		if arg != "-" && strings.HasPrefix(arg, "-") {
 			flags = append(flags, arg)
-
 			readFlagValue = !strings.Contains(arg, "=")
 		} else {
 			nonflags = append(nonflags, arg)
 		}
 	}
-
 	return append(flags, nonflags...)
 }
 

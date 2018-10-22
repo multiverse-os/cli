@@ -8,9 +8,10 @@ import (
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
+// TODO: Add flag to increase resolution of the timestamp for software that needs greater resolution
+
 func Print(logType LogType, text string) {
-	fmt.Println(logType.FormattedString(true) + color.White("["+time.Now().Format("Mon Jan _2 15:01:00 2018")+"] ") + text)
-	//fmt.Println(logType.FormattedString(true) + color.White("["+time.Now().Format(time.RFC3339)+"] ") + text)
+	fmt.Println(logType.FormattedString(true) + color.White("["+time.Now().Format("Jan _2 15:04")+"] ") + text)
 	if logType == FATAL || logType == PANIC {
 		os.Exit(1)
 	}

@@ -12,62 +12,47 @@ import (
 	"time"
 )
 
+// TODO: This file is terrible, we can just use an interface and do a switchcase top determine type
+// this will make a 700 line file maybe 100 lines
+
+type OptionFlag struct {
+	Name        string
+	Alias       string
+	Description string
+	Value       interface{}
+}
+
+type Flag interface {
+	fmt.Stringer
+	Apply(*flag.FlagSet)
+	GetName() string
+}
+
 const defaultPlaceholder = "value"
 
-// VisibleFlags returns a slice of the Flags with Hidden=false
-func (self *CLI) VisibleFlags() []Flag {
-	return visibleFlags(self.Flags)
-}
-
-func (self *CLI) hasFlag(flag Flag) bool {
-	for _, f := range self.Flags {
-		if flag == f {
-			return true
-		}
-	}
-
-	return false
-}
-
-// BashCompletionFlag enables bash-completion for all commands and subcommands
 var BashCompletionFlag Flag = BoolFlag{
 	Name:   "generate-bash-completion",
 	Hidden: true,
 }
 
-// VersionFlag prints the version for the application
 var VersionFlag Flag = BoolFlag{
 	Name:   "version, v",
 	Usage:  "Print version",
 	Hidden: true,
 }
 
-// HelpFlag prints the help for all commands and subcommands
-// Set to the zero value (BoolFlag{}) to disable flag -- keeps subcommand
-// unless HideHelp is set to true)
 var HelpFlag Flag = BoolFlag{
 	Name:   "help, h",
 	Usage:  "Print help text",
 	Hidden: true,
 }
 
-// FlagStringer converts a flag definition to a string. This is used by help
-// to display a flag.
 var FlagStringer FlagStringFunc = stringifyFlag
-
-// FlagNamePrefixer converts a full flag name and its placeholder into the help
-// message flag prefix. This is used by the default FlagStringer.
 var FlagNamePrefixer FlagNamePrefixFunc = prefixedNames
-
-// FlagEnvHinter annotates flag help message with the environment variable
-// details. This is used by the default FlagStringer.
 var FlagEnvHinter FlagEnvHintFunc = withEnvHint
-
-// FlagFileHinter annotates flag help message with the environment variable
-// details. This is used by the default FlagStringer.
 var FlagFileHinter FlagFileHintFunc = withFileHint
 
-// FlagsByName is a slice of Flag.
+// TODO: Sort
 type FlagsByName []Flag
 
 func (f FlagsByName) Len() int {
@@ -82,16 +67,6 @@ func (f FlagsByName) Swap(i, j int) {
 	f[i], f[j] = f[j], f[i]
 }
 
-// Flag is a common interface related to parsing flags in cli.
-// For more advanced flag parsing techniques, it is recommended that
-// this interface be implemented.
-type Flag interface {
-	fmt.Stringer
-	// Apply Flag settings to the given flag set
-	Apply(*flag.FlagSet)
-	GetName() string
-}
-
 // errorableFlag is an interface that allows us to return errors during apply
 // it allows flags defined in this library to return errors in a fashion backwards compatible
 // TODO remove in v2 and modify the existing Flag interface to return errors
@@ -103,7 +78,6 @@ type errorableFlag interface {
 
 func flagSet(name string, flags []Flag) (*flag.FlagSet, error) {
 	set := flag.NewFlagSet(name, flag.ContinueOnError)
-
 	for _, f := range flags {
 		//TODO remove in v2 when errorableFlag is removed
 		if ef, ok := f.(errorableFlag); ok {
@@ -560,13 +534,10 @@ func (f DurationFlag) ApplyWithError(set *flag.FlagSet) error {
 	return nil
 }
 
-// Apply populates the flag given the flag set and environment
-// Ignores errors
 func (f Float64Flag) Apply(set *flag.FlagSet) {
 	f.ApplyWithError(set)
 }
 
-// ApplyWithError populates the flag given the flag set and environment
 func (f Float64Flag) ApplyWithError(set *flag.FlagSet) error {
 	if envVal, ok := flagFromFileEnv(f.FilePath, f.EnvVar); ok {
 		envValFloat, err := strconv.ParseFloat(envVal, 10)
@@ -588,9 +559,9 @@ func (f Float64Flag) ApplyWithError(set *flag.FlagSet) error {
 	return nil
 }
 
-func visibleFlags(fl []Flag) []Flag {
+func visibleFlags(flags []Flag) []Flag {
 	visible := []Flag{}
-	for _, flag := range fl {
+	for _, flag := range flags {
 		field := flagValue(flag).FieldByName("Hidden")
 		if !field.IsValid() || !field.Bool() {
 			visible = append(visible, flag)

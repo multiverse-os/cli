@@ -14,19 +14,49 @@ import (
 
 // TODO: Lets not use global variables, it just doesnt feel right
 
-// TODO: ColorOutput is a bool, if its false, we should remove the color code
 // TODO: Why are commands VisibleCategories? This section is practically unreadable and very hard to customize
 // TODO: All lines should be checked for length of 80 and broken into new line if so with the correct tab spacing prefixing it
-var CLIHelpTemplate = fmt.Sprintf(color.H1) + `{{.Name}} ` + fmt.Sprintf(color.STRONG) + `v{{.Version}}{{"\n"}}` +
-	fmt.Sprintf(color.RESET) + text.Repeat("=", 80) + `{{if .Description}}{{.Description}}{{end}}` +
-	fmt.Sprintf(color.STRONG) + `{{"\n"}}Usage` + fmt.Sprintf(color.RESET) + `{{"\n    "}}{{if .UsageText}}{{.UsageText}}{{else}}` +
-	fmt.Sprintf(color.H1) + `{{.Name}} ` + fmt.Sprintf(color.RESET) + `{{if .VisibleFlags}}[options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .VisibleFlags}}` + fmt.Sprintf(color.STRONG) + `{{"\n\n"}}Options` + fmt.Sprintf(color.RESET) + `
-   {{range $index, $option := .VisibleFlags}}{{if $index}}
-   {{end}}{{$option}}{{end}}{{end}}
-{{if .VisibleCategories}}{{"\n"}}` + fmt.Sprintf(color.STRONG) + `Commands` + fmt.Sprintf(color.RESET) + `{{range .VisibleCategories}}{{if .Name}}
-   {{.Name}}:{{end}}{{end}}{{range .VisibleCommands}}
-    ` + fmt.Sprintf(color.H1) + ` {{join .Names ", "}}` + fmt.Sprintf(color.RESET) + `{{"\t"}}{{.Usage}}{{end}}{{end}}
-`
+// TODO: Use table library code to improve the structure of this and do better alignment of values
+func (self *CLI) PrintHelp() {
+	if self.Description != "" {
+		fmt.Println(color.Strong(self.Description))
+	}
+	if self.Usage != "" {
+		if self.NoANSI {
+			fmt.Println("Usage")
+		} else {
+			fmt.Println(color.Strong("Usage"))
+		}
+		fmt.Print(text.Repeat(" ", 4))
+
+		if self.NoANSI {
+			fmt.Print(self.Name)
+		} else {
+			fmt.Print(color.Header(self.Name))
+		}
+		if self.HasVisibleFlags() {
+			fmt.Print(" [options]")
+		} else {
+		}
+		if self.HasVisibleCommands() {
+			fmt.Print(" command [command options]")
+		}
+		if self.ArgsUsage != "" {
+			fmt.Println(" " + self.ArgsUsage)
+		} else {
+			fmt.Println("[arguments...]")
+		}
+		if self.HasVisibleFlags() {
+			fmt.Println("\n" + color.Strong("Options"))
+			for _, flag := range self.VisibleFlags() {
+				fmt.Println("flag: ", flag)
+			}
+		}
+	}
+}
+
+var CLIHelpTemplate = `{{range $index, $option := .VisibleFlags}}{{if $index}}{{"\n"}}{{end}}{{"\t\t"}}{{$option}}{{end}}{{"\n"}}{{if .VisibleCategories}}{{"\n"}}` +
+	fmt.Sprintf(color.STRONG) + `Commands` + fmt.Sprintf(color.RESET) + `{{range .VisibleCategories}}{{if .Name}}{{"\n"}}{{.Name}}:{{end}}{{end}}{{range .VisibleCommands}}{{"\n\t "}}` + fmt.Sprintf(color.H1) + ` {{join .Names ", "}}` + fmt.Sprintf(color.RESET) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{"\n"}}`
 
 var CommandHelpTemplate = fmt.Sprintf(color.H1) + `{{.Name}}` + fmt.Sprintf(color.RESET) + ` - {{.Usage}}{{"\n"}}` + fmt.Sprintf(color.H1) + `Usage` + fmt.Sprintf(color.RESET) +
 	`{{"\n"}}{{if .UsageText}}{{.UsageText}}{{else}}{{.Name}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
@@ -93,6 +123,8 @@ func ShowCLIHelpAndExit(c *Context, exitCode int) {
 }
 
 func ShowCLIHelp(c *Context) {
+	c.CLI.PrintBanner()
+	c.CLI.PrintHelp()
 	HelpPrinter(c.CLI.Writer, CLIHelpTemplate, c.CLI)
 }
 

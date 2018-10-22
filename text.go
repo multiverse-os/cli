@@ -24,6 +24,9 @@ var (
 //return fmt.Errorf("could not parse %s as int64 slice value for flag %s: %s", envVal, f.Name, err)
 //return fmt.Errorf("could not parse %s as uint value for flag %s: %s", envVal, f.Name, err)
 //return fmt.Errorf("could not parse %s as uint64 value for flag %s: %s", envVal, f.Name, err)
+//return fmt.Errorf("could not parse %s as duration for flag %s: %s", envVal, f.Name, err)
+
+//fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
 
 //Name:   "version, v",
 //Usage:  "Print version",

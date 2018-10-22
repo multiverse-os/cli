@@ -3,20 +3,14 @@ package log
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"strings"
 	"time"
 
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
-type AppLogger interface {
-	Log(text string)
-	Info(text string)
-	Warning(text string)
-	Error(text string)
-	FatalError(text string)
-}
-
+// TODO: Add flag to increase resolution of the timestamp for software that needs greater resolution
 type Logger struct {
 	AppName   string
 	Entries   []Entry
@@ -33,18 +27,21 @@ func NewLogger(name string, verbosity int, toFile, toStdOut, json bool) Logger {
 	logPath := ("/var/log/" + name + "/")
 	logFilename := (name + ".log")
 	if _, err := os.Stat(logPath); os.IsNotExist(err) {
-		fmt.Println("file does not exist")
 		os.MkdirAll(logPath, 0660)
 		os.OpenFile((logPath + logFilename), os.O_RDONLY|os.O_CREATE, 0660)
-		// TODO: If this fails to create in var log, we should make the default log directory within user home directory
-	} else {
-		fmt.Println("file exists")
+		if _, err := os.Stat(logPath); os.IsNotExist(err) {
+			if _, err := os.Stat((UserLogPath(name) + logFilename)); os.IsNotExist(err) {
+				os.MkdirAll(UserLogPath(name), 0660)
+				os.OpenFile((UserLogPath(name) + logFilename), os.O_RDONLY|os.O_CREATE, 0660)
+			}
+			logPath = UserLogPath(name)
+		}
 	}
 	return Logger{
 		AppName:   name,
 		Path:      logPath,
-		Entries:   []Entry{},
 		Filename:  logFilename,
+		Entries:   []Entry{},
 		Verbosity: verbosity,
 		ToFile:    toFile,
 		ToStdOut:  toStdOut,
@@ -64,7 +61,7 @@ func (self Logger) Log(logType LogType, text string) {
 		Text:   text,
 	}
 	self.Entries = append(self.Entries, logEntry)
-	fmt.Println(logEntry.Type.FormattedString(true) + color.White("["+logEntry.Time.String()+"] ") + logEntry.Text)
+	fmt.Println(logEntry.Type.FormattedString(true) + color.White("["+logEntry.Time.Format("Jan _2 15:04")+"] ") + logEntry.Text)
 	if logEntry.Type == FATAL || logEntry.Type == PANIC {
 		os.Exit(1)
 	}
@@ -100,7 +97,7 @@ func (self Logger) Panic(text string) {
 
 func (self Logger) AppendToLog(text string) {
 	// TODO: Add the ability to write to file as JSON (and probably XML)
-	file, err := os.OpenFile((self.Path + self.Filename), os.O_APPEND|os.O_WRONLY, 0660)
+	file, err := os.OpenFile(self.LogFile(), os.O_APPEND|os.O_WRONLY, 0660)
 	if err != nil {
 		self.ToFile = false
 		self.ToStdOut = true
@@ -111,5 +108,28 @@ func (self Logger) AppendToLog(text string) {
 		self.ToFile = false
 		self.ToStdOut = true
 		self.Log(FATAL, err.Error())
+	}
+}
+
+func (self Logger) LogFile() string {
+	return (self.Path + self.Filename)
+}
+
+func UserLogPath(appName string) string {
+	home := os.Getenv("XDG_CONFIG_HOME")
+	if home != "" {
+		return (home + "/.local/share/" + strings.ToLower(appName) + "/")
+	} else {
+		home = os.Getenv("HOME")
+		if home != "" {
+			return (home + "/.local/share/" + strings.ToLower(appName) + "/")
+		} else {
+			currentUser, err := user.Current()
+			if err != nil {
+				FatalError(err)
+			}
+			home = currentUser.HomeDir
+			return (home + "/.local/share/" + strings.ToLower(appName) + "/")
+		}
 	}
 }
