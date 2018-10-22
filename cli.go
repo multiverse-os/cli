@@ -24,6 +24,8 @@ type CLI struct {
 	Name string
 	// Full name of command for help, defaults to Name
 	HelpName string
+	// Color Help ouput
+	ColorOutput bool
 	// Description of the program.
 	Usage string
 	// Text to override the USAGE section of help
@@ -39,7 +41,6 @@ type CLI struct {
 	// List of flags to parse
 	Flags []Flag
 	// Color help output
-	ColorOutput bool
 	// Boolean to enable bash completion commands
 	BashCompletion bool
 	// Boolean to hide built-in help command
@@ -122,9 +123,6 @@ func New(cmd *CLI) *CLI {
 	}
 	if cmd.Writer == nil {
 		cmd.Writer = os.Stdout
-	}
-	if cmd.ColorOuput == nil {
-		cmd.ColorOutput = true
 	}
 	cmd.CompiledOn = compiledOn()
 	return cmd

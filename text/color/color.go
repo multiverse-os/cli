@@ -6,7 +6,7 @@ package color
 
 const (
 	prefix = "\x1b["
-	suffix = ";m"
+	suffix = "m"
 )
 
 const (
