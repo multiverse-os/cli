@@ -16,8 +16,8 @@ import (
 // TODO: All lines should be checked for length of 80 and broken into new line if so with the correct tab spacing prefixing it
 var CLIHelpTemplate = fmt.Sprintf(color.SubheaderCode) + `{{.Name}} ` + fmt.Sprintf(color.StrongCode) + `v{{.Version}}{{"\n"}}` +
 	fmt.Sprintf(color.Reset) + text.Repeat("=", 80) + `{{if .Description}}{{.Description}}{{end}}` +
-	fmt.Sprintf(color.StrongCode) + `{{"\n"}}Usage` + fmt.Sprintf(color.Reset) + `{{"\n\t\t"}}{{if .UsageText}}{{.UsageText}}{{else}}` +
-	fmt.Sprintf(color.SubheaderCode) + `{{.HelpName}} ` + fmt.Sprintf(color.Reset) + `{{if .VisibleFlags}}[flag options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .VisibleFlags}}{{"\n"}}` + fmt.Sprintf(color.StrongCode) + `Flag Options` + fmt.Sprintf(color.Reset) + `
+	fmt.Sprintf(color.StrongCode) + `{{"\n"}}Usage` + fmt.Sprintf(color.Reset) + `{{"\n    "}}{{if .UsageText}}{{.UsageText}}{{else}}` +
+	fmt.Sprintf(color.SubheaderCode) + `{{.HelpName}} ` + fmt.Sprintf(color.Reset) + `{{if .VisibleFlags}}[options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .VisibleFlags}}` + fmt.Sprintf(color.StrongCode) + `{{"\n\n"}}Options` + fmt.Sprintf(color.Reset) + `
    {{range $index, $option := .VisibleFlags}}{{if $index}}
    {{end}}{{$option}}{{end}}{{end}}
 {{if .VisibleCategories}}{{"\n"}}` + fmt.Sprintf(color.StrongCode) + `Commands` + fmt.Sprintf(color.Reset) + `{{range .VisibleCategories}}{{if .Name}}
