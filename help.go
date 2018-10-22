@@ -20,16 +20,16 @@ import (
 var CLIHelpTemplate = fmt.Sprintf(color.H1) + `{{.Name}} ` + fmt.Sprintf(color.STRONG) + `v{{.Version}}{{"\n"}}` +
 	fmt.Sprintf(color.RESET) + text.Repeat("=", 80) + `{{if .Description}}{{.Description}}{{end}}` +
 	fmt.Sprintf(color.STRONG) + `{{"\n"}}Usage` + fmt.Sprintf(color.RESET) + `{{"\n    "}}{{if .UsageText}}{{.UsageText}}{{else}}` +
-	fmt.Sprintf(color.H1) + `{{.HelpName}} ` + fmt.Sprintf(color.RESET) + `{{if .VisibleFlags}}[options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .VisibleFlags}}` + fmt.Sprintf(color.STRONG) + `{{"\n\n"}}Options` + fmt.Sprintf(color.RESET) + `
+	fmt.Sprintf(color.H1) + `{{.Name}} ` + fmt.Sprintf(color.RESET) + `{{if .VisibleFlags}}[options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .VisibleFlags}}` + fmt.Sprintf(color.STRONG) + `{{"\n\n"}}Options` + fmt.Sprintf(color.RESET) + `
    {{range $index, $option := .VisibleFlags}}{{if $index}}
    {{end}}{{$option}}{{end}}{{end}}
 {{if .VisibleCategories}}{{"\n"}}` + fmt.Sprintf(color.STRONG) + `Commands` + fmt.Sprintf(color.RESET) + `{{range .VisibleCategories}}{{if .Name}}
-   {{.Name}}:{{end}}{{range .VisibleCommands}}
-    ` + fmt.Sprintf(color.H1) + ` {{join .Names ", "}}` + fmt.Sprintf(color.RESET) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}
+   {{.Name}}:{{end}}{{end}}{{range .VisibleCommands}}
+    ` + fmt.Sprintf(color.H1) + ` {{join .Names ", "}}` + fmt.Sprintf(color.RESET) + `{{"\t"}}{{.Usage}}{{end}}{{end}}
 `
 
-var CommandHelpTemplate = fmt.Sprintf(color.H1) + `{{.HelpName}}` + fmt.Sprintf(color.RESET) + ` - {{.Usage}}{{"\n"}}` + fmt.Sprintf(color.H1) + `Usage` + fmt.Sprintf(color.RESET) +
-	`{{"\n"}}{{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
+var CommandHelpTemplate = fmt.Sprintf(color.H1) + `{{.Name}}` + fmt.Sprintf(color.RESET) + ` - {{.Usage}}{{"\n"}}` + fmt.Sprintf(color.H1) + `Usage` + fmt.Sprintf(color.RESET) +
+	`{{"\n"}}{{if .UsageText}}{{.UsageText}}{{else}}{{.Name}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
 
 ` + fmt.Sprintf(color.H2) + `Category` + fmt.Sprintf(color.RESET) + `
    {{.Category}}{{end}}{{if .Description}}
@@ -83,26 +83,19 @@ var helpSubcommand = Command{
 	},
 }
 
-// Prints help for the CLI or Command
 type helpPrinter func(w io.Writer, templ string, data interface{})
 
-// HelpPrinter is a function that writes the help output. If not set a default
-// is used. The function signature is:
-// func(w io.Writer, templ string, data interface{})
 var HelpPrinter helpPrinter = printHelp
 
-// ShowCLIHelpAndExit - Prints the list of subcommands for the cli and exits with exit code.
 func ShowCLIHelpAndExit(c *Context, exitCode int) {
 	ShowCLIHelp(c)
 	os.Exit(exitCode)
 }
 
-// ShowCLIHelp is an action that displays the help.
 func ShowCLIHelp(c *Context) {
 	HelpPrinter(c.CLI.Writer, CLIHelpTemplate, c.CLI)
 }
 
-// DefaultCLIComplete prints the list of subcommands as the default cli completion method
 func DefaultCLIComplete(c *Context) {
 	for _, command := range c.CLI.Commands {
 		if command.Hidden {
@@ -114,15 +107,12 @@ func DefaultCLIComplete(c *Context) {
 	}
 }
 
-// ShowCommandHelpAndExit - exits with code after showing help
 func ShowCommandHelpAndExit(c *Context, command string, code int) {
 	ShowCommandHelp(c, command)
 	os.Exit(code)
 }
 
-// ShowCommandHelp prints help for the given command
 func ShowCommandHelp(ctx *Context, command string) error {
-	// show the subcommand help for a command with subcommands
 	if command == "" {
 		HelpPrinter(ctx.CLI.Writer, SubcommandHelpTemplate, ctx.CLI)
 		return nil

@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
@@ -26,6 +27,7 @@ type Logger struct {
 }
 
 func NewLogger(name string, verbosity int, toFile, toStdOut, json bool) Logger {
+	name = strings.ToLower(name)
 	return Logger{
 		AppName:   name,
 		Path:      ("/var/log/" + name + "/"),

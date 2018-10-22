@@ -738,7 +738,6 @@ func main() {
   cmd := cli.New(&cli.CLI{
     Name: "program-cli"
     Version: Version{Major: 0, Minor: 1, Patch: 0},
-    CompiledOn: time.Now(),
     HelpName: "contrive",
     Usage: "demonstrate available API",
     UsageText: "contrive - demonstrating the available API",

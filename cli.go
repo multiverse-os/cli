@@ -4,51 +4,32 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
-)
 
-var (
-	errInvalidActionType = NewExitError("ERROR invalid Action type. Must be `func(*Context`)` or `func(*Context) error).", 2)
+	log "github.com/multiverse-os/cli-framework/log"
 )
 
 // TODO: Move all text into locales so we can support localization
-
-// TODO: Bash complete should be default, and it should just be setup automatically by just iterating over the available
-// command names, flag names and such. No reason we should have to re-state information which is already stored to acheive
-// this functionality.
 type CLI struct {
-	// The name of the program. Defaults to path.Base(os.Args[0])
-	Name string
-	// Full name of command for help, defaults to Name
-	HelpName string
-	// Color Help ouput
+	Name        string
 	ColorOutput bool
-	// Description of the program.
+	// TODO: Is this redudant between usage text and description?
 	Usage string
 	// Text to override the USAGE section of help
 	UsageText string
 	// Description of the program argument format.
 	ArgsUsage string
-	// Version of the program
 	Version
-	// Description of the program
-	Description string
-	// List of commands to execute
-	Commands []Command
-	// List of flags to parse
-	Flags []Flag
-	// Simple logging system init - optional, this just initializes it with the same app name
-	Logger log.Logger
-	// Boolean to enable bash completion commands
+	Description    string
+	Commands       []Command
+	Flags          []Flag
+	Logger         log.Logger
 	BashCompletion bool
-	// Boolean to hide built-in help command
-	HideHelp bool
-	// Boolean to hide built-in version flag and the VERSION section of help
-	HideVersion bool
+	HideHelp       bool
+	HideVersion    bool
 	// Populate on app startup, only gettable through method Categories()
 	categories CommandCategories
 	// An action to execute when the bash-completion flag is set
@@ -64,13 +45,11 @@ type CLI struct {
 	// Expects a `cli.ActionFunc` but will accept the *deprecated* signature of `func(*cli.Context) {}`
 	// *Note*: support for the deprecated `Action` signature will be removed in a future version
 	Action interface{}
-
 	// Execute this function if the proper command cannot be found
 	CommandNotFound CommandNotFoundFunc
 	// Execute this function if an usage error occurs
 	OnUsageError OnUsageErrorFunc
-	// Compilation date
-	CompiledOn time.Time
+	CompiledOn   time.Time
 	// Writer writer to write output to
 	Writer io.Writer
 	// ErrWriter writes error output
@@ -86,26 +65,18 @@ type CLI struct {
 	// cli.go uses text/template to render templates. You can
 	// render custom help text by setting this variable.
 	CustomCLIHelpTemplate string
-
+	// TODO: Is this necessary?
 	didSetup bool
 }
 
-func compiledOn() time.Time {
-	info, err := os.Stat(os.Args[0])
-	if err != nil {
-		return time.Now()
-	}
-	return info.ModTime()
-}
-
-// New creates a new cli CLIlication with some reasonable defaults for Name,
-// Usage, Version and Action.
 func New(cmd *CLI) *CLI {
 	if cmd.Name == "" {
-		cmd.Name = filepath.Base(os.Args[0])
-	}
-	if cmd.HelpName == "" {
-		cmd.HelpName = filepath.Base(os.Args[0])
+		// The folder name of the executable; same as go build default for executable name
+		var err error
+		cmd.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
+		if err != nil {
+			log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
+		}
 	}
 	if cmd.Usage == "" {
 		cmd.Usage = "A new command-line interface"
@@ -126,7 +97,10 @@ func New(cmd *CLI) *CLI {
 	if cmd.Writer == nil {
 		cmd.Writer = os.Stdout
 	}
-	cmd.CompiledOn = compiledOn()
+	if cmd.Logger.AppName == "" {
+		cmd.Logger = log.NewLogger(cmd.Name, 1, true, true, false)
+	}
+	cmd.CompiledOn = time.Now()
 	return cmd
 }
 
@@ -142,9 +116,6 @@ func (self *CLI) Setup() {
 
 	newCmds := []Command{}
 	for _, c := range self.Commands {
-		if c.HelpName == "" {
-			c.HelpName = fmt.Sprintf("%s %s", self.HelpName, c.Name)
-		}
 		newCmds = append(newCmds, c)
 	}
 	self.Commands = newCmds
@@ -300,9 +271,6 @@ func (self *CLI) RunAsSubcommand(ctx *Context) (err error) {
 
 	newCmds := []Command{}
 	for _, c := range self.Commands {
-		if c.HelpName == "" {
-			c.HelpName = fmt.Sprintf("%s %s", self.HelpName, c.Name)
-		}
 		newCmds = append(newCmds, c)
 	}
 	self.Commands = newCmds
@@ -409,8 +377,6 @@ func (self *CLI) Categories() CommandCategories {
 	return self.categories
 }
 
-// VisibleCategories returns a slice of categories and commands that are
-// Hidden=false
 func (self *CLI) VisibleCategories() []*CommandCategory {
 	ret := []*CommandCategory{}
 	for _, category := range self.categories {
@@ -437,21 +403,6 @@ func (self *CLI) VisibleCommands() []Command {
 		}
 	}
 	return ret
-}
-
-// VisibleFlags returns a slice of the Flags with Hidden=false
-func (self *CLI) VisibleFlags() []Flag {
-	return visibleFlags(self.Flags)
-}
-
-func (self *CLI) hasFlag(flag Flag) bool {
-	for _, f := range self.Flags {
-		if flag == f {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (self *CLI) errWriter() io.Writer {

@@ -269,57 +269,43 @@ func (c Command) HasName(name string) bool {
 }
 
 func (c Command) startCLI(ctx *Context) error {
-	app := New(nil)
-	app.Metadata = ctx.CLI.Metadata
-	// set the name and usage
-	app.Name = fmt.Sprintf("%s %s", ctx.CLI.Name, c.Name)
-	if c.HelpName == "" {
-		app.HelpName = c.HelpName
-	} else {
-		app.HelpName = app.Name
-	}
-
-	app.Usage = c.Usage
-	app.Description = c.Description
-	app.ArgsUsage = c.ArgsUsage
-
-	// set CommandNotFound
-	app.CommandNotFound = ctx.CLI.CommandNotFound
-	app.CustomCLIHelpTemplate = c.CustomHelpTemplate
-
-	// set the flags and commands
-	app.Commands = c.Subcommands
-	app.Flags = c.Flags
-	app.HideHelp = c.HideHelp
-
-	app.Version = ctx.CLI.Version
-	app.HideVersion = ctx.CLI.HideVersion
-	app.CompiledOn = ctx.CLI.CompiledOn
-	app.Writer = ctx.CLI.Writer
-	app.ErrWriter = ctx.CLI.ErrWriter
-
-	app.categories = CommandCategories{}
+	app := New(&CLI{
+		Metadata:              ctx.CLI.Metadata,
+		Name:                  ctx.CLI.Name,
+		Usage:                 c.Usage,
+		Description:           c.Description,
+		ArgsUsage:             c.ArgsUsage,
+		CommandNotFound:       ctx.CLI.CommandNotFound,
+		CustomCLIHelpTemplate: c.CustomHelpTemplate,
+		Commands:              c.Subcommands,
+		Flags:                 c.Flags,
+		HideHelp:              c.HideHelp,
+		Version:               ctx.CLI.Version,
+		HideVersion:           ctx.CLI.HideVersion,
+		CompiledOn:            ctx.CLI.CompiledOn,
+		Writer:                ctx.CLI.Writer,
+		ErrWriter:             ctx.CLI.ErrWriter,
+		categories:            CommandCategories{},
+		BashCompletion:        ctx.CLI.BashCompletion,
+		OnUsageError:          c.OnUsageError,
+		Before:                c.Before,
+		After:                 c.After,
+	})
 	for _, command := range c.Subcommands {
 		app.categories = app.categories.AddCommand(command.Category, command)
 	}
 
 	sort.Sort(app.categories)
 
-	// bash completion
-	app.BashCompletion = ctx.CLI.BashCompletion
 	if c.BashComplete != nil {
 		app.BashComplete = c.BashComplete
 	}
 
-	// set the actions
-	app.Before = c.Before
-	app.After = c.After
 	if c.Action != nil {
 		app.Action = c.Action
 	} else {
 		app.Action = helpSubcommand.Action
 	}
-	app.OnUsageError = c.OnUsageError
 
 	for index, cc := range app.Commands {
 		app.Commands[index].commandNamePath = []string{c.Name, cc.Name}

@@ -14,6 +14,21 @@ import (
 
 const defaultPlaceholder = "value"
 
+// VisibleFlags returns a slice of the Flags with Hidden=false
+func (self *CLI) VisibleFlags() []Flag {
+	return visibleFlags(self.Flags)
+}
+
+func (self *CLI) hasFlag(flag Flag) bool {
+	for _, f := range self.Flags {
+		if flag == f {
+			return true
+		}
+	}
+
+	return false
+}
+
 // BashCompletionFlag enables bash-completion for all commands and subcommands
 var BashCompletionFlag Flag = BoolFlag{
 	Name:   "generate-bash-completion",
