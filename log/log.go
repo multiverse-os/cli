@@ -43,11 +43,11 @@ func PrintLog(text string) {
 }
 
 func Error(err error) {
-	fmt.Println(color.Fail("[Error] ") + err.ToString())
+	fmt.Println(color.Fail("[Error] ") + err.Error())
 }
 
 func FatalError(err error) {
 	// TODO: Logs then exits with 1
-	fmt.Println(color.Fail("[Fatal Error] ") + err.ToString())
+	fmt.Println(color.Fail("[Fatal Error] ") + err.Error())
 	os.Exit(1)
 }

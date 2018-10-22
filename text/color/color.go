@@ -44,8 +44,8 @@ const (
 
 // Aliasing
 const (
-	HEADER       = STRONG
-	SUBHEADER    = WHITE
+	HEADER       = WHITE
+	SUBHEADER    = STRONG
 	EMPHASIS     = ITALIC
 	BOLD         = STRONG
 	THIN         = LIGHT
