@@ -38,6 +38,8 @@ type CLI struct {
 	Commands []Command
 	// List of flags to parse
 	Flags []Flag
+	// Color help output
+	ColorOutput bool
 	// Boolean to enable bash completion commands
 	BashCompletion bool
 	// Boolean to hide built-in help command
@@ -120,6 +122,9 @@ func New(cmd *CLI) *CLI {
 	}
 	if cmd.Writer == nil {
 		cmd.Writer = os.Stdout
+	}
+	if cmd.ColorOuput == nil {
+		cmd.ColorOutput = true
 	}
 	cmd.CompiledOn = compiledOn()
 	return cmd

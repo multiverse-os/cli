@@ -12,6 +12,7 @@ import (
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
+// TODO: ColorOutput is a bool, if its false, we should remove the color code
 // TODO: Why are commands VisibleCategories? This section is practically unreadable and very hard to customize
 // TODO: All lines should be checked for length of 80 and broken into new line if so with the correct tab spacing prefixing it
 var CLIHelpTemplate = fmt.Sprintf(color.SubheaderCode) + `{{.Name}} ` + fmt.Sprintf(color.StrongCode) + `v{{.Version}}{{"\n"}}` +
