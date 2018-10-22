@@ -25,9 +25,9 @@ func Print(logType LogType, text string) {
 	fmt.Println("")
 	switch logType {
 	case INFO:
-		fmt.Println(color.Blue("[INFO] ") + text)
+		fmt.Println(color.Info("[INFO] ") + text)
 	case WARNING:
-		fmt.Println(color.Blue("[INFO] ") + text)
+		fmt.Println(color.Warning("[Warning] ") + text)
 	case ERROR:
 		Error(errors.New(text))
 	case FATAL:
@@ -43,11 +43,11 @@ func PrintLog(text string) {
 }
 
 func Error(err error) {
-	fmt.Println(color.Red("[Error] ") + err.ToString())
+	fmt.Println(color.Fail("[Error] ") + err.ToString())
 }
 
 func FatalError(err error) {
 	// TODO: Logs then exits with 1
-	fmt.Println(color.Red("[Fatal Error] ") + err.ToString())
+	fmt.Println(color.Fail("[Fatal Error] ") + err.ToString())
 	os.Exit(1)
 }
