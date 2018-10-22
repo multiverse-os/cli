@@ -14,6 +14,11 @@ var (
 	errInvalidActionType = NewExitError("ERROR invalid Action type. Must be `func(*Context`)` or `func(*Context) error).", 2)
 )
 
+// TODO: Move all text into locales so we can support localization
+
+// TODO: Bash complete should be default, and it should just be setup automatically by just iterating over the available
+// command names, flag names and such. No reason we should have to re-state information which is already stored to acheive
+// this functionality.
 type CLI struct {
 	// The name of the program. Defaults to path.Base(os.Args[0])
 	Name string
