@@ -271,7 +271,7 @@ func (c Command) HasName(name string) bool {
 // TODO: Why are we recreating the entire object? Can we not just save copy the object entirely
 // instead of recreating it attribute by attribute?
 func (c Command) startCLI(ctx *Context) error {
-	app := New(&CLI{
+	cmd := &CLI{
 		Metadata:              ctx.CLI.Metadata,
 		Name:                  ctx.CLI.Name,
 		Usage:                 c.Usage,
@@ -293,28 +293,28 @@ func (c Command) startCLI(ctx *Context) error {
 		Before:                c.Before,
 		After:                 c.After,
 		Logger:                ctx.CLI.Logger,
-	})
+	}
 	for _, command := range c.Subcommands {
-		app.categories = app.categories.AddCommand(command.Category, command)
+		cmd.categories = cmd.categories.AddCommand(command.Category, command)
 	}
 
-	sort.Sort(app.categories)
+	sort.Sort(cmd.categories)
 
 	if c.BashComplete != nil {
-		app.BashComplete = c.BashComplete
+		cmd.BashComplete = c.BashComplete
 	}
 
 	if c.Action != nil {
-		app.Action = c.Action
+		cmd.Action = c.Action
 	} else {
-		app.Action = helpSubcommand.Action
+		cmd.Action = helpSubcommand.Action
 	}
 
-	for index, cc := range app.Commands {
-		app.Commands[index].commandNamePath = []string{c.Name, cc.Name}
+	for index, cc := range cmd.Commands {
+		cmd.Commands[index].commandNamePath = []string{c.Name, cc.Name}
 	}
 
-	return app.RunAsSubcommand(ctx)
+	return cmd.RunAsSubcommand(ctx)
 }
 
 // VisibleFlags returns a slice of the Flags with Hidden=false
