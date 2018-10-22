@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -40,7 +41,8 @@ type CLI struct {
 	Commands []Command
 	// List of flags to parse
 	Flags []Flag
-	// Color help output
+	// Simple logging system init - optional, this just initializes it with the same app name
+	Logger log.Logger
 	// Boolean to enable bash completion commands
 	BashCompletion bool
 	// Boolean to hide built-in help command
