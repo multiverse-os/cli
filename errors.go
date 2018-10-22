@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-// OsExiter is the function used when the cli exits. If not set defaults to os.Exit.
 var OsExiter = os.Exit
 
 // ErrWriter is used to write errors to the user. This can be anything

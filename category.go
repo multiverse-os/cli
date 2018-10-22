@@ -9,6 +9,8 @@ type CommandCategory struct {
 	Commands Commands
 }
 
+// TODO: How necessary is this? ARe we often softing by name for categories?
+// can we not just do ordered insertion?
 func (self CommandCategories) Less(i, j int) bool {
 	return lexicographicLess(self[i].Name, self[j].Name)
 }

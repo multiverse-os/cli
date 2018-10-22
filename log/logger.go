@@ -28,8 +28,8 @@ type Logger struct {
 
 func NewLogger(name string, verbosity int, toFile, toStdOut, json bool) Logger {
 	name = strings.ToLower(name)
-	logPath = ("/var/log/" + name + "/")
-	logFilename = (name + ".log")
+	logPath := ("/var/log/" + name + "/")
+	logFilename := (name + ".log")
 	if _, err := os.Stat(logPath); os.IsNotExist(err) {
 		os.MkdirAll(logPath, 0660)
 		os.OpenFile((logPath + logFilename), os.O_RDONLY|os.O_CREATE, 0660)

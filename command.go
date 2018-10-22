@@ -268,6 +268,8 @@ func (c Command) HasName(name string) bool {
 	return false
 }
 
+// TODO: Why are we recreating the entire object? Can we not just save copy the object entirely
+// instead of recreating it attribute by attribute?
 func (c Command) startCLI(ctx *Context) error {
 	app := New(&CLI{
 		Metadata:              ctx.CLI.Metadata,
@@ -290,6 +292,7 @@ func (c Command) startCLI(ctx *Context) error {
 		OnUsageError:          c.OnUsageError,
 		Before:                c.Before,
 		After:                 c.After,
+		Logger:                ctx.CLI.Logger,
 	})
 	for _, command := range c.Subcommands {
 		app.categories = app.categories.AddCommand(command.Category, command)

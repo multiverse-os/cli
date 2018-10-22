@@ -10,6 +10,7 @@ import (
 	"time"
 
 	log "github.com/multiverse-os/cli-framework/log"
+	version "github.com/multiverse-os/cli-framework/version"
 )
 
 // TODO: Move all text into locales so we can support localization
@@ -21,8 +22,8 @@ type CLI struct {
 	// Text to override the USAGE section of help
 	UsageText string
 	// Description of the program argument format.
-	ArgsUsage string
-	Version
+	ArgsUsage      string
+	Version        version.Version
 	Description    string
 	Commands       []Command
 	Flags          []Flag

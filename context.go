@@ -9,10 +9,10 @@ import (
 	"syscall"
 )
 
-// Context is a type that is passed through to
-// each Handler action in a cli application. Context
-// can be used to retrieve context-specific Args and
-// parsed command-line options.
+// TODO: Would sswitching the datatype holding the flags reduce the number of functions?
+// should we consider a map based key/value store with multiple keys routing to single
+// values?
+
 type Context struct {
 	CLI           *CLI
 	Command       Command
@@ -22,9 +22,12 @@ type Context struct {
 	parentContext *Context
 }
 
-// NewContext creates a new context. For use in when invoking an CLI or Command action.
 func NewContext(cli *CLI, set *flag.FlagSet, parentCtx *Context) *Context {
-	c := &Context{CLI: cli, flagSet: set, parentContext: parentCtx}
+	c := &Context{
+		CLI:           cli,
+		flagSet:       set,
+		parentContext: parentCtx,
+	}
 
 	if parentCtx != nil {
 		c.shellComplete = parentCtx.shellComplete
@@ -33,24 +36,20 @@ func NewContext(cli *CLI, set *flag.FlagSet, parentCtx *Context) *Context {
 	return c
 }
 
-// NumFlags returns the number of flags set
 func (c *Context) NumFlags() int {
 	return c.flagSet.NFlag()
 }
 
-// Set sets a context flag to a value.
 func (c *Context) Set(name, value string) error {
 	c.setFlags = nil
 	return c.flagSet.Set(name, value)
 }
 
-// GlobalSet sets a context flag to a value on the global flagset
 func (c *Context) GlobalSet(name, value string) error {
 	globalContext(c).setFlags = nil
 	return globalContext(c).flagSet.Set(name, value)
 }
 
-// IsSet determines if the flag was actually set
 func (c *Context) IsSet(name string) bool {
 	if c.setFlags == nil {
 		c.setFlags = make(map[string]bool)
@@ -121,13 +120,11 @@ func (c *Context) IsSet(name string) bool {
 	return c.setFlags[name]
 }
 
-// GlobalIsSet determines if the global flag was actually set
 func (c *Context) GlobalIsSet(name string) bool {
 	ctx := c
 	if ctx.parentContext != nil {
 		ctx = ctx.parentContext
 	}
-
 	for ; ctx != nil; ctx = ctx.parentContext {
 		if ctx.IsSet(name) {
 			return true
@@ -136,7 +133,6 @@ func (c *Context) GlobalIsSet(name string) bool {
 	return false
 }
 
-// FlagNames returns a slice of flag names used in this context.
 func (c *Context) FlagNames() (names []string) {
 	for _, flag := range c.Command.Flags {
 		name := strings.Split(flag.GetName(), ",")[0]
@@ -148,7 +144,6 @@ func (c *Context) FlagNames() (names []string) {
 	return
 }
 
-// GlobalFlagNames returns a slice of global flag names used by the cli.
 func (c *Context) GlobalFlagNames() (names []string) {
 	for _, flag := range c.CLI.Flags {
 		name := strings.Split(flag.GetName(), ",")[0]
@@ -160,31 +155,26 @@ func (c *Context) GlobalFlagNames() (names []string) {
 	return
 }
 
-// Parent returns the parent context, if any
 func (c *Context) Parent() *Context {
 	return c.parentContext
 }
 
-// value returns the value of the flag coressponding to `name`
 func (c *Context) value(name string) interface{} {
 	return c.flagSet.Lookup(name).Value.(flag.Getter).Get()
 }
 
-// Args contains clis console arguments
 type Args []string
 
-// Args returns the command line arguments associated with the context.
 func (c *Context) Args() Args {
 	args := Args(c.flagSet.Args())
 	return args
 }
 
-// NArg returns the number of the command line arguments.
+// TODO: I prefer something like ArgumentCount, and since its just calling len, and probably be used once, could probably be done away with
 func (c *Context) NArg() int {
 	return len(c.Args())
 }
 
-// Get returns the nth argument, or else a blank string
 func (a Args) Get(n int) string {
 	if len(a) > n {
 		return a[n]
@@ -192,7 +182,6 @@ func (a Args) Get(n int) string {
 	return ""
 }
 
-// First returns the first argument, or else a blank string
 func (a Args) First() string {
 	return a.Get(0)
 }
