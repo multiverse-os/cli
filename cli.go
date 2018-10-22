@@ -121,7 +121,7 @@ func New(cmd *CLI) *CLI {
 	if cmd.Writer == nil {
 		cmd.Writer = os.Stdout
 	}
-	cmd.Compiled = compiledAt()
+	cmd.CompiledOn = compiledOn()
 	return cmd
 }
 

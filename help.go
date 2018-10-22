@@ -219,7 +219,7 @@ func checkSubcommandHelp(c *Context) bool {
 }
 
 func checkShellCompleteFlag(a *CLI, arguments []string) (bool, []string) {
-	if !a.EnableBashCompletion {
+	if !a.BashCompletion {
 		return false, arguments
 	}
 	pos := len(arguments) - 1

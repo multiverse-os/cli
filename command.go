@@ -294,7 +294,7 @@ func (c Command) startCLI(ctx *Context) error {
 
 	app.Version = ctx.CLI.Version
 	app.HideVersion = ctx.CLI.HideVersion
-	app.Compiled = ctx.CLI.Compiled
+	app.CompiledOn = ctx.CLI.CompiledOn
 	app.Writer = ctx.CLI.Writer
 	app.ErrWriter = ctx.CLI.ErrWriter
 
@@ -306,7 +306,7 @@ func (c Command) startCLI(ctx *Context) error {
 	sort.Sort(app.categories)
 
 	// bash completion
-	app.EnableBashCompletion = ctx.CLI.EnableBashCompletion
+	app.BashCompletion = ctx.CLI.BashCompletion
 	if c.BashComplete != nil {
 		app.BashComplete = c.BashComplete
 	}
