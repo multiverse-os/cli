@@ -344,7 +344,6 @@ func (self *CLI) RunAsSubcommand(ctx *Context) (err error) {
 
 	// Run default Action
 	err = HandleAction(self.Action, context)
-
 	self.handleExitCoder(context, err)
 	return err
 }

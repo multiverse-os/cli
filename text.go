@@ -17,6 +17,11 @@ var (
 //return errors.New("index out of range")
 //defaultVal = fmt.Sprintf(" (default: %s)", strings.Join(defaultVals, ", "))
 
+//Usage:  "Print version",
+//Usage:  "Print help text",
+
+//fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
+
 //return fmt.Errorf("could not parse %s as bool value for flag %s: %s", envVal, f.Name, err)
 //return fmt.Errorf("could not parse %s as value for flag %s: %s", fileEnvVal, f.Name, err)
 //return fmt.Errorf("could not parse %s as string value for flag %s: %s", envVal, f.Name, err)
