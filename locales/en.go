@@ -6,8 +6,10 @@ package localization
 
 var en_US = map[string]string{
 	"help":                   "help",
+	"help_v":                 "v",
+	"help_version":           "version",
 	"help_args_usage":        "[command]",
-	"help_command_not_found": "No help topics found for",
+	"help_command_not_found": "No help topic for '%v'",
 	"help_name":              "Name",
 	"help_category":          "Category",
 	"help_command":           "Command",
