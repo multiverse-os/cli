@@ -14,8 +14,6 @@ var (
 	errInvalidActionType = NewExitError("ERROR invalid Action type. Must be `func(*Context`)` or `func(*Context) error).", 2)
 )
 
-// CLI is the main structure of a cli application. It is recommended that
-// an app be created with the cli.New() function
 type CLI struct {
 	// The name of the program. Defaults to path.Base(os.Args[0])
 	Name string
@@ -36,7 +34,7 @@ type CLI struct {
 	// List of flags to parse
 	Flags []Flag
 	// Boolean to enable bash completion commands
-	EnableBashCompletion bool
+	BashCompletion bool
 	// Boolean to hide built-in help command
 	HideHelp bool
 	// Boolean to hide built-in version flag and the VERSION section of help
@@ -62,7 +60,7 @@ type CLI struct {
 	// Execute this function if an usage error occurs
 	OnUsageError OnUsageErrorFunc
 	// Compilation date
-	Compiled time.Time
+	CompiledOn time.Time
 	// Writer writer to write output to
 	Writer io.Writer
 	// ErrWriter writes error output
@@ -82,9 +80,7 @@ type CLI struct {
 	didSetup bool
 }
 
-// Tries to find out when this binary was compiled.
-// Returns the current time if it fails to find it.
-func compileTime() time.Time {
+func compiledOn() time.Time {
 	info, err := os.Stat(os.Args[0])
 	if err != nil {
 		return time.Now()
@@ -120,7 +116,7 @@ func New(cmd *CLI) *CLI {
 	if cmd.Writer == nil {
 		cmd.Writer = os.Stdout
 	}
-	cmd.Compiled = compileTime()
+	cmd.Compiled = compiledAt()
 	return cmd
 }
 

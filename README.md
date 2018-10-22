@@ -739,15 +739,15 @@ func (g *genericType) String() string {
 }
 
 func main() {
-  cmd := cli.New(nil)
-  cmd.Name = "kənˈtrīv"
-  cmd.Version = "19.99.0"
-  cmd.Compiled = time.Now()
-  cmd.HelpName = "contrive"
-  cmd.Usage = "demonstrate available API"
-  cmd.UsageText = "contrive - demonstrating the available API"
-  cmd.ArgsUsage = "[args and such]"
-  cmd.Commands = []cli.Command{
+  cmd := cli.New(&cli.CLI{
+    Name: "program-cli"
+    Version: Version{Major: 0, Minor: 1, Patch: 0},
+    CompiledOn: time.Now(),
+  HelpName: "contrive",
+  Usage: "demonstrate available API",
+  UsageText: "contrive - demonstrating the available API",
+  ArgsUsage: "[args and such]",
+  Commands: []cli.Command{
     cli.Command{
       Name:        "doo",
       Aliases:     []string{"do"},
@@ -797,7 +797,7 @@ func main() {
       },
     },
   }
-  cmd.Flags = []cli.Flag{
+  Flags: []cli.Flag{
     cli.BoolFlag{Name: "fancy"},
     cli.BoolTFlag{Name: "fancier"},
     cli.DurationFlag{Name: "howlong, H", Value: time.Second * 3},
@@ -812,24 +812,24 @@ func main() {
     cli.UintFlag{Name: "age"},
     cli.Uint64Flag{Name: "bigage"},
   }
-  cmd.EnableBashCompletion = true
-  cmd.HideHelp = false
-  cmd.HideVersion = false
-  cmd.BashComplete = func(c *cli.Context) {
+  BashCompletion = true
+  HideHelp = false
+  HideVersion = false
+  BashComplete = func(c *cli.Context) {
     fmt.Fprintf(c.App.Writer, "lipstick\nkiss\nme\nlipstick\nringo\n")
   }
-  cmd.Before = func(c *cli.Context) error {
+  Before = func(c *cli.Context) error {
     fmt.Fprintf(c.App.Writer, "HEEEERE GOES\n")
     return nil
   }
-  cmd.After = func(c *cli.Context) error {
+  After = func(c *cli.Context) error {
     fmt.Fprintf(c.App.Writer, "Phew!\n")
     return nil
   }
-  cmd.CommandNotFound = func(c *cli.Context, command string) {
+  CommandNotFound = func(c *cli.Context, command string) {
     fmt.Fprintf(c.App.Writer, "Thar be no %q here.\n", command)
   }
-  cmd.OnUsageError = func(c *cli.Context, err error, isSubcommand bool) error {
+  OnUsageError = func(c *cli.Context, err error, isSubcommand bool) error {
     if isSubcommand {
       return err
     }
@@ -837,7 +837,7 @@ func main() {
     fmt.Fprintf(c.App.Writer, "WRONG: %#v\n", err)
     return nil
   }
-  cmd.Action = func(c *cli.Context) error {
+  Action = func(c *cli.Context) error {
     cli.DefaultAppComplete(c)
     cli.HandleExitCoder(errors.New("not an exit coder, though"))
     cli.ShowAppHelp(c)
@@ -926,11 +926,11 @@ func main() {
     cmd.ErrWriter = &hexWriter{}
   }
 
-  cmd.Metadata = map[string]interface{}{
+  Metadata = map[string]interface{}{
     "layers":     "many",
     "explicable": false,
     "whatever-values": 19.99,
-  }
+  })
 
   cmd.Run(os.Args)
 }
