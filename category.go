@@ -3,9 +3,10 @@ package cli
 type CommandCategories map[string]CommandCategory
 
 type CommandCategory struct {
-	Name     string
-	Commands Commands
-	Hidden   bool
+	Name        string
+	Description string
+	Commands    Commands
+	Hidden      bool
 }
 
 func (self CommandCategories) AddCommand(category string, command Command) CommandCategories {
@@ -15,11 +16,11 @@ func (self CommandCategories) AddCommand(category string, command Command) Comma
 }
 
 func (self CommandCategory) HasVisibleCommands() bool {
-	return (len(self.Commands) > 0)
+	return (len(self.VisibleCommands) > 0)
 }
 
 func (self CommandCategory) VisibleCommands() (commands []Command) {
-	for _, command := range commands {
+	for _, command := range self.Commands {
 		if !command.Hidden {
 			commands = append(commands, command)
 		}

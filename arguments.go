@@ -4,6 +4,22 @@ import (
 	"errors"
 )
 
+// Experimental
+type Argument struct {
+	Raw          string
+	Value        interface{}
+	IsCommand    bool
+	IsSubcommand bool
+	IsFlag       bool
+	DataType     string
+}
+
+func (self Argument) Parse() {
+	// TODO: Take raw string value and determine if its command, subcommand, flag, datatype and insert the value
+}
+
+/// End Experiment ////
+
 type Arguments []string
 
 func (self *Context) Arguments() Arguments {
