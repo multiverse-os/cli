@@ -8,136 +8,80 @@ import (
 	"strings"
 )
 
-// Command is a subcommand for a cli.CLI.
+// TODO: replace `Action: interface{}` with `Action: ActionFunc` once some kind
+// of deprecation period has passed, maybe?
+// Execute this function if a usage error occurs.
 type Command struct {
-	// The name of the command
-	Name string
-	// short name of the command. Typically one character (deprecated, use `Aliases`)
-	ShortName string
-	// A list of aliases for the command
-	Aliases []string
-	// A short description of the usage of this command
-	Usage string
-	// Custom text to show on USAGE section of help
-	UsageText string
-	// A longer explanation of how the command works
-	Description string
-	// A short description of the arguments of this command
-	ArgsUsage string
-	// The category the command is part of
-	Category string
-	// The function to call when checking for bash command completions
-	BashComplete BashCompleteFunc
-	// An action to execute before any sub-subcommands are run, but after the context is ready
-	// If a non-nil error is returned, no sub-subcommands are run
-	Before BeforeFunc
-	// An action to execute after any subcommands are run, but after the subcommand has finished
-	// It is run even if Action() panics
-	After AfterFunc
-	// The function to call when this command is invoked
-	Action interface{}
-	// TODO: replace `Action: interface{}` with `Action: ActionFunc` once some kind
-	// of deprecation period has passed, maybe?
-
-	// Execute this function if a usage error occurs.
-	OnUsageError OnUsageErrorFunc
-	// List of child commands
-	Subcommands Commands
-	// List of flags to parse
-	Flags []Flag
-	// Treat all flags as normal arguments if true
-	SkipFlagParsing bool
-	// Skip argument reordering which attempts to move flags before arguments,
-	// but only works if all flags appear after all arguments. This behavior was
-	// removed n version 2 since it only works under specific conditions so we
-	// backport here by exposing it as an option for compatibility.
-	SkipArgReorder bool
-	// Boolean to hide built-in help command
-	HideHelp bool
-	// Boolean to hide this command from help or completion
-	Hidden bool
-	// Boolean to enable short-option handling so user can combine several
-	// single-character bool arguements into one
-	// i.e. foobar -o -v -> foobar -ov
+	Name                   string
+	ShortOption            string
+	Aliases                []string
+	Usage                  string
+	UsageText              string
+	Description            string
+	ArgsUsage              string
+	Category               string
+	BashComplete           BashCompleteFunc
+	Before                 BeforeFunc
+	After                  AfterFunc
+	Action                 interface{}
+	OnUsageError           OnUsageErrorFunc
+	Subcommands            Commands
+	Flags                  []Flag
+	SkipFlagParsing        bool
+	SkipArgReorder         bool
+	HideHelp               bool
+	Hidden                 bool
 	UseShortOptionHandling bool
-
-	// Full name of command for help, defaults to full command name, including parent commands.
-	HelpName        string
-	commandNamePath []string
-
-	// CustomHelpTemplate the text template for the command help topic.
-	// cli.go uses text/template to render templates. You can
-	// render custom help text by setting this variable.
-	CustomHelpTemplate string
+	HelpName               string
+	commandNamePath        []string
+	CustomHelpTemplate     string
 }
 
+type Commands []Command
 type CommandsByName []Command
 
-func (c CommandsByName) Len() int {
-	return len(c)
-}
-
-func (c CommandsByName) Less(i, j int) bool {
-	return lexicographicLess(c[i].Name, c[j].Name)
-}
-
-func (c CommandsByName) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
-}
-
-// FullName returns the full name of the command.
-// For subcommands this ensures that parent commands are part of the command path
-func (c Command) FullName() string {
-	if c.commandNamePath == nil {
-		return c.Name
+// TODO: What the fuck is this, the name is terrible
+func (self Command) FullName() string {
+	if self.commandNamePath == nil {
+		return self.Name
 	}
-	return strings.Join(c.commandNamePath, " ")
+	return strings.Join(self.commandNamePath, " ")
 }
 
-// Commands is a slice of Command
-type Commands []Command
+func (self Command) HasSubcommands() bool {
+	return (len(self.Subcommands) > 0)
+}
 
-// Run invokes the command given the context, parses ctx.Args() to generate command-specific flags
-func (c Command) Run(ctx *Context) (err error) {
-	if len(c.Subcommands) > 0 {
-		return c.startCLI(ctx)
+func (self Command) Run(ctx *Context) (err error) {
+	if self.HasSubcommands {
+		return self.startCLI(ctx)
 	}
-
-	if !c.HideHelp && (HelpFlag != BoolFlag{}) {
-		// append help to flags
-		c.Flags = append(
-			c.Flags,
-			HelpFlag,
-		)
+	if !self.HideHelp {
+		self.Flags = append(self.Flags, HelpFlag)
 	}
-
-	set, err := c.parseFlags(ctx.Args().Tail())
-
+	set, err := self.parseFlags(ctx.Args().Tail())
 	context := NewContext(ctx.CLI, set, ctx)
-	context.Command = c
-	if checkCommandCompletions(context, c.Name) {
+	context.Command = self
+	if checkCommandCompletions(context, self.Name) {
 		return nil
 	}
-
 	if err != nil {
-		if c.OnUsageError != nil {
-			err := c.OnUsageError(context, err, false)
+		if self.OnUsageError != nil {
+			err := self.OnUsageError(context, err, false)
 			context.CLI.handleExitCoder(context, err)
 			return err
 		}
 		fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
 		fmt.Fprintln(context.CLI.Writer)
-		ShowCommandHelp(context, c.Name)
+		ShowCommandHelp(context, self.Name)
 		return err
 	}
-
-	if checkCommandHelp(context, c.Name) {
+	if checkCommandHelp(context, self.Name) {
 		return nil
 	}
-
-	if c.After != nil {
+	if self.After != nil {
 		defer func() {
-			afterErr := c.After(context)
+			afterErr := self.After(context)
 			if afterErr != nil {
 				context.CLI.handleExitCoder(context, err)
 				if err != nil {
@@ -148,22 +92,18 @@ func (c Command) Run(ctx *Context) (err error) {
 			}
 		}()
 	}
-
-	if c.Before != nil {
-		err = c.Before(context)
+	if self.Before != nil {
+		err = self.Before(context)
 		if err != nil {
-			ShowCommandHelp(context, c.Name)
+			ShowCommandHelp(context, self.Name)
 			context.CLI.handleExitCoder(context, err)
 			return err
 		}
 	}
-
-	if c.Action == nil {
-		c.Action = helpSubcommand.Action
+	if self.Action == nil {
+		self.Action = helpSubcommand.Action
 	}
-
-	err = HandleAction(c.Action, context)
-
+	err = HandleAction(self.Action, context)
 	if err != nil {
 		context.CLI.handleExitCoder(context, err)
 	}
@@ -306,7 +246,11 @@ func (c Command) startCLI(ctx *Context) error {
 	return cmd.RunAsSubcommand(ctx)
 }
 
-// VisibleFlags returns a slice of the Flags with Hidden=false
-func (c Command) VisibleFlags() []Flag {
-	return visibleFlags(c.Flags)
+func (c Command) VisibleFlags() (flags []Flag) {
+	for _, flag := range c.Flags {
+		if !flag.Hidden {
+			flags = append(flags, flag)
+		}
+	}
+	return flags
 }

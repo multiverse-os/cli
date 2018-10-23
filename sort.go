@@ -1,8 +1,9 @@
 package cli
 
-import "unicode"
+import (
+	"unicode"
+)
 
-// lexicographicLess compares strings alphabetically considering case.
 func lexicographicLess(i, j string) bool {
 	iRunes := []rune(i)
 	jRunes := []rune(j)

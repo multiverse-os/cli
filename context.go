@@ -15,29 +15,26 @@ import (
 
 type Context struct {
 	CLI           *CLI
-	Command       Command
-	shellComplete bool
-	flagSet       *flag.FlagSet
-	setFlags      map[string]bool
 	parentContext *Context
+	// TODO: This is both confusing, and redudant, if we want to active
+	// command we should specify, but if we are doing that we would want
+	// much more than just the command, so we can safely probably just
+	// get rid of this and rebuild it
+	Command       Command
+	Flags         map[string]Flag
+	shellComplete bool
 }
 
-func NewContext(cli *CLI, set *flag.FlagSet, parentCtx *Context) *Context {
-	c := &Context{
+func NewContext(cli *CLI, set *flag.FlagSet, parent *Context) *Context {
+	context := &Context{
 		CLI:           cli,
 		flagSet:       set,
-		parentContext: parentCtx,
+		parentContext: parent,
 	}
-
-	if parentCtx != nil {
-		c.shellComplete = parentCtx.shellComplete
+	if context.parentContext != nil {
+		context.shellComplete = parent.shellComplete
 	}
-
-	return c
-}
-
-func (c *Context) NumFlags() int {
-	return c.flagSet.NFlag()
+	return context
 }
 
 func (c *Context) Set(name, value string) error {
@@ -163,73 +160,10 @@ func (c *Context) value(name string) interface{} {
 	return c.flagSet.Lookup(name).Value.(flag.Getter).Get()
 }
 
-type Args []string
-
-func (c *Context) Args() Args {
-	args := Args(c.flagSet.Args())
-	return args
-}
-
-// TODO: I prefer something like ArgumentCount, and since its just calling len, and probably be used once, could probably be done away with
-func (c *Context) NArg() int {
-	return len(c.Args())
-}
-
-func (a Args) Get(n int) string {
-	if len(a) > n {
-		return a[n]
-	}
-	return ""
-}
-
-func (a Args) First() string {
-	return a.Get(0)
-}
-
-func (a Args) Second() string {
-	return a.Get(1)
-}
-
-func (a Args) Third() string {
-	return a.Get(2)
-}
-
-func (a Args) Fourth() string {
-	return a.Get(3)
-}
-
-func (a Args) Last() string {
-	return a.Get(len(a) - 1)
-}
-
-// Tail returns the rest of the arguments (not the first one)
-// or else an empty string slice
-func (a Args) Tail() []string {
-	if len(a) >= 2 {
-		return []string(a)[1:]
-	}
-	return []string{}
-}
-
-// Present checks if there are any arguments present
-func (a Args) Present() bool {
-	return len(a) != 0
-}
-
-// Swap swaps arguments at the given indexes
-func (a Args) Swap(from, to int) error {
-	if from >= len(a) || to >= len(a) {
-		return errors.New("index out of range")
-	}
-	a[from], a[to] = a[to], a[from]
-	return nil
-}
-
 func globalContext(ctx *Context) *Context {
 	if ctx == nil {
 		return nil
 	}
-
 	for {
 		if ctx.parentContext == nil {
 			return ctx

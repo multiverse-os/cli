@@ -1,6 +1,6 @@
 package cli
 
-// text.go is a first step in centralizing all the strings in the codebase to a single file so they can be merged
+// TODO: text.go is a first step in centralizing all the strings in the codebase to a single file so they can be merged
 // into the locales/*.go system and then the switch can be made to support localization
 
 // Error text
@@ -16,6 +16,10 @@ var (
 //return errors.New("Cannot use two forms of the same flag: " + name + " " + ff.Name)
 //return errors.New("index out of range")
 //defaultVal = fmt.Sprintf(" (default: %s)", strings.Join(defaultVals, ", "))
+
+//return errors.New("index out of range")
+
+//fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
 
 //Usage:  "Print version",
 //Usage:  "Print help text",
