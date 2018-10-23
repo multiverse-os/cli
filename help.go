@@ -208,21 +208,26 @@ func checkHelp(c *Context) bool {
 	return found
 }
 
-func checkCommandHelp(c *Context, name string) bool {
-	if c.Bool("h") || c.Bool("help") {
-		ShowCommandHelp(c, name)
-		return true
-	}
-	return false
-}
+// TODO: why?
+//func checkCommandHelp(c *Context, name string) bool {
+//	if c.Bool("h") || c.Bool("help") {
+//		ShowCommandHelp(c, name)
+//		return true
+//	}
+//	return false
+//}
 
-func checkSubcommandHelp(c *Context) bool {
-	if c.Bool("h") || c.Bool("help") {
-		ShowSubcommandHelp(c)
-		return true
-	}
-	return false
-}
+// TODO: Again why? Why not just store this flag info in the
+// CLI and use it to run help. You should not need this.
+// need it because you just ran help? well return nil isntead
+// of checkiung this and then returning nil
+//func checkSubcommandHelp(c *Context) bool {
+//	if c.Bool("h") || c.Bool("help") {
+//		ShowSubcommandHelp(c)
+//		return true
+//	}
+//	return false
+//}
 
 func checkShellCompleteFlag(a *CLI, arguments []string) (bool, []string) {
 	if !a.BashCompletion {

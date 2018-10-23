@@ -138,6 +138,9 @@ func (self *CLI) Run(arguments []string) (err error) {
 	// going to use it?
 	// TODO: This is a big thing, we should make this its own function.
 	err = set.Parse(arguments[1:])
+	// TODO: Parse should probably return to a switch case, then that switch case
+	// can resolve the actions that need to be called. instead of assigning. then
+	// doing 5 if checks
 
 	// TODO: So here, is where we would see if any action is called, and if
 	// defaultaction is nil, then we just call help, this avoids any used

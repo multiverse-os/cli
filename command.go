@@ -126,9 +126,6 @@ func (self Command) Run(ctx *Context) (err error) {
 		ShowCommandHelp(context, self.Name)
 		return err
 	}
-	if checkCommandHelp(context, self.Name) {
-		return nil
-	}
 	if self.After != nil {
 		defer func() {
 			afterErr := self.After(context)
