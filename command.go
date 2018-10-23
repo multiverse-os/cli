@@ -9,8 +9,7 @@ import (
 )
 
 // TODO: replace `Action: interface{}` with `Action: ActionFunc` once some kind
-// of deprecation period has passed, maybe?
-// Execute this function if a usage error occurs.
+// of deprecation period has passed, maybe? // Execute this function if a usage error occurs.
 // TODO: Why do we have 'Usage' AND 'UsageText' seems like we should be merging this in some way. Also is this diff than description?
 type Command struct {
 	//ShortOption     string
@@ -22,6 +21,7 @@ type Command struct {
 	UsageText       string
 	Description     string
 	ArgsUsage       string
+	ParentCommand   Command
 	Subcommands     map[string]Command
 	Flags           map[string]Flag
 	SkipFlagParsing bool
@@ -58,35 +58,40 @@ func InitCommands() (commands Commands) {
 			if args.Present() {
 				return ShowCommandHelp(c, args.First())
 			}
-
 			ShowCLIHelp(c)
 			return nil
 		},
 	})
 }
 
-func InitSubcommands(command)
-
-var helpSubcommand = Command{
-	Name:      "help",
-	Aliases:   []string{"h"},
-	Usage:     "List of available commands or details for a specified command",
-	ArgsUsage: "[command]",
-	Action: func(c *Context) error {
-		args := c.Args()
-		if args.Present() {
-			return ShowCommandHelp(c, args.First())
-		}
-		return ShowSubcommandHelp(c)
-	},
+func InitSubcommands(subcommands Commands) {
+	return append(subcommands, Command{
+		Name:      "help",
+		Aliases:   []string{"h"},
+		Usage:     "List of available commands or details for a specified command",
+		ArgsUsage: "[command]",
+		Action: func(c *Context) error {
+			args := c.Args()
+			if args.Present() {
+				return ShowCommandHelp(c, args.First())
+			}
+			return ShowSubcommandHelp(c)
+		},
+	})
 }
 
-// TODO: What the fuck is this, the name is terrible
-func (self Command) FullName() string {
-	if self.commandNamePath == nil {
-		return self.Name
+// TODO: Currently only works with 3 levels, but program could support infinite levels. Should
+// rebuild this function to support recursive level of nested commands and subcommands
+func (self Command) Breadcrumbs() Commands {
+	if self.ParentCommand == nil {
+		return []Command{self}
+	} else {
+		if self.ParentCommand.ParentCommand == nil {
+			return []Command{self.ParentCommand, self}
+		} else {
+			return []Command{self.ParentCommand.ParentCommand, self.ParentCommand, self}
+		}
 	}
-	return strings.Join(self.commandNamePath, " ")
 }
 
 func (self Command) HasSubcommands() bool {
@@ -94,6 +99,9 @@ func (self Command) HasSubcommands() bool {
 }
 
 func (self Command) Run(ctx *Context) (err error) {
+	// TODO: So what is not explained here, is we are nesting the CLI function essentially, and running a new instance
+	// every time we use a command or subcommand. This is an interesting design, but could be implemented better than
+	// it is and maybe explain a bit for other developers to make sense of it quicker
 	if self.HasSubcommands {
 		return self.startCLI(ctx)
 	}
@@ -112,6 +120,7 @@ func (self Command) Run(ctx *Context) (err error) {
 			context.CLI.handleExitCoder(context, err)
 			return err
 		}
+		// TODO: What is going in here?
 		fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
 		fmt.Fprintln(context.CLI.Writer)
 		ShowCommandHelp(context, self.Name)
@@ -217,18 +226,14 @@ func translateShortOptions(flagArgs Args) []string {
 	return flagArgsSeparated
 }
 
-// Names returns the names including short names and aliases.
 func (c Command) Names() []string {
 	names := []string{c.Name}
-
 	if c.ShortName != "" {
 		names = append(names, c.ShortName)
 	}
-
 	return append(names, c.Aliases...)
 }
 
-// HasName returns true if Command.Name or Command.ShortName matches given name
 func (c Command) HasName(name string) bool {
 	for _, n := range c.Names() {
 		if n == name {

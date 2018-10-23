@@ -12,6 +12,17 @@ import (
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
+// TODO: Shouldnt this be in the RenderHelpText func ?
+//if !self.HideHelp && checkHelp(context) {
+//	ShowCLIHelp(context)
+//	return nil
+//}
+
+//if !self.HideVersion && checkVersion(context) {
+//	PrintVersion(context)
+//	return nil
+//}
+
 // TODO: Lets not use global variables, it just doesnt feel right
 
 // TODO: Why are commands VisibleCategories? This section is practically unreadable and very hard to customize

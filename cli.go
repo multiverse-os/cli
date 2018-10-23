@@ -14,6 +14,10 @@ import (
 	"github.com/multiverse-os/cli-framework/text/color"
 )
 
+// TODO: A problem exist with ordering, its not possible to call global option flags at the end, but long as there is no duplication between
+// flag levels which would be best avoided anyways for confusion reasons the global option flag should be callable anywhere. this is the expected
+// and normal functionality.
+
 // TODO: Is this redudant between usage text and description?
 // TODO: Move all text into locales so we can support localization
 // Text to override the USAGE section of help
@@ -21,13 +25,14 @@ import (
 // TODO: No better name than "argsusage"? Becauswe I have no idea what that means
 // TODO: Category concept doesnt seem to be used really. Shouldn't be generic "Category" unless its generic, its not.
 type CLI struct {
-	Name              string
-	Version           Version
-	Description       string
-	NoANSIFormatting  bool
-	Usage             string
-	UsageText         string
-	ArgsUsage         string
+	Name             string
+	Version          Version
+	Description      string
+	NoANSIFormatting bool
+	Usage            string
+	UsageText        string
+	ArgsUsage        string
+	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
 	Commands          []Command
 	Subcommands       map[string]Command
 	Flags             map[string]Flag
@@ -116,34 +121,38 @@ func New(cmd *CLI) *CLI {
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
-	self.Setup()
+	// TODO: Shell completion
 	// handle the completion flag separately from the flagset since
 	// completion could be attempted after a flag, but before its value was put
 	// on the command line. this causes the flagset to interpret the completion
 	// flag name as the value of the flag before it which is undesirable
 	// note that we can only do this because the shell autocomplete function
 	// always appends the completion flag at the end of the command
-	shellComplete, arguments := checkShellCompleteFlag(self, arguments)
-	set, err := flagSet(self.Name, self.Flags)
-	if err != nil {
-		return err
-	}
+	//shellComplete, arguments := checkShellCompleteFlag(self, arguments)
+	//context.shellComplete = shellComplete
+
+	// TODO: Uhh, what is this?
 	set.SetOutput(ioutil.Discard)
+
+	// TODO: This is tail, why did we bother to make the function if we are not
+	// going to use it?
+	// TODO: This is a big thing, we should make this its own function.
 	err = set.Parse(arguments[1:])
-	nerr := normalizeFlags(self.Flags, set)
+
+	// TODO: So here, is where we would see if any action is called, and if
+	// defaultaction is nil, then we just call help, this avoids any used
+	// memory by just applying the functionality in order of operations
+
 	context := NewContext(self, set, nil)
-	if nerr != nil {
-		fmt.Fprintln(self.Writer, nerr)
+	// TODO: What is normalize flags? we junkered most of the blaoted flag code in favor of a single reflect func
+	normErr := normalizeFlags(self.Flags, set)
+	if normErr != nil {
+		fmt.Fprintln(self.Writer, normErr)
 		ShowCLIHelp(context)
 		return nerr
 	}
-	context.shellComplete = shellComplete
-
-	if checkCompletions(context) {
-		return nil
-	}
-
 	if err != nil {
+		// TODO: Cant we determine this earlier? like by checking if current parsed command is a command?
 		if self.OnUsageError != nil {
 			err := self.OnUsageError(context, err, false)
 			self.handleExitCoder(context, err)
@@ -152,16 +161,6 @@ func (self *CLI) Run(arguments []string) (err error) {
 		fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
 		ShowCLIHelp(context)
 		return err
-	}
-
-	if !self.HideHelp && checkHelp(context) {
-		ShowCLIHelp(context)
-		return nil
-	}
-
-	if !self.HideVersion && checkVersion(context) {
-		PrintVersion(context)
-		return nil
 	}
 
 	if self.After != nil {

@@ -17,6 +17,12 @@ var (
 //return errors.New("index out of range")
 //defaultVal = fmt.Sprintf(" (default: %s)", strings.Join(defaultVals, ", "))
 
+//fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
+
+//Usage:  "Print version",
+
+//Usage:     "List of available commands or details for a specified command",
+
 //log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
 
 //return errors.New("index out of range")
@@ -27,15 +33,6 @@ var (
 //Usage:  "Print help text",
 
 //fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
-
-//return fmt.Errorf("could not parse %s as bool value for flag %s: %s", envVal, f.Name, err)
-//return fmt.Errorf("could not parse %s as value for flag %s: %s", fileEnvVal, f.Name, err)
-//return fmt.Errorf("could not parse %s as string value for flag %s: %s", envVal, f.Name, err)
-//return fmt.Errorf("could not parse %s as int slice value for flag %s: %s", envVal, f.Name, err)
-//return fmt.Errorf("could not parse %s as int64 slice value for flag %s: %s", envVal, f.Name, err)
-//return fmt.Errorf("could not parse %s as uint value for flag %s: %s", envVal, f.Name, err)
-//return fmt.Errorf("could not parse %s as uint64 value for flag %s: %s", envVal, f.Name, err)
-//return fmt.Errorf("could not parse %s as duration for flag %s: %s", envVal, f.Name, err)
 
 //fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
 
