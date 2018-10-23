@@ -107,9 +107,10 @@ func (self Command) Run(ctx *Context) (err error) {
 	if self.HasSubcommands {
 		return self.startCLI(ctx)
 	}
-	if !self.HideHelp {
-		self.Flags = append(self.Flags, HelpFlag)
-	}
+	// TODO: For now we always hide help for commands and subcommands to avoid cluttering help text
+	//if !self.HideHelp {
+	//  self.Flags = append(self.Flags, HelpFlag)
+	//}
 	set, err := self.parseFlags(ctx.Args().Tail())
 	context := NewContext(ctx.CLI, set, ctx)
 	context.Command = self
@@ -134,31 +135,42 @@ func (self Command) Run(ctx *Context) (err error) {
 
 	// TODO: Interesting that After is ran before Before and deferred, seems clever but not sure
 	// if it actually provides expected functionality
-	if self.After != nil {
-		defer func() {
-			afterErr := self.After(context)
-			if afterErr != nil {
-				log.Fatal(afterErr)
-				if err != nil {
-					err = NewMultiError(err, afterErr)
-				} else {
-					err = afterErr
-				}
-			}
-		}()
-	}
-	if self.Before != nil {
-		err = self.Before(context)
+	// TODO: This is right, so why are tehre like 5 functions and tons of extra memory dedicated to knowing
+	// if the help command or help subcommand is being displayed. if tehre is no default action, we render help
+	// if we parse help, we render help.
+	// TODO: no need to handle action, just print help and exit
+	defer self.ExecuteAfterAction()
+	self.ExecuteBeforeAction()
+	self.ExecuteAction()
+	return err
+}
+
+func (self *Command) ExecuteBeforeAction() {
+	if self.BeforeAction != nil {
+		err = self.BeforeAction(context)
 		if err != nil {
 			ShowCommandHelp(context, self.Name)
 			context.CLI.handleExitCoder(context, err)
 			return err
 		}
 	}
-	// TODO: This is right, so why are tehre like 5 functions and tons of extra memory dedicated to knowing
-	// if the help command or help subcommand is being displayed. if tehre is no default action, we render help
-	// if we parse help, we render help.
-	// TODO: no need to handle action, just print help and exit
+}
+
+func (self *Command) ExecuteAfterAction() {
+	if self.After != nil {
+		afterErr := self.After(context)
+		if afterErr != nil {
+			log.Fatal(afterErr)
+			if err != nil {
+				err = NewMultiError(err, afterErr)
+			} else {
+				err = afterErr
+			}
+		}
+	}
+}
+
+func (self *Command) ExecuteAction() {
 	if self.Action == nil {
 		self.Action = helpSubcommand.Action
 		err = HandleAction(self.Action, context)
@@ -166,7 +178,6 @@ func (self Command) Run(ctx *Context) (err error) {
 			context.CLI.handleExitCoder(context, err)
 		}
 	}
-	return err
 }
 
 func (c *Command) parseFlags(args Args) (*flag.FlagSet, error) {

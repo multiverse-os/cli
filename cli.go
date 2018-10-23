@@ -11,7 +11,7 @@ import (
 
 	log "github.com/multiverse-os/cli-framework/log"
 	text "github.com/multiverse-os/cli-framework/text"
-	"github.com/multiverse-os/cli-framework/text/color"
+	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
 // TODO: Support a slice of functions or map of functions for Before and After, so we can have several functions ran before and after any given

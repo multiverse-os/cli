@@ -2,7 +2,7 @@ package cli
 
 // TODO: This file is terrible, we can just use an interface and do a switchcase top determine type
 // this will make a 700 line file maybe 100 lines
-type OptionFlag struct {
+type Flag struct {
 	Name        string
 	Alias       string
 	Description string
