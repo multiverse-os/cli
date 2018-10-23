@@ -2,18 +2,12 @@ package cli
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
-	"sort"
-	"strings"
 
 	log "github.com/multiverse-os/cli-framework/log"
 )
 
-// TODO: replace `Action: interface{}` with `Action: ActionFunc` once some kind
-// of deprecation period has passed, maybe? // Execute this function if a usage error occurs.
 // TODO: Why do we have 'Usage' AND 'UsageText' seems like we should be merging this in some way. Also is this diff than description?
-// TODO: Short option? Its alias, flags only require special short option becausxe they parse with 1 '-' instead of '--'
 type Command struct {
 	Name            string
 	Aliases         []string
@@ -44,10 +38,6 @@ type Command struct {
 type Commands []Command
 type CommandsByName []Command
 
-// TODO: Why not instead of using globals we make a function that initializes the
-// CLI struct commands array with help command
-
-// TODO: Why do we have shortOption if we are just going to use alias
 func InitCommands() (commands Commands) {
 	return append(commands, Command{
 		Name:      "help",
@@ -82,6 +72,15 @@ func InitSubcommands(subcommands Commands) {
 	})
 }
 
+func (c Command) VisibleFlags() (flags []Flag) {
+	for _, flag := range c.Flags {
+		if !flag.Hidden {
+			flags = append(flags, flag)
+		}
+	}
+	return flags
+}
+
 // TODO: Currently only works with 3 levels, but program could support infinite levels. Should
 // rebuild this function to support recursive level of nested commands and subcommands
 func (self Command) Breadcrumbs() Commands {
@@ -107,32 +106,29 @@ func (self Command) Run(ctx *Context) (err error) {
 	if self.HasSubcommands {
 		return self.startCLI(ctx)
 	}
-	// TODO: For now we always hide help for commands and subcommands to avoid cluttering help text
-	//if !self.HideHelp {
-	//  self.Flags = append(self.Flags, HelpFlag)
-	//}
+	// TODO: Structure needs to evolve into parse -> execute using switch case
 	set, err := self.parseFlags(ctx.Args().Tail())
-	context := NewContext(ctx.CLI, set, ctx)
-	context.Command = self
-	if checkCommandCompletions(context, self.Name) {
-		return nil
-	}
-	if err != nil {
-		if self.OnUsageError != nil {
-			err := self.OnUsageError(context, err, false)
-			context.CLI.handleExitCoder(context, err)
-			return err
-		}
-		// TODO: What is going in here?
-		fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
-		fmt.Fprintln(context.CLI.Writer)
-		ShowCommandHelp(context, self.Name)
-		return err
-	}
 
+	//
+	// TODO: Why are we creating a new context? why not just use existing one?
+	////////////////////////////////////////////////////////////////////////////
+	//context := NewContext(ctx.CLI, set, ctx)
+	//// TODO: What? Why would we bother doing that?
+	//context.Command = self
+	//if err != nil {
+	//	if self.OnUsageError != nil {
+	//		err := self.OnUsageError(context, err, false)
+	//		context.CLI.handleExitCoder(context, err)
+	//		return err
+	//	}
+	//	// TODO: What is going in here?
+	//	fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
+	//	fmt.Fprintln(context.CLI.Writer)
+	//	ShowCommandHelp(context, self.Name)
+	//	return err
+	//}
 	// TODO: Break After, Before and Action into their own functions to clean up this parent function
 	// and make it very clear how the hooks are working.
-
 	// TODO: Interesting that After is ran before Before and deferred, seems clever but not sure
 	// if it actually provides expected functionality
 	// TODO: This is right, so why are tehre like 5 functions and tons of extra memory dedicated to knowing
@@ -181,121 +177,30 @@ func (self *Command) ExecuteAction() {
 }
 
 func (c *Command) parseFlags(args Args) (*flag.FlagSet, error) {
-	set, err := flagSet(c.Name, c.Flags)
-	if err != nil {
-		return nil, err
-	}
+	// TODO ?
 	set.SetOutput(ioutil.Discard)
-	//if c.SkipFlagParsing {
-	//	return set, set.Parse(append([]string{"--"}, args...))
-	//}
-	// TODO: Think we just use aliases
-	//if c.UseShortOptionHandling {
-	//  args = translateShortOptions(args)
-	//}
+	// TODO: We dont skip flag parsing, we can just skip executing
 	// TODO: Parse and handle result in a switchase
 	err = set.Parse(args)
 	if err != nil {
 		return nil, err
 	}
-	//err = normalizeFlags(c.Flags, set)
-	//if err != nil {
-	//	return nil, err
-	//}
 	return set, nil
 }
 
-// TODO: Removing reorder flags to before args func because why? if we are aprsing
-// that there are flags in any location we can then load the data into the command
-// or CLI struct for execution, but we are not reprinting the command with better
-// form, so why reorder? thats a lot of wasted resources for nothing
-
-func translateShortOptions(flagArgs Args) []string {
-	// separate combined flags
-	var flagArgsSeparated []string
-	for _, flagArg := range flagArgs {
-		if strings.HasPrefix(flagArg, "-") && strings.HasPrefix(flagArg, "--") == false && len(flagArg) > 2 {
-			for _, flagChar := range flagArg[1:] {
-				flagArgsSeparated = append(flagArgsSeparated, "-"+string(flagChar))
-			}
-		} else {
-			flagArgsSeparated = append(flagArgsSeparated, flagArg)
-		}
-	}
-	return flagArgsSeparated
+func (self Command) Names() []string {
+	return append([]string{self.Name}, self.Aliases...)
 }
 
-func (c Command) Names() []string {
-	names := []string{c.Name}
-	if c.ShortName != "" {
-		names = append(names, c.ShortName)
-	}
-	return append(names, c.Aliases...)
-}
-
-func (c Command) HasName(name string) bool {
-	for _, n := range c.Names() {
-		if n == name {
-			return true
-		}
-	}
-	return false
-}
-
-// TODO: Why are we recreating the entire object? Can we not just save copy the object entirely
-// instead of recreating it attribute by attribute?
-func (c Command) startCLI(ctx *Context) error {
-	cmd := &CLI{
-		Metadata:              ctx.CLI.Metadata,
-		Name:                  ctx.CLI.Name,
-		Usage:                 c.Usage,
-		Description:           c.Description,
-		ArgsUsage:             c.ArgsUsage,
-		CommandNotFound:       ctx.CLI.CommandNotFound,
-		CustomCLIHelpTemplate: c.CustomHelpTemplate,
-		Commands:              c.Subcommands,
-		Flags:                 c.Flags,
-		HideHelp:              c.HideHelp,
-		Version:               ctx.CLI.Version,
-		HideVersion:           ctx.CLI.HideVersion,
-		CompiledOn:            ctx.CLI.CompiledOn,
-		Writer:                ctx.CLI.Writer,
-		ErrWriter:             ctx.CLI.ErrWriter,
-		categories:            CommandCategories{},
-		BashCompletion:        ctx.CLI.BashCompletion,
-		OnUsageError:          c.OnUsageError,
-		Before:                c.Before,
-		After:                 c.After,
-		Logger:                ctx.CLI.Logger,
-	}
-	for _, command := range c.Subcommands {
-		cmd.categories = cmd.categories.AddCommand(command.Category, command)
-	}
-
-	sort.Sort(cmd.categories)
-
-	if c.BashComplete != nil {
-		cmd.BashComplete = c.BashComplete
-	}
-
-	if c.Action != nil {
-		cmd.Action = c.Action
+func (self Command) HasName(name string) bool {
+	if len(self.Aliases) == 0 {
+		return (self.Name == name)
 	} else {
-		cmd.Action = helpSubcommand.Action
-	}
-
-	for index, cc := range cmd.Commands {
-		cmd.Commands[index].commandNamePath = []string{c.Name, cc.Name}
-	}
-
-	return cmd.RunAsSubcommand(ctx)
-}
-
-func (c Command) VisibleFlags() (flags []Flag) {
-	for _, flag := range c.Flags {
-		if !flag.Hidden {
-			flags = append(flags, flag)
+		for _, commandName := range self.Names() {
+			if commandName == name {
+				return true
+			}
 		}
+		return false
 	}
-	return flags
 }
