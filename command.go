@@ -11,30 +11,31 @@ import (
 // TODO: replace `Action: interface{}` with `Action: ActionFunc` once some kind
 // of deprecation period has passed, maybe?
 // Execute this function if a usage error occurs.
+// TODO: Why do we have 'Usage' AND 'UsageText' seems like we should be merging this in some way. Also is this diff than description?
 type Command struct {
-	Name                   string
-	ShortOption            string
-	Aliases                []string
-	Usage                  string
-	UsageText              string
-	Description            string
-	ArgsUsage              string
-	Category               string
-	BashComplete           BashCompleteFunc
-	Before                 BeforeFunc
-	After                  AfterFunc
-	Action                 interface{}
-	OnUsageError           OnUsageErrorFunc
-	Subcommands            Commands
-	Flags                  []Flag
-	SkipFlagParsing        bool
-	SkipArgReorder         bool
-	HideHelp               bool
-	Hidden                 bool
-	UseShortOptionHandling bool
-	HelpName               string
-	commandNamePath        []string
-	CustomHelpTemplate     string
+	Name            string
+	ShortOption     string
+	Aliases         []string
+	Usage           string
+	UsageText       string
+	Description     string
+	ArgsUsage       string
+	Category        string
+	CommandCategory *CommandCategory
+	Action          interface{}
+	Subcommands     Commands
+	Flags           []Flag
+	SkipFlagParsing bool
+	SkipArgReorder  bool
+	// Why is there hide help for a single command? when would help displayed for each command ever be desirable?
+	HideHelp           bool
+	Hidden             bool
+	commandNamePath    []string
+	CustomHelpTemplate string
+	BashComplete       BashCompleteFunc
+	Before             BeforeFunc
+	After              AfterFunc
+	OnUsageError       OnUsageErrorFunc
 }
 
 type Commands []Command

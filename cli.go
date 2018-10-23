@@ -14,69 +14,54 @@ import (
 	"github.com/multiverse-os/cli-framework/text/color"
 )
 
+// TODO: Is this redudant between usage text and description?
 // TODO: Move all text into locales so we can support localization
+// Text to override the USAGE section of help
+// Description of the program argument format.
+// TODO: No better name than "argsusage"? Becauswe I have no idea what that means
+// TODO: Category concept doesnt seem to be used really. Shouldn't be generic "Category" unless its generic, its not.
 type CLI struct {
-	Name   string
-	NoANSI bool
-	// TODO: Is this redudant between usage text and description?
-	Usage string
-	// Text to override the USAGE section of help
-	UsageText string
-	// Description of the program argument format.
-	ArgsUsage      string
-	Version        Version
-	Description    string
-	Commands       []Command
-	Flags          []Flag
-	Logger         log.Logger
-	BashCompletion bool
-	HideHelp       bool
-	HideVersion    bool
-	// Populate on app startup, only gettable through method Categories()
-	categories CommandCategories
-	// An action to execute when the bash-completion flag is set
-	BashComplete BashCompleteFunc
-	// An action to execute before any subcommands are run, but after the context is ready
-	// If a non-nil error is returned, no subcommands are run
-	Before BeforeFunc
-	// An action to execute after any subcommands are run, but after the subcommand has finished
-	// It is run even if Action() panics
-	After AfterFunc
-
-	// The action to execute when no subcommands are specified
-	// Expects a `cli.ActionFunc` but will accept the *deprecated* signature of `func(*cli.Context) {}`
-	// *Note*: support for the deprecated `Action` signature will be removed in a future version
-
+	Name              string
+	Version           Version
+	Description       string
+	NoANSIFormatting  bool
+	Usage             string
+	UsageText         string
+	ArgsUsage         string
+	Commands          []Command
+	Subcommands       map[string]Command
+	Flags             map[string]Flag
+	Logger            log.Logger
+	CompiledOn        time.Time
+	HideHelp          bool
+	HideVersion       bool
+	CommandCategories CommandCategories
+	Writer            io.Writer
+	ErrWriter         io.Writer
+	RenderHelpText    PrintHelpText
 	// Functions
 	//////////////////////////////////////////////////////////////////////////////
-	Action          interface{}
+	DefaultAction interface{}
+	BeforeAction  BeforeFunc
+	AfterAction   AfterFunc
+	// Autocomplete Function - no need to have this have a bool check, obviously you want intuitive tab autocompletion by default in no situation is intiutive and consistent design undesirable
+	BashComplete BashCompleteFunc
+	// Error Functions
 	CommandNotFound CommandNotFoundFunc
-	OnUsageError    OnUsageErrorFunc
 	ExitErrHandler  ExitErrHandlerFunc
-
-	CompiledOn time.Time
-	// Writer writer to write output to
-	Writer io.Writer
-	// ErrWriter writes error output
-	ErrWriter io.Writer
-	// Other custom info
-	Metadata map[string]interface{}
-	// Carries a function which returns app specific info.
-	ExtraInfo func() map[string]string
-	// CustomCLIHelpTemplate the text template for app help topic.
-	// cli.go uses text/template to render templates. You can
-	// render custom help text by setting this variable.
-	CustomCLIHelpTemplate string
+	OnUsageError    OnUsageErrorFunc
 }
 
 func New(cmd *CLI) *CLI {
 	if cmd.Name == "" {
+		// Default to same name 'go build' uses for executable: the working directory name
 		var err error
 		cmd.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
 			log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
 		}
 	}
+	// Experiment with shorter checking using pointing
 	if &cmd.Version == nil {
 		cmd.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
@@ -87,9 +72,7 @@ func New(cmd *CLI) *CLI {
 	//		Patch: 0,
 	//	}
 	//}
-	if cmd.BashComplete == nil {
-		cmd.BashComplete = DefaultCLIComplete
-	}
+	// If Action is not specified, the default action should be to render help text
 	if cmd.Action == nil {
 		cmd.Action = helpCommand.Action
 	}

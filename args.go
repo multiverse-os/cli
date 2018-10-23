@@ -20,51 +20,47 @@ func (self Argument) Parse() {
 
 /// End Experiment ////
 
-type Arguments []string
+type Args []string
 
-func (self *Context) Arguments() Arguments {
-	return (Arguments(self.flagSet.Arguments()))
+func (self Args) HasArgs() bool {
+	return (len(Args) > 0)
 }
 
-func (self Arguments) HasArguments() bool {
-	return (len(Arguments) > 0)
-}
-
-func (self Arguments) AtIndex(index int) string {
+func (self Args) AtIndex(index int) string {
 	if len(self) > index {
 		return self[index]
 	}
 	return ""
 }
 
-func (self Arguments) First() string {
+func (self Args) First() string {
 	return self.AtIndex(0)
 }
 
-func (self Arguments) Second() string {
+func (self Args) Second() string {
 	return self.AtIndex(1)
 }
 
-func (self Arguments) Third() string {
+func (self Args) Third() string {
 	return self.AtIndex(2)
 }
 
-func (self Arguments) Fourth() string {
+func (self Args) Fourth() string {
 	return self.AtIndex(3)
 }
 
-func (self Arguments) Last() string {
+func (self Args) Last() string {
 	return self.AtIndex(len(self) - 1)
 }
 
-func (self Arguments) Tail() []string {
+func (self Args) Tail() []string {
 	if len(self) > 1 {
 		return self[1:]
 	}
 	return []string{}
 }
 
-func (self Arguments) Swap(a, b int) error {
+func (self Args) Swap(a, b int) error {
 	if a >= len(self) || b >= len(self) {
 		return errors.New("index out of range")
 	}

@@ -17,6 +17,8 @@ var (
 //return errors.New("index out of range")
 //defaultVal = fmt.Sprintf(" (default: %s)", strings.Join(defaultVals, ", "))
 
+//log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
+
 //return errors.New("index out of range")
 
 //fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
