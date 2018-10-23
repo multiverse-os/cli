@@ -52,9 +52,12 @@ type CLI struct {
 	OnUsageError    OnUsageErrorFunc
 }
 
+// Setup and New dont seem to have any reason to be separate
 func New(cmd *CLI) *CLI {
+	// TODO: Should just handle compile time and such together with hashing and signatures
+	//cmd.CompiledOn = time.Now()
+	// Default to same name 'go build' uses for executable: the working directory name
 	if cmd.Name == "" {
-		// Default to same name 'go build' uses for executable: the working directory name
 		var err error
 		cmd.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
@@ -73,29 +76,18 @@ func New(cmd *CLI) *CLI {
 	//	}
 	//}
 	// If Action is not specified, the default action should be to render help text
-	if cmd.Action == nil {
-		cmd.Action = helpCommand.Action
+	// TODO: Is this assignment necessary? Can we just check if the default action
+	// is empty at runtime? and then just run the help command then instead of wasting this memory space?
+	if cmd.DefaultAction == nil {
+		cmd.DefaultAction = helpCommand.Action
 	}
+	// TODO: Where is the reader? Why do we have this attribute? Do we just need the writer?
 	if cmd.Writer == nil {
 		cmd.Writer = os.Stdout
 	}
 	if cmd.Logger.AppName == "" {
 		cmd.Logger = log.NewLogger(cmd.Name, 1, true, true, false)
 	}
-	cmd.CompiledOn = time.Now()
-	return cmd
-}
-
-// Setup runs initialization code to ensure all data structures are ready for
-// `Run` or inspection prior to `Run`.  It is internally called by `Run`, but
-// will return early if setup has already happened.
-func (self *CLI) Setup() {
-	//log.Info("Logging to '" + self.LogFile() + "'")
-	newCmds := []Command{}
-	for _, c := range self.Commands {
-		newCmds = append(newCmds, c)
-	}
-	self.Commands = newCmds
 
 	if self.Command(helpCommand.Name) == nil && !self.HideHelp {
 		self.Commands = append(self.Commands, helpCommand)

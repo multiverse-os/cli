@@ -83,36 +83,6 @@ var SubcommandHelpTemplate = `Name
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
-var helpCommand = Command{
-	Name:      "help",
-	Aliases:   []string{"h"},
-	Usage:     "List of available commands or details for a specified command",
-	ArgsUsage: "[command]",
-	Action: func(c *Context) error {
-		args := c.Args()
-		if args.Present() {
-			return ShowCommandHelp(c, args.First())
-		}
-
-		ShowCLIHelp(c)
-		return nil
-	},
-}
-
-var helpSubcommand = Command{
-	Name:      "help",
-	Aliases:   []string{"h"},
-	Usage:     "List of available commands or details for a specified command",
-	ArgsUsage: "[command]",
-	Action: func(c *Context) error {
-		args := c.Args()
-		if args.Present() {
-			return ShowCommandHelp(c, args.First())
-		}
-		return ShowSubcommandHelp(c)
-	},
-}
-
 type helpPrinter func(w io.Writer, templ string, data interface{})
 
 var HelpPrinter helpPrinter = printHelp

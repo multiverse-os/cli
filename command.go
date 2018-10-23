@@ -13,33 +13,73 @@ import (
 // Execute this function if a usage error occurs.
 // TODO: Why do we have 'Usage' AND 'UsageText' seems like we should be merging this in some way. Also is this diff than description?
 type Command struct {
+	//ShortOption     string
 	Name            string
-	ShortOption     string
 	Aliases         []string
+	Category        string
+	CommandCategory *CommandCategory
 	Usage           string
 	UsageText       string
 	Description     string
 	ArgsUsage       string
-	Category        string
-	CommandCategory *CommandCategory
-	Action          interface{}
-	Subcommands     Commands
-	Flags           []Flag
+	Subcommands     map[string]Command
+	Flags           map[string]Flag
 	SkipFlagParsing bool
 	SkipArgReorder  bool
-	// Why is there hide help for a single command? when would help displayed for each command ever be desirable?
-	HideHelp           bool
-	Hidden             bool
-	commandNamePath    []string
-	CustomHelpTemplate string
-	BashComplete       BashCompleteFunc
-	Before             BeforeFunc
-	After              AfterFunc
-	OnUsageError       OnUsageErrorFunc
+	Hidden          bool
+	commandNamePath []string
+	CustomHelpText  string
+
+	Action interface{}
+	Before BeforeFunc
+	After  AfterFunc
+
+	BashComplete BashCompleteFunc
+
+	OnUsageError OnUsageErrorFunc
 }
 
 type Commands []Command
 type CommandsByName []Command
+
+// TODO: Why not instead of using globals we make a function that initializes the
+// CLI struct commands array with help command
+
+// TODO: Why do we have shortOption if we are just going to use alias
+func InitCommands() (commands Commands) {
+	return append(commands, Command{
+		Name:      "help",
+		Aliases:   []string{"h"},
+		Usage:     "List of available commands or details for a specified command",
+		ArgsUsage: "[command]",
+		Hidden:    true,
+		Action: func(c *Context) error {
+			args := c.Args()
+			if args.Present() {
+				return ShowCommandHelp(c, args.First())
+			}
+
+			ShowCLIHelp(c)
+			return nil
+		},
+	})
+}
+
+func InitSubcommands(command)
+
+var helpSubcommand = Command{
+	Name:      "help",
+	Aliases:   []string{"h"},
+	Usage:     "List of available commands or details for a specified command",
+	ArgsUsage: "[command]",
+	Action: func(c *Context) error {
+		args := c.Args()
+		if args.Present() {
+			return ShowCommandHelp(c, args.First())
+		}
+		return ShowSubcommandHelp(c)
+	},
+}
 
 // TODO: What the fuck is this, the name is terrible
 func (self Command) FullName() string {
