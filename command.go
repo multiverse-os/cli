@@ -6,13 +6,15 @@ import (
 	"io/ioutil"
 	"sort"
 	"strings"
+
+	log "github.com/multiverse-os/cli-framework/log"
 )
 
 // TODO: replace `Action: interface{}` with `Action: ActionFunc` once some kind
 // of deprecation period has passed, maybe? // Execute this function if a usage error occurs.
 // TODO: Why do we have 'Usage' AND 'UsageText' seems like we should be merging this in some way. Also is this diff than description?
+// TODO: Short option? Its alias, flags only require special short option becausxe they parse with 1 '-' instead of '--'
 type Command struct {
-	//ShortOption     string
 	Name            string
 	Aliases         []string
 	Category        string
@@ -24,7 +26,7 @@ type Command struct {
 	ParentCommand   Command
 	Subcommands     map[string]Command
 	Flags           map[string]Flag
-	SkipFlagParsing bool
+	//SkipFlagParsing bool
 	SkipArgReorder  bool
 	Hidden          bool
 	commandNamePath []string
@@ -126,11 +128,13 @@ func (self Command) Run(ctx *Context) (err error) {
 		ShowCommandHelp(context, self.Name)
 		return err
 	}
+	// TODO: Interesting that After is ran before Before and deferred, seems clever but not sure
+	// if it actually provides expected functionality
 	if self.After != nil {
 		defer func() {
 			afterErr := self.After(context)
 			if afterErr != nil {
-				context.CLI.handleExitCoder(context, err)
+				log.Fatal(afterErr)
 				if err != nil {
 					err = NewMultiError(err, afterErr)
 				} else {
@@ -147,12 +151,16 @@ func (self Command) Run(ctx *Context) (err error) {
 			return err
 		}
 	}
+	// TODO: This is right, so why are tehre like 5 functions and tons of extra memory dedicated to knowing
+	// if the help command or help subcommand is being displayed. if tehre is no default action, we render help
+	// if we parse help, we render help.
+	// TODO: no need to handle action, just print help and exit
 	if self.Action == nil {
 		self.Action = helpSubcommand.Action
-	}
-	err = HandleAction(self.Action, context)
-	if err != nil {
-		context.CLI.handleExitCoder(context, err)
+		err = HandleAction(self.Action, context)
+		if err != nil {
+			context.CLI.handleExitCoder(context, err)
+		}
 	}
 	return err
 }
@@ -163,50 +171,29 @@ func (c *Command) parseFlags(args Args) (*flag.FlagSet, error) {
 		return nil, err
 	}
 	set.SetOutput(ioutil.Discard)
-	if c.SkipFlagParsing {
-		return set, set.Parse(append([]string{"--"}, args...))
-	}
-	if c.UseShortOptionHandling {
-		args = translateShortOptions(args)
-	}
-	if !c.SkipArgReorder {
-		args = reorderArgs(args)
-	}
+	//if c.SkipFlagParsing {
+	//	return set, set.Parse(append([]string{"--"}, args...))
+	//}
+	// TODO: Think we just use aliases
+	//if c.UseShortOptionHandling {
+	//  args = translateShortOptions(args)
+	//}
+	// TODO: Parse and handle result in a switchase
 	err = set.Parse(args)
 	if err != nil {
 		return nil, err
 	}
-	err = normalizeFlags(c.Flags, set)
-	if err != nil {
-		return nil, err
-	}
+	//err = normalizeFlags(c.Flags, set)
+	//if err != nil {
+	//	return nil, err
+	//}
 	return set, nil
 }
 
-// reorderArgs moves all flags before arguments as this is what flag expects
-func reorderArgs(args []string) []string {
-	var nonflags, flags []string
-	readFlagValue := false
-	for i, arg := range args {
-		if arg == "--" {
-			nonflags = append(nonflags, args[i:]...)
-			break
-		}
-		if readFlagValue && !strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") {
-			readFlagValue = false
-			flags = append(flags, arg)
-			continue
-		}
-		readFlagValue = false
-		if arg != "-" && strings.HasPrefix(arg, "-") {
-			flags = append(flags, arg)
-			readFlagValue = !strings.Contains(arg, "=")
-		} else {
-			nonflags = append(nonflags, arg)
-		}
-	}
-	return append(flags, nonflags...)
-}
+// TODO: Removing reorder flags to before args func because why? if we are aprsing
+// that there are flags in any location we can then load the data into the command
+// or CLI struct for execution, but we are not reprinting the command with better
+// form, so why reorder? thats a lot of wasted resources for nothing
 
 func translateShortOptions(flagArgs Args) []string {
 	// separate combined flags

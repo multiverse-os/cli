@@ -19,6 +19,8 @@ var (
 
 //fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
 
+//fmt.Fprintln(context.CLI.Writer, "Incorrect Usage:", err.Error())
+
 //Usage:  "Print version",
 
 //Usage:     "List of available commands or details for a specified command",
