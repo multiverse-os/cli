@@ -1,32 +1,34 @@
 package log
 
 import (
-	"fmt"
+	"io"
 	"os"
 	"os/user"
 	"strings"
-	"sync"
-	"time"
-
-	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
-// TODO: Add flag to increase resolution of the timestamp for software that needs greater resolution
+type Format int
+
+// TODO: The ideal result of this would be making LogFile and StdOut/StdErr
+//       share a common Interface, then they can be added via the
+//       Logger.WriteStreams(). Anything written to Entries, should be
+//       written to each WriteStream(s) using mutexes so in a thread
+//       safe way.
+//       The most ideal thing would be to write to Entries using mutex,
+//       then use this slice to write to the io.Writers from
+
+// TODO: Determine LogLevel/Verbosity groupings
+
 type Logger struct {
-	AppName   string
-	Entries   []Entry
-	Path      string
-	Filename  string
-	FileMutex sync.Mutex
-	LogFile   *os.File
-	FileData  []byte
-	Verbosity int
-	ToFile    bool
-	ToStdOut  bool
-	JSON      bool
+	AppName        string
+	Verbosity      int
+	Entries        []Entry
+	TimeResolution TimeResolution
+	File           LogFile
+	Outputs        []io.Writer
 }
 
-func NewLogger(name string, verbosity int, toFile, toStdOut, json bool) Logger {
+func NewLogger(name string, resolution TimeResolution, verbosity int, toFile, toStdOut, json bool) Logger {
 	name = strings.ToLower(name)
 	logPath := ("/var/log/" + name + "/")
 	logFilename := (name + ".log")
@@ -42,32 +44,14 @@ func NewLogger(name string, verbosity int, toFile, toStdOut, json bool) Logger {
 		}
 	}
 	return Logger{
-		AppName:   name,
-		Path:      logPath,
-		Filename:  logFilename,
-		Entries:   []Entry{},
-		Verbosity: verbosity,
-		ToFile:    toFile,
-		ToStdOut:  toStdOut,
-		JSON:      json,
-	}
-}
-
-func (self *Logger) NewLog(logType LogType, text string) {
-	self.Log(logType, text)
-}
-
-func (self Logger) Log(logType LogType, text string) {
-	logEntry := Entry{
-		Logger: &self,
-		Type:   logType,
-		Time:   time.Now(),
-		Text:   text,
-	}
-	self.Entries = append(self.Entries, logEntry)
-	fmt.Println(logEntry.Type.FormattedString(true) + color.White("["+logEntry.Time.Format("Jan _2 15:04")+"] ") + logEntry.Text)
-	if logEntry.Type == FATAL || logEntry.Type == PANIC {
-		os.Exit(1)
+		AppName:        name,
+		Verbosity:      verbosity,
+		TimeResolution: resolution,
+		Entries:        []Entry{},
+		File: LogFile{
+			Path:     logPath,
+			Filename: logFilename,
+		},
 	}
 }
 
@@ -80,7 +64,7 @@ func (self Logger) Warning(text string) {
 }
 
 func (self Logger) Warn(text string) {
-	self.Log(WARNING, text)
+	self.Log(WARN, text)
 }
 
 func (self Logger) Error(err error) {
@@ -99,37 +83,7 @@ func (self Logger) Panic(text string) {
 	self.Log(FATAL, text)
 }
 
-// TODO: Should switch to streaming method of writing to log file to avoid lag periods
-// and bottlenecking on io
-func (self *Logger) OpenLog() (err error) {
-	defer CloseLog()
-	self.FileMutex.Lock()
-	self.LogFile, err = os.OpenFile(self.LogFilePath(), os.O_APPEND|os.O_WRONLY, 0660)
-	self.FileMutex.Unlock()
-	return err
-}
-
-// TODO: This should be called in signal cancel and shutdown
-func (self *Logger) CloseLog() (err error) {
-	self.FileMutex.Lock()
-	self.LogFile.Close()
-	self.FileMutex.Unlock()
-}
-
-func (self Logger) AppendToLog(text string) {
-	// TODO: Add the ability to write to file as JSON (and probably XML)
-	self.FileMutex.Lock()
-	if _, err = file.WriteString(text); err != nil {
-		self.FileMutex.Unlock()
-		self.ToFile = false
-		self.ToStdOut = true
-		self.Log(FATAL, err.Error())
-	} else {
-		self.FileMutex.Unlock()
-	}
-}
-
-func (self Logger) LogFilePath() string {
+func (self LogFile) FilePath() string {
 	return (self.Path + self.Filename)
 }
 

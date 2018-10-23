@@ -4,15 +4,25 @@ import (
 	"fmt"
 	"os"
 	"time"
-
-	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
-// TODO: Add flag to increase resolution of the timestamp for software that needs greater resolution
-
-func Print(logType LogType, text string) {
-	fmt.Println(logType.FormattedString(true) + color.White("["+time.Now().Format("Jan _2 15:04")+"] ") + text)
-	if logType == FATAL || logType == PANIC {
+//
+// Minimialistic Logging
+///////////////////////////////////////////////////////////////////////////////
+// Simple log.Print(INFO, "Text") and associated alias functions such as
+// Trace("Test trace") or Info("Print info to StdOut") that does not require
+// a Logger object or creation of LogEntry objects for very quick access to
+// consistent StdOut logging when needed.
+func Print(level LogLevel, message string) {
+	logEntry := Entry{
+		Level:     level,
+		CreatedAt: time.Now(),
+		Message:   message,
+	}
+	// TODO: Format & Print LOG_ENTRY
+	fmt.Println(logEntry.Message)
+	switch level {
+	case FATAL, PANIC:
 		os.Exit(1)
 	}
 }
@@ -30,7 +40,7 @@ func Warning(text string) {
 }
 
 func Warn(text string) {
-	Print(WARNING, text)
+	Print(WARN, text)
 }
 
 func Error(err error) {

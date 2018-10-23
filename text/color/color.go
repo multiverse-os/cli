@@ -50,10 +50,17 @@ const (
 	BOLD         = STRONG
 	THIN         = LIGHT
 	SUCCESS      = GREEN
-	WARNING      = YELLOW
-	FAIL         = RED
-	INFO         = BLUE
 	LOG          = GRAY
+	DEBUG        = GRAY
+	INFO         = BLUE
+	WARNING      = YELLOW
+	WARN         = WARNING
+	FAIL         = RED
+	ERROR        = RED
+	FATAL_ERROR  = RED
+	FATAL        = RED
+	PANIC        = RED
+	TRACE        = BLUE
 	H1           = HEADER
 	H2           = SUBHEADER
 	PURPLE       = MAGENTA
@@ -102,20 +109,52 @@ func Success(text string) string {
 	return (SUCCESS + text + RESET)
 }
 
-func Warning(text string) string {
-	return (WARNING + text + RESET)
+func Log(text string) string {
+	return (LOG + text + RESET)
 }
 
-func Fail(text string) string {
-	return (FAIL + text + RESET)
+func Notice(text string) string {
+	return (LOG + text + RESET)
 }
 
 func Info(text string) string {
 	return (INFO + text + RESET)
 }
 
-func Log(text string) string {
+func Debug(text string) string {
 	return (LOG + text + RESET)
+}
+
+func Warning(text string) string {
+	return (WARNING + text + RESET)
+}
+
+func Warn(text string) string {
+	return (WARN + text + RESET)
+}
+
+func Trace(text string) string {
+	return (TRACE + text + RESET)
+}
+
+func Fail(text string) string {
+	return (FAIL + text + RESET)
+}
+
+func Error(text string) string {
+	return (FAIL + text + RESET)
+}
+
+func Fatal(text string) string {
+	return (FAIL + text + RESET)
+}
+
+func FatalError(text string) string {
+	return (FAIL + text + RESET)
+}
+
+func Panic(text string) string {
+	return (FAIL + text + RESET)
 }
 
 //

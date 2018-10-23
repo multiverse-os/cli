@@ -1,11 +1,18 @@
 cli-framework
 ===
-cli-framework is a simple command line interface framework
+cli-framework is a simple command line interface framework. Eventually the `cli-framework` will be made up of 
+modular components that make up a complete `cli-framework` to make command-line tools, services, providing
+consistent input, validation, output but functionality will be broken up and optional so that it can be
+mixed with any other tools for maximum flexiblity.
 
 
-## Getting Started
-This app will run and show help text, but is not very useful. Let's give an
-action to execute and some help documentation:
+## Quick Start: the simplest example
+The following command-line tool CLI application will run the `Action`. Unless
+the two default flags/commands: (1) **Help** accessible by the flag `--help`
+or `-h` or by the command `help` or `h`. (2) **Version** accessible by the 
+flag `--version` or `-v` or by the command `version` or `v` which simply 
+displays the version. 
+
 
 ``` go
 package main
