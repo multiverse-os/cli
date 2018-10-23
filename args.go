@@ -4,26 +4,27 @@ import (
 	"errors"
 )
 
-// Experimental
 type Argument struct {
-	Raw          string
-	Value        interface{}
-	IsCommand    bool
-	IsSubcommand bool
-	IsFlag       bool
-	DataType     string
+	Raw                string
+	Value              interface{}
+	CommandName        string
+	CommandTree        [][]string
+	SubcommandName     string
+	CommandBreadcrumbs []string
+	IsCommand          bool
+	IsSubcommand       bool
+	IsFlag             bool
+	DataType           string
 }
 
 func (self Argument) Parse() {
 	// TODO: Take raw string value and determine if its command, subcommand, flag, datatype and insert the value
 }
 
-/// End Experiment ////
-
 type Args []string
 
 func (self Args) HasArgs() bool {
-	return (len(Args) > 0)
+	return (len(self) > 0)
 }
 
 func (self Args) AtIndex(index int) string {

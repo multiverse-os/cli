@@ -9,6 +9,17 @@ type CommandCategory struct {
 	Hidden      bool
 }
 
+func InitCommandCategories(categoryName, categoryDescription string, commands Commands) CommandCategories {
+	return CommandCategories{
+		"key": CommandCategory{
+			Name:        categoryName,
+			Description: categoryDescription,
+			Commands:    commands,
+			Hidden:      false,
+		},
+	}
+}
+
 func (self CommandCategories) AddCommand(category string, command Command) CommandCategories {
 	if category, ok := CommandCategories[category]; ok {
 		return append(self, &CommandCategory{Name: category, Commands: []Command{command}})

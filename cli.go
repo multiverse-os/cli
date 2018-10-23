@@ -46,28 +46,29 @@ type CLI struct {
 	CommandCategories CommandCategories
 	Writer            io.Writer
 	ErrWriter         io.Writer
-	RenderHelpText    PrintHelpText
 	// Functions
 	//////////////////////////////////////////////////////////////////////////////
 	DefaultAction interface{}
+	BeforeActions map[string]BeforeFunc
+	AfterActions  map[string]AfterFunc
 	BeforeAction  BeforeFunc
 	AfterAction   AfterFunc
-	// Autocomplete Function - no need to have this have a bool check, obviously you want intuitive tab autocompletion by default in no situation is intiutive and consistent design undesirable
-	BashComplete BashCompleteFunc
 	// Error Functions
+	// TODO: Why not just make these locales and print from standard error log?
 	CommandNotFound CommandNotFoundFunc
 	ExitErrHandler  ExitErrHandlerFunc
 	OnUsageError    OnUsageErrorFunc
 }
 
 // Setup and New dont seem to have any reason to be separate
-func New(cmd *CLI) *CLI {
+func New(cli *CLI) *CLI {
 	// TODO: Should just handle compile time and such together with hashing and signatures
 	//cmd.CompiledOn = time.Now()
 	// Default to same name 'go build' uses for executable: the working directory name
-	if cmd.Name == "" {
+	if cli.Name == "" {
 		var err error
-		cmd.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
+		// TODO: We should only be using args AFTER parsing so we can limit by data type, validate and such
+		cli.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
 			log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
 		}
@@ -83,13 +84,9 @@ func New(cmd *CLI) *CLI {
 	//		Patch: 0,
 	//	}
 	//}
-	// If Action is not specified, the default action should be to render help text
-	// TODO: Is this assignment necessary? Can we just check if the default action
-	// is empty at runtime? and then just run the help command then instead of wasting this memory space?
-	if cmd.DefaultAction == nil {
-		cmd.DefaultAction = helpCommand.Action
-	}
-	// TODO: Where is the reader? Why do we have this attribute? Do we just need the writer?
+
+	// TODO: Add support for 'nohup' like functionality to output all stdout to text file
+	// TODO: How can we merge these two? It should be possible and could work very well
 	if cmd.Writer == nil {
 		cmd.Writer = os.Stdout
 	}
@@ -97,30 +94,15 @@ func New(cmd *CLI) *CLI {
 		cmd.Logger = log.NewLogger(cmd.Name, 1, true, true, false)
 	}
 
-	if self.Command(helpCommand.Name) == nil && !self.HideHelp {
-		self.Commands = append(self.Commands, helpCommand)
-		if (HelpFlag != BoolFlag{}) {
-			self.appendFlag(HelpFlag)
-		}
-	}
-
+	self.Commands = InitCommands()
 	if !self.HideVersion {
 		self.appendFlag(VersionFlag)
 	}
-
 	self.categories = CommandCategories{}
 	for _, command := range self.Commands {
 		self.categories = self.categories.AddCommand(command.Category, command)
 	}
 	sort.Sort(self.categories)
-
-	if self.Metadata == nil {
-		self.Metadata = make(map[string]interface{})
-	}
-
-	if self.Writer == nil {
-		self.Writer = os.Stdout
-	}
 }
 
 func (self *CLI) Run(arguments []string) (err error) {

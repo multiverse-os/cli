@@ -38,13 +38,15 @@ type Command struct {
 type Commands []Command
 type CommandsByName []Command
 
-func InitCommands() (commands Commands) {
+func InitCommands(command Command) (commands Commands) {
 	return append(commands, Command{
-		Name:      "help",
-		Aliases:   []string{"h"},
-		Usage:     "List of available commands or details for a specified command",
-		ArgsUsage: "[command]",
-		Hidden:    true,
+		Name:          "help",
+		Aliases:       []string{"h"},
+		Usage:         "List of available commands or details for a specified command",
+		ArgsUsage:     "[command]",
+		ParentCommand: command,
+		Subcommands:   InitSubcommands(),
+		Hidden:        true,
 		Action: func(c *Context) error {
 			args := c.Args()
 			if args.Present() {
@@ -56,7 +58,7 @@ func InitCommands() (commands Commands) {
 	})
 }
 
-func InitSubcommands(subcommands Commands) {
+func InitSubcommands() (subcommands Commands) {
 	return append(subcommands, Command{
 		Name:      "help",
 		Aliases:   []string{"h"},
