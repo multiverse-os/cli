@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"strings"
+	"sync"
 	"time"
 
 	color "github.com/multiverse-os/cli-framework/text/color"
@@ -16,6 +17,9 @@ type Logger struct {
 	Entries   []Entry
 	Path      string
 	Filename  string
+	FileMutex sync.Mutex
+	LogFile   *os.File
+	FileData  []byte
 	Verbosity int
 	ToFile    bool
 	ToStdOut  bool
@@ -95,23 +99,37 @@ func (self Logger) Panic(text string) {
 	self.Log(FATAL, text)
 }
 
+// TODO: Should switch to streaming method of writing to log file to avoid lag periods
+// and bottlenecking on io
+func (self *Logger) OpenLog() (err error) {
+	defer CloseLog()
+	self.FileMutex.Lock()
+	self.LogFile, err = os.OpenFile(self.LogFilePath(), os.O_APPEND|os.O_WRONLY, 0660)
+	self.FileMutex.Unlock()
+	return err
+}
+
+// TODO: This should be called in signal cancel and shutdown
+func (self *Logger) CloseLog() (err error) {
+	self.FileMutex.Lock()
+	self.LogFile.Close()
+	self.FileMutex.Unlock()
+}
+
 func (self Logger) AppendToLog(text string) {
 	// TODO: Add the ability to write to file as JSON (and probably XML)
-	file, err := os.OpenFile(self.LogFile(), os.O_APPEND|os.O_WRONLY, 0660)
-	if err != nil {
-		self.ToFile = false
-		self.ToStdOut = true
-		self.Log(FATAL, err.Error())
-	}
-	defer file.Close()
+	self.FileMutex.Lock()
 	if _, err = file.WriteString(text); err != nil {
+		self.FileMutex.Unlock()
 		self.ToFile = false
 		self.ToStdOut = true
 		self.Log(FATAL, err.Error())
+	} else {
+		self.FileMutex.Unlock()
 	}
 }
 
-func (self Logger) LogFile() string {
+func (self Logger) LogFilePath() string {
 	return (self.Path + self.Filename)
 }
 

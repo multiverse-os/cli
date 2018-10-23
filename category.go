@@ -1,5 +1,7 @@
 package cli
 
+//"sync/atomic"
+
 type CommandCategories map[string]CommandCategory
 
 type CommandCategory struct {
@@ -17,12 +19,6 @@ func InitCommandCategories(categoryName, categoryDescription string, commands Co
 			Commands:    commands,
 			Hidden:      false,
 		},
-	}
-}
-
-func (self CommandCategories) AddCommand(category string, command Command) CommandCategories {
-	if category, ok := CommandCategories[category]; ok {
-		return append(self, &CommandCategory{Name: category, Commands: []Command{command}})
 	}
 }
 

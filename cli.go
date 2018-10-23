@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"sync"
 	"time"
 
 	log "github.com/multiverse-os/cli-framework/log"
@@ -44,6 +45,7 @@ type CLI struct {
 	HideHelp          bool
 	HideVersion       bool
 	CommandCategories CommandCategories
+	WriteMutex        sync.Mutex
 	Writer            io.Writer
 	ErrWriter         io.Writer
 	// Functions
@@ -192,6 +194,12 @@ func (self *CLI) Run(arguments []string) (err error) {
 
 	self.handleExitCoder(context, err)
 	return err
+}
+
+func (self *CLI) AddCommandCategory(categoryName, categoryDescription string, command Command) {
+	self.WriteMutex.Lock()
+	self.CommandCategories[category] = CommandCategory{Name: categoryName, categoryDescription: description, Commands: append(self.CommandCategories(command))}
+	self.WriteMutex.Unlock()
 }
 
 // RunAndExitOnError calls .Run() and exits non-zero if an error was returned
