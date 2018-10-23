@@ -14,6 +14,9 @@ import (
 	"github.com/multiverse-os/cli-framework/text/color"
 )
 
+// TODO: Support a slice of functions or map of functions for Before and After, so we can have several functions ran before and after any given
+// function command subcommand and so on for more complex functionality and modularization of code
+
 // TODO: A problem exist with ordering, its not possible to call global option flags at the end, but long as there is no duplication between
 // flag levels which would be best avoided anyways for confusion reasons the global option flag should be callable anywhere. this is the expected
 // and normal functionality.

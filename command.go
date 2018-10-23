@@ -128,6 +128,10 @@ func (self Command) Run(ctx *Context) (err error) {
 		ShowCommandHelp(context, self.Name)
 		return err
 	}
+
+	// TODO: Break After, Before and Action into their own functions to clean up this parent function
+	// and make it very clear how the hooks are working.
+
 	// TODO: Interesting that After is ran before Before and deferred, seems clever but not sure
 	// if it actually provides expected functionality
 	if self.After != nil {
