@@ -8,6 +8,29 @@ is desired.
 
 ## Design
 
+**(Optional) Bash Complete**
+Use an **immutable** *prefix sorting radix tree* to store ALL the 
+flags, commands, subcommands, and the order. This will allow 
+us to have a auto-completing system with tab completion. 
+
+  _or_ 
+
+Use the same data structure to support fuzzy searches of help
+commands and help text to quickly get relevant parts of help
+text or documentation.
+
+  _or_ 
+
+*OS filesystem tools* that map the entire filesystem, then support
+quick path exist checking. Then when typing it in, can have a table
+completing and showing options as one moves through the paths. 
+Merkle map, diff by hash, checksum hash, live updates. Simple
+version can be used as os fs utility library while more
+complex version can become basis for file manager, and other
+advanced filesystem tools.
+
+
+**(Optional) Minimalistic but functionaly complete log system**
 To simplify the design as much as possible and to make the logic/design
 and naming instantly familiar we will build around concepts established
 within `syslog` software.

@@ -1,88 +1,73 @@
 package log
 
 import (
+	"fmt"
 	"os"
 	"sync"
 )
 
 type Outputs []LogOutput
 
-func (self Outputs) Open() {
-	for _, output := range self {
-		output.Open()
-	}
-}
+type Output int
 
-func (self Outputs) Close() {
-	for _, output := range self {
-		output.Close()
-	}
-}
+const (
+	STDOUT Output = iota
+	FILE
+)
 
-func (self Outputs) Append(entry Entry) {
-	for _, output := range self {
-		output.Append(entry)
-	}
-}
-
-// Default supported output types
-///////////////////////////////////////////////////////////////////////////////
-//    (1) File
-//    (2) StdOut
 type LogOutput interface {
-	Open()
+	Open() error
 	Close()
+
 	Append(entry Entry)
 }
 
-//
 // STREAM: File I/O
 ///////////////////////////////////////////////////////////////////////////////
 type LogFile struct {
-	Path     string
-	Filename string
-	Mutex    sync.Mutex
-	Data     *os.File
+	format Format
+	mutex  sync.Mutex
+	path   string
+	data   *os.File
 }
 
 func (self *LogFile) Open() (err error) {
 	defer self.Close()
-	self.Mutex.Lock()
-	self.Data, err = os.OpenFile(self.FilePath(), os.O_APPEND|os.O_WRONLY, 0660)
-	self.Mutex.Unlock()
+	self.mutex.Lock()
+	self.data, err = os.OpenFile(self.path, os.O_APPEND|os.O_WRONLY, 0660)
+	self.mutex.Unlock()
 	return err
 }
 
-// TODO: This should be called in signal cancel and shutdown
+// For a clean shutdown, this should be called in shutdown/signal
 func (self *LogFile) Close() {
-	self.Mutex.Lock()
-	self.Data.Close()
-	self.Mutex.Unlock()
+	self.mutex.Lock()
+	self.data.Close()
+	self.mutex.Unlock()
 }
 
-// TODO: We should support an array or map of io.writers, then we can cycle through and write to each one
-// supporting stdout, logfile and so on, potentially even writing to held open html requests
-func (self *LogFile) Append(logEntry Entry) {
-	formattedMessage := logEntry.Message
-	self.Mutex.Lock()
-	_, err := self.Data.WriteString(formattedMessage)
-	self.Mutex.Unlock()
+func (self *LogFile) Append(entry Entry) {
+	self.mutex.Lock()
+	_, err := self.data.WriteString(entry.FormattedOutput())
+	self.mutex.Unlock()
 	if err != nil {
 		FatalError(err)
 	}
 }
 
-//
 // STREAM: OS stdout
 ///////////////////////////////////////////////////////////////////////////////
 // There is two versions of this, (1) where we pull apart the "fmt" library
 // and implement all that is needed to interact with StdOut the other, (2)
 // is to just make it simple as possible leveraging the existing "fmt".
-type StdOut struct{}
+type StdOut struct {
+	format Format
+	mutex  sync.Mutex
+}
 
-func (self *StdOut) Open()  {}
-func (self *StdOut) Close() {}
+func (self *StdOut) Open() error { return nil }
+func (self *StdOut) Close()      {}
 
-func (self *StdOut) Append(logEntry Entry) {
-	//logEntry.Print()
+func (self *StdOut) Append(entry Entry) {
+	fmt.Println(entry.Format(self.format))
 }

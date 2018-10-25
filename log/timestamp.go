@@ -12,14 +12,18 @@ const (
 )
 
 func (self *Entry) Timestamp() string {
-	switch self.Logger.TimeResolution {
+	return self.TimestampWithResolution(MINUTES)
+}
+
+func (self *Entry) TimestampWithResolution(resolution TimeResolution) string {
+	switch resolution {
 	case NANOSECONDS:
-		return self.CreatedAt.Format("Jan _2 15:04:03:02:01")
+		return self.createdAt.Format("Jan _2 15:04:03:02:01")
 	case MICROSECONDS:
-		return self.CreatedAt.Format("Jan _2 15:04:03:02")
+		return self.createdAt.Format("Jan _2 15:04:03:02")
 	case SECONDS:
-		return self.CreatedAt.Format("Jan _2 15:04:03")
+		return self.createdAt.Format("Jan _2 15:04:03")
 	default:
-		return self.CreatedAt.Format("Jan _2 15:04")
+		return self.createdAt.Format("Jan _2 15:04")
 	}
 }

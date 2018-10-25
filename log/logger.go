@@ -1,60 +1,96 @@
 package log
 
 import (
-	"io"
-	"os"
-	"os/user"
-	"strings"
+	"errors"
 )
 
-type Format int
-
-// TODO: The ideal result of this would be making LogFile and StdOut/StdErr
-//       share a common Interface, then they can be added via the
-//       Logger.WriteStreams(). Anything written to Entries, should be
-//       written to each WriteStream(s) using mutexes so in a thread
-//       safe way.
-//       The most ideal thing would be to write to Entries using mutex,
-//       then use this slice to write to the io.Writers from
-
-// TODO: Determine LogLevel/Verbosity groupings
-
 type Logger struct {
-	AppName        string
+	Name           string
 	Verbosity      int
-	Entries        []Entry
 	TimeResolution TimeResolution
-	File           LogFile
-	Outputs        []io.Writer
+	Entries        []Entry
+	Hooks          map[LogLevel]map[HookType][]*Hook
+	Outputs        []LogOutput
 }
 
-func NewLogger(name string, resolution TimeResolution, verbosity int, toFile, toStdOut, json bool) Logger {
-	name = strings.ToLower(name)
-	logPath := ("/var/log/" + name + "/")
-	logFilename := (name + ".log")
-	if _, err := os.Stat(logPath); os.IsNotExist(err) {
-		os.MkdirAll(logPath, 0660)
-		os.OpenFile((logPath + logFilename), os.O_RDONLY|os.O_CREATE, 0660)
-		if _, err := os.Stat(logPath); os.IsNotExist(err) {
-			if _, err := os.Stat((UserLogPath(name) + logFilename)); os.IsNotExist(err) {
-				os.MkdirAll(UserLogPath(name), 0660)
-				os.OpenFile((UserLogPath(name) + logFilename), os.O_RDONLY|os.O_CREATE, 0660)
-			}
-			logPath = UserLogPath(name)
-		}
-	}
+func NewLogger(name string, resolution TimeResolution, verbosity int) Logger {
 	return Logger{
-		AppName:        name,
+		Name:           name,
 		Verbosity:      verbosity,
 		TimeResolution: resolution,
 		Entries:        []Entry{},
-		File: LogFile{
-			Path:     logPath,
-			Filename: logFilename,
-		},
 	}
 }
 
+func NewFileLogger(name string, resolution TimeResolution, verbosity int, format Format, logPath string) Logger {
+	logger := Logger{
+		Name:           name,
+		Verbosity:      verbosity,
+		TimeResolution: resolution,
+		Entries:        []Entry{},
+	}
+	logger.AddFileOutput(format, UserLogPath(name))
+	return logger
+}
+
+func (self *Logger) InitLogFile(logFilePath string) (string, error) {
+	if ok := FindOrCreateFile(logFilePath); ok {
+		return logFilePath, nil
+	} else {
+		userLogFilePath := UserLogPath(self.Name)
+		if ok := FindOrCreateFile(userLogFilePath); ok {
+			return userLogFilePath, nil
+		} else {
+			return "", errors.New("Failed to initialize log file")
+		}
+	}
+	return logFilePath, nil
+}
+
+//
+// Outputs
+///////////////////////////////////////////////////////////////////////////////
+func (self *Logger) AddFileOutput(format Format, path string) {
+	logFilePath, err := self.InitLogFile(path)
+	if err != nil {
+		logFile := &LogFile{
+			format: format,
+			path:   logFilePath,
+		}
+		err := logFile.Open()
+		if err != nil {
+			FatalError(err)
+		} else {
+			self.Outputs = append(self.Outputs, logFile)
+		}
+	} else {
+		FatalError(err)
+	}
+}
+
+func (self *Logger) AddOutput(output Output, format Format) {
+	switch output {
+	case FILE:
+		self.AddFileOutput(format, UserLogPath(self.Name))
+	case STDOUT:
+		self.Outputs = append(self.Outputs, &StdOut{
+			format: format,
+		})
+	}
+}
+
+//
+// Graceful Shutdown
+///////////////////////////////////////////////////////////////////////////////
+func (self *Logger) Shutdown() {
+	for _, output := range self.Outputs {
+		output.Close()
+	}
+}
+
+//
+// Standard Log Function Aliases
+///////////////////////////////////////////////////////////////////////////////
 func (self Logger) Info(text string) {
 	self.Log(INFO, text)
 }
@@ -81,27 +117,4 @@ func (self Logger) Fatal(text string) {
 
 func (self Logger) Panic(text string) {
 	self.Log(FATAL, text)
-}
-
-func (self LogFile) FilePath() string {
-	return (self.Path + self.Filename)
-}
-
-func UserLogPath(appName string) string {
-	home := os.Getenv("XDG_CONFIG_HOME")
-	if home != "" {
-		return (home + "/.local/share/" + strings.ToLower(appName) + "/")
-	} else {
-		home = os.Getenv("HOME")
-		if home != "" {
-			return (home + "/.local/share/" + strings.ToLower(appName) + "/")
-		} else {
-			currentUser, err := user.Current()
-			if err != nil {
-				FatalError(err)
-			}
-			home = currentUser.HomeDir
-			return (home + "/.local/share/" + strings.ToLower(appName) + "/")
-		}
-	}
 }

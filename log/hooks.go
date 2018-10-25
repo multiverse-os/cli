@@ -1,44 +1,37 @@
 package log
 
-import "fmt"
+type Action func()
+type HookType int
 
-// TODO: This structure is wrong
-type Hook interface {
-	Levels() []LogLevel
+const (
+	BeforeAction HookType = iota
+	AfterAction
+)
 
-	BeforeAction(*Entry) error
-	AfterAction(*Entry) error
+type Hook struct {
+	Levels []LogLevel
+	Type   HookType
+
+	Action
 }
 
-// TODO: It would be better to move this into Logger object instead of having a
-// global variable accessible from anywhere.
-type LevelHooks map[LogLevel][]Hook
-
-// Add a hook to an instance of logger. This is called with
-// `log.Hooks.Add(new(MyHook))` where `MyHook` implements the `Hook` interface.
-func (hooks LevelHooks) Add(hook Hook) {
-	for _, level := range hook.Levels() {
-		hooks[level] = append(hooks[level], hook)
+func (self *Logger) AddHook(levels []LogLevel, hookType HookType, action Action) {
+	hook := &Hook{
+		Levels: levels,
+		Type:   hookType,
+		Action: action,
+	}
+	for _, level := range levels {
+		self.Hooks[level][hookType] = append(self.Hooks[level][hookType], hook)
 	}
 }
 
-func (hooks LevelHooks) BeforeAction(level LogLevel, entry *Entry) error {
-	for _, hook := range hooks[level] {
-		fmt.Println("hook: ", hook)
-		// TODO: Execute Before Action Hook
-		//if err := hook.Fire(entry); err != nil {
-		//	return err
-		//}
-	}
-	return nil
+func (self *Logger) ClearHooks() {
+	self.Hooks = map[LogLevel]map[HookType][]*Hook{}
 }
 
-func (hooks LevelHooks) AfterAction(level LogLevel, entry *Entry) error {
-	for _, hook := range hooks[level] {
-		fmt.Println("hook: ", hook)
-		//if err := hook.Fire(entry); err != nil {
-		//	return err
-		//}
+func (self *Logger) ExecuteHooks(level LogLevel, hookType HookType) {
+	for _, hook := range self.Hooks[level][hookType] {
+		hook.Action()
 	}
-	return nil
 }

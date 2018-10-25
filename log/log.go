@@ -7,32 +7,34 @@ import (
 )
 
 //
-// Minimialistic Logging
+// Minimialistic Debug (Stdout) Logging
 ///////////////////////////////////////////////////////////////////////////////
 // Simple log.Print(INFO, "Text") and associated alias functions such as
 // Trace("Test trace") or Info("Print info to StdOut") that does not require
 // a Logger object or creation of LogEntry objects for very quick access to
 // consistent StdOut logging when needed.
 func Print(level LogLevel, message string) {
-	logEntry := Entry{
-		Level:     level,
-		CreatedAt: time.Now(),
-		Message:   message,
+	entry := Entry{
+		createdAt: time.Now(),
+		level:     level,
+		message:   message,
 	}
 	// TODO: Format & Print LOG_ENTRY
-	fmt.Println(logEntry.Message)
-	switch level {
+	fmt.Println(entry.Message)
+	// TODO: When the before/acter action hook is built, we can just
+	// leverage that system
+	switch entry.level {
 	case FATAL, PANIC:
 		os.Exit(1)
 	}
 }
 
-func Trace(text string) {
-	Print(TRACE, text)
-}
-
 func Info(text string) {
 	Print(INFO, text)
+}
+
+func Notice(text string) {
+	Print(NOTICE, text)
 }
 
 func Warning(text string) {
@@ -41,6 +43,10 @@ func Warning(text string) {
 
 func Warn(text string) {
 	Print(WARN, text)
+}
+
+func Trace(text string) {
+	Print(TRACE, text)
 }
 
 func Error(err error) {
