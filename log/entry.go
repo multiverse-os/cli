@@ -135,8 +135,13 @@ func (self *Logger) Append(e Entry) {
 }
 
 func (self Entry) AppendToLogger(logger *Logger) {
+	if len(logger.Outputs) == 0 {
+		logger.AddStdOutWithFormat(DefaultWithANSI)
+	}
 	for _, out := range logger.Outputs {
-		out.Append(self)
+		if logger.Verbosity.IncludesLevel(self.level) {
+			out.Append(self)
+		}
 	}
 }
 

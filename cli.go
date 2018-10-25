@@ -76,8 +76,8 @@ func New(cli *CLI) *CLI {
 		}
 	}
 	// Experiment with shorter checking using pointing
-	if &cmd.Version == nil {
-		cmd.Version = Version{Major: 0, Minor: 1, Patch: 0}
+	if &cli.Version == nil {
+		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
 	//if cmd.Version.Major == 0 && cmd.Version.Minor == 0 && cmd.Version.Patch == 0 {
 	//	cmd.Version = Version{
@@ -89,11 +89,11 @@ func New(cli *CLI) *CLI {
 
 	// TODO: Add support for 'nohup' like functionality to output all stdout to text file
 	// TODO: How can we merge these two? It should be possible and could work very well
-	if cmd.Writer == nil {
-		cmd.Writer = os.Stdout
+	if cli.Writer == nil {
+		cli.Writer = os.Stdout
 	}
-	if cmd.Logger.AppName == "" {
-		cmd.Logger = log.NewLogger(cmd.Name, 1, true, true, false)
+	if cli.Logger.AppName == "" {
+		cli.Logger = log.NewLogger(cli.Name, 1, true, true, false)
 	}
 
 	self.Commands = InitCommands()

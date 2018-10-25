@@ -23,7 +23,7 @@ func InitCommandCategories(categoryName, categoryDescription string, commands Co
 }
 
 func (self CommandCategory) HasVisibleCommands() bool {
-	return (len(self.VisibleCommands) > 0)
+	return (len(self.VisibleCommands()) > 0)
 }
 
 func (self CommandCategory) VisibleCommands() (commands []Command) {

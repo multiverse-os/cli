@@ -6,14 +6,14 @@ import (
 
 type Logger struct {
 	Name           string
-	Verbosity      int
+	Verbosity      VerbosityLevel
 	TimeResolution TimeResolution
 	Entries        []Entry
 	Hooks          map[LogLevel]map[HookType][]*Hook
 	Outputs        []LogOutput
 }
 
-func NewLogger(name string, resolution TimeResolution, verbosity int) Logger {
+func NewLogger(name string, resolution TimeResolution, verbosity VerbosityLevel) Logger {
 	return Logger{
 		Name:           name,
 		Verbosity:      verbosity,
@@ -22,14 +22,19 @@ func NewLogger(name string, resolution TimeResolution, verbosity int) Logger {
 	}
 }
 
-func NewFileLogger(name string, resolution TimeResolution, verbosity int, format Format, logPath string) Logger {
-	logger := Logger{
-		Name:           name,
-		Verbosity:      verbosity,
-		TimeResolution: resolution,
-		Entries:        []Entry{},
+func NewStdOutLogger(name string, resolution TimeResolution, verbosity VerbosityLevel) Logger {
+	logger := NewLogger(name, resolution, verbosity)
+	logger.AddStdOutWithFormat(JSON)
+	return logger
+}
+
+func NewFileLogger(name string, resolution TimeResolution, verbosity VerbosityLevel, format Format, logPath string) Logger {
+	logger := NewLogger(name, resolution, verbosity)
+	logFilePath, err := logger.InitLogFile(UserLogPath(name))
+	if err != nil {
+		FatalError(err)
 	}
-	logger.AddFileOutput(format, UserLogPath(name))
+	logger.AddFileOutput(format, logFilePath)
 	return logger
 }
 
@@ -66,6 +71,18 @@ func (self *Logger) AddFileOutput(format Format, path string) {
 	} else {
 		FatalError(err)
 	}
+}
+
+func (self *Logger) AddLogFileWithFormat(format Format) {
+	self.AddOutput(FILE, format)
+}
+
+func (self *Logger) AddStdOutWithFormat(format Format) {
+	self.AddOutput(STDOUT, format)
+}
+
+func (self *Logger) AddFileOutputWithFormat(format Format, path string) {
+	self.AddFileOutput(format, path)
 }
 
 func (self *Logger) AddOutput(output Output, format Format) {

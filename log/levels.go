@@ -18,6 +18,54 @@ const (
 	PANIC
 )
 
+type VerbosityLevel int
+
+const (
+	NORMAL VerbosityLevel = iota
+	VERBOSE
+	VERY_VERBOSE
+	MAX_VERBOSE
+)
+
+const (
+	QUIET = -1
+)
+
+func (self VerbosityLevel) IncludesLevel(level LogLevel) bool {
+	switch self {
+	case QUIET:
+		// Quiet; No Logs
+		return false
+	case VERBOSE:
+		// Verbose; -v
+		switch level {
+		case LOG, INFO, WARNING, ERROR, FATAL_ERROR, PANIC:
+			return true
+		default:
+			return false
+		}
+	case VERY_VERBOSE:
+		// Very Verbose; -vv
+		switch level {
+		case LOG, DEBUG, INFO, WARNING, ERROR, FATAL_ERROR, PANIC:
+			return true
+		default:
+			return false
+		}
+	case MAX_VERBOSE:
+		// Debug; -vvv
+		switch level {
+		case LOG, DEBUG, INFO, NOTICE, WARNING, ERROR, TRACE, FATAL_ERROR, PANIC:
+			return true
+		default:
+			return false
+		}
+	default:
+		// Normal; verbosity == 0
+		return true
+	}
+}
+
 // Level Aliasing
 const (
 	WARN  = WARNING
