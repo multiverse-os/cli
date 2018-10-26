@@ -78,6 +78,8 @@ func (self *Logger) InitLogFile(logFilePath string) (string, error) {
 func (self *Logger) AddFileOutput(format Format, path string) {
 	logFilePath, err := self.InitLogFile(path)
 	if err != nil {
+		FatalError(err)
+	} else {
 		logFile := &LogFile{
 			format: format,
 			path:   logFilePath,
@@ -88,8 +90,6 @@ func (self *Logger) AddFileOutput(format Format, path string) {
 		} else {
 			self.Outputs = append(self.Outputs, logFile)
 		}
-	} else {
-		FatalError(err)
 	}
 }
 

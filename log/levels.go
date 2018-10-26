@@ -1,6 +1,8 @@
 package log
 
 import (
+	"strings"
+
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
@@ -72,6 +74,29 @@ const (
 	FATAL = FATAL_ERROR
 )
 
+func (self LogLevel) UppercaseColorString() string {
+	switch self {
+	case DEBUG:
+		return color.Debug(strings.ToUpper("Debug"))
+	case INFO:
+		return color.Info(strings.ToUpper("Info"))
+	case WARN:
+		return color.Warning(strings.ToUpper("Warning"))
+	case NOTICE:
+		return color.Notice(strings.ToUpper("Notice"))
+	case ERROR:
+		return color.Error(strings.ToUpper("Error"))
+	case TRACE:
+		return color.Trace(strings.ToUpper("Trace"))
+	case FATAL:
+		return color.Fatal(strings.ToUpper("Fatal"))
+	case PANIC:
+		return color.Panic(strings.ToUpper("Panic"))
+	default:
+		return color.Gray(strings.ToUpper("Log"))
+	}
+}
+
 func (self LogLevel) ColorString() string {
 	switch self {
 	case DEBUG:
@@ -87,12 +112,16 @@ func (self LogLevel) ColorString() string {
 	case TRACE:
 		return color.Trace("Trace")
 	case FATAL:
-		return color.Fatal("Fatal Error")
+		return color.Fatal("Fatal")
 	case PANIC:
 		return color.Panic("Panic")
 	default:
 		return color.Gray("Log")
 	}
+}
+
+func (self LogLevel) UppercaseString() string {
+	return strings.ToUpper(self.String())
 }
 
 func (self LogLevel) String() string {
@@ -108,7 +137,7 @@ func (self LogLevel) String() string {
 	case ERROR:
 		return "Error"
 	case FATAL:
-		return "Fatal Error"
+		return "Fatal"
 	case PANIC:
 		return "Panic"
 	default:

@@ -1,7 +1,6 @@
 package log
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
@@ -13,17 +12,30 @@ import (
 // Trace("Test trace") or Info("Print info to StdOut") that does not require
 // a Logger object or creation of LogEntry objects for very quick access to
 // consistent StdOut logging when needed.
-func Print(level LogLevel, message string) {
+func PrintAsFormat(level LogLevel, message string, format Format) {
 	entry := Entry{
+		format:    format,
 		createdAt: time.Now(),
 		level:     level,
 		message:   message,
 	}
-	fmt.Println(entry.Message)
+	entry.Print()
 	switch entry.level {
 	case FATAL, PANIC:
 		os.Exit(1)
 	}
+}
+
+func PrintAsXML(level LogLevel, message string) {
+	PrintAsFormat(level, message, XML)
+}
+
+func PrintAsJSON(level LogLevel, message string) {
+	PrintAsFormat(level, message, JSON)
+}
+
+func Print(level LogLevel, message string) {
+	PrintAsFormat(level, message, DefaultWithANSI)
 }
 
 func Info(text string) {

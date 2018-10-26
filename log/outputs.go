@@ -69,5 +69,5 @@ func (self *StdOut) Open() error { return nil }
 func (self *StdOut) Close()      {}
 
 func (self *StdOut) Append(entry Entry) {
-	fmt.Println(entry.Format(self.format))
+	fmt.Println(entry.FormattedOutput())
 }

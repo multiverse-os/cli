@@ -76,6 +76,7 @@ func (self Entry) FormattedOutput() string {
 }
 
 func (self Entry) FormattedString(format Format) string {
+	// TODO: Currently does not support printing entry values
 	switch format {
 	case JSON:
 		jsonOutput, err := json.Marshal(self)
@@ -90,11 +91,11 @@ func (self Entry) FormattedString(format Format) string {
 		}
 		return string(xmlOutput)
 	case DefaultWithANSI:
-		return text.Brackets(self.level.String()) + text.Brackets(color.White(self.Timestamp())) + " " + self.message
+		return self.level.UppercaseColorString() + text.Brackets(color.Bold(self.Timestamp())) + " " + self.message
 	}
 	// Default; required to be outside because switchcase does not satisfy call
 	// conditions to the compiler.
-	return text.Brackets(self.level.String()) + text.Brackets(self.Timestamp()) + " " + self.message
+	return self.level.UppercaseString() + text.Brackets(self.Timestamp()) + " " + self.message
 }
 
 func (self Entry) DefaultFormattedString() string {
@@ -164,6 +165,21 @@ func (self Entry) ToFile(format Format, path string) (err error) {
 
 func (self Entry) WriteToFile(path string) (err error) {
 	return self.AppendToFile(self.format, path)
+}
+
+func (self Entry) PrintAsXML() {
+	self.format = XML
+	self.Append()
+}
+
+func (self Entry) PrintAsJSON() {
+	self.format = JSON
+	self.Append()
+}
+
+func (self Entry) PrintWithANSI() {
+	self.format = DefaultWithANSI
+	self.Append()
 }
 
 func (self Entry) Print() {

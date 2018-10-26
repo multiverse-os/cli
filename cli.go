@@ -73,26 +73,21 @@ func (self *CLI) PrintBanner() {
 func New(cli *CLI) *CLI {
 	// TODO: Should just handle compile time and such together with hashing and signatures
 	//cmd.CompiledOn = time.Now()
+
+	// TODO: Parse ARGs here! So we can use it for nil name assignment etc
+
 	// Default to same name 'go build' uses for executable: the working directory name
 	if cli.Name == "" {
 		var err error
-		// TODO: We should only be using args AFTER parsing so we can limit by data type, validate and such
 		cli.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
 			log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
 		}
 	}
-	// Experiment with shorter checking using pointing
-	if &cli.Version == nil {
+
+	if cli.Version.Undefined() {
 		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
-	//if cmd.Version.Major == 0 && cmd.Version.Minor == 0 && cmd.Version.Patch == 0 {
-	//	cmd.Version = Version{
-	//		Major: 0,
-	//		Minor: 1,
-	//		Patch: 0,
-	//	}
-	//}
 
 	// TODO: I really like this concept, where we could have theoritical different
 	// places to write the content. Perhaps even support piping it to HTML or
@@ -104,7 +99,7 @@ func New(cli *CLI) *CLI {
 		cli.Writer = os.Stdout
 	}
 	if cli.Logger.Name == "" {
-		//cli.Logger = log.NewSimpleLogger(cli.Name, log.JSON, true)
+		cli.Logger = log.NewSimpleLogger(cli.Name, log.JSON, true)
 	}
 	cli.Commands = InitCommands()
 	if !cli.HideVersion {

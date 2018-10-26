@@ -1,5 +1,7 @@
 package text
 
+import "github.com/multiverse-os/cli-framework/text/color"
+
 type enclosure int
 
 const (
@@ -17,16 +19,32 @@ func Repeat(c string, times int) string {
 	return aggregate
 }
 
-func Enclose(text string, enclosureSymbol enclosure, padding int) string {
+func Enclose(text string, enclosureSymbol enclosure, padding int, ansi string) string {
 	switch enclosureSymbol {
 	case parenthesis:
-		return ("(" + Repeat(" ", padding) + text + Repeat(" ", padding) + ")")
+		if ansi == "" {
+			return ("(" + Repeat(" ", padding) + text + Repeat(" ", padding) + ")")
+		} else {
+			return (ansi + "(" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + ")" + color.RESET)
+		}
 	case brackets:
-		return ("[" + Repeat(" ", padding) + text + Repeat(" ", padding) + "]")
+		if ansi == "" {
+			return ("[" + Repeat(" ", padding) + text + Repeat(" ", padding) + "]")
+		} else {
+			return (ansi + "[" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + "]" + color.RESET)
+		}
 	case braces:
-		return ("{" + Repeat(" ", padding) + text + Repeat(" ", padding) + "}")
+		if ansi == "" {
+			return ("{" + Repeat(" ", padding) + text + Repeat(" ", padding) + "}")
+		} else {
+			return (ansi + "{" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + "}" + color.RESET)
+		}
 	case angles:
-		return ("<" + Repeat(" ", padding) + text + Repeat(" ", padding) + ">")
+		if ansi == "" {
+			return ("<" + Repeat(" ", padding) + text + Repeat(" ", padding) + ">")
+		} else {
+			return (ansi + "<" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + ">" + color.RESET)
+		}
 	default:
 		// No Symbol
 		return (Repeat(" ", padding) + text + Repeat(" ", padding))
@@ -34,21 +52,41 @@ func Enclose(text string, enclosureSymbol enclosure, padding int) string {
 }
 
 func Parenthesize(text string) string {
-	return Enclose(text, parenthesis, 0)
+	return Enclose(text, parenthesis, 0, "")
+}
+
+func ParenthesizeWithANSI(text string, ansi string) string {
+	return Enclose(text, parenthesis, 0, ansi)
 }
 
 func Parenthesis(text string) string {
 	return Parenthesize(text)
 }
 
+func ParenthesisWithANSI(text string, ansi string) string {
+	return ParenthesizeWithANSI(text, ansi)
+}
+
 func Brackets(text string) string {
-	return Enclose(text, brackets, 0)
+	return Enclose(text, brackets, 0, "")
+}
+
+func BracketsWithANSI(text string, ansi string) string {
+	return Enclose(text, brackets, 0, ansi)
 }
 
 func Braces(text string) string {
-	return Enclose(text, braces, 0)
+	return Enclose(text, braces, 0, "")
+}
+
+func BracesWithANSI(text string, ansi string) string {
+	return Enclose(text, braces, 0, ansi)
 }
 
 func Angles(text string) string {
-	return Enclose(text, angles, 0)
+	return Enclose(text, angles, 0, "")
+}
+
+func AnglesWithANSI(text string, ansi string) string {
+	return Enclose(text, angles, 0, ansi)
 }

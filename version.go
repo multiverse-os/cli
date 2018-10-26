@@ -3,12 +3,23 @@ package cli
 import (
 	"fmt"
 	"strconv"
+
+	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
 type Version struct {
 	Major int
 	Minor int
 	Patch int
+}
+
+func (self Version) Undefined() bool {
+	return (self.Major == 0 && self.Minor == 0 && self.Patch == 0)
+}
+
+func (self Version) OlderThan(v Version) bool {
+	return (self.Major < v.Major || (self.Major == v.Major && self.Minor < v.Minor) ||
+		(self.Major == v.Major && self.Minor == v.Minor && self.Patch < v.Patch))
 }
 
 func (self Version) NewerThan(v Version) bool {
@@ -20,4 +31,23 @@ func (self Version) String() string {
 	return fmt.Sprintf("" + strconv.Itoa(self.Major) + "." + strconv.Itoa(self.Minor) + "." + strconv.Itoa(self.Patch))
 }
 
-// TODO: Add is version >, and add code to indicate API breaking landmark updates
+func (self Version) ANSIFormattedString() (formattedString string) {
+	if self.Major == 0 {
+		formattedString = color.Light(strconv.Itoa(self.Major))
+	} else {
+		formattedString = color.Bold(color.Blue(strconv.Itoa(self.Major)))
+	}
+	formattedString += color.White(".")
+	if self.Minor == 0 {
+		formattedString += color.Light(strconv.Itoa(self.Minor))
+	} else {
+		formattedString += color.Bold(color.Blue(strconv.Itoa(self.Minor)))
+	}
+	formattedString += color.White(".")
+	if self.Patch == 0 {
+		formattedString += color.Light(strconv.Itoa(self.Patch))
+	} else {
+		formattedString += color.Bold(color.LightBlue(strconv.Itoa(self.Patch)))
+	}
+	return formattedString
+}
