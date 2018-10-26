@@ -56,10 +56,7 @@ type CLI struct {
 	// Functions
 	//////////////////////////////////////////////////////////////////////////////
 	DefaultAction interface{}
-	BeforeActions map[string]BeforeFunc
-	AfterActions  map[string]AfterFunc
-	BeforeAction  BeforeFunc
-	AfterAction   AfterFunc
+	Hooks         map[string]Hook
 	// Error Functions
 	// TODO: Why not just make these locales and print from standard error log?
 	CommandNotFound CommandNotFoundFunc
@@ -103,7 +100,7 @@ func New(cli *CLI) *CLI {
 		cli.Writer = os.Stdout
 	}
 	if cli.Logger.Name == "" {
-		cli.Logger = log.NewSimpleLogger(cli.Name, log.JSON, true)
+		//cli.Logger = log.NewSimpleLogger(cli.Name, log.JSON, true)
 	}
 	cli.Commands = InitCommands()
 	if !cli.HideVersion {
@@ -113,6 +110,7 @@ func New(cli *CLI) *CLI {
 		//cli.appendFlag(VersionFlag)
 	}
 	cli.CommandCategories = CommandCategories{}
+	cli.CommandMap = make(map[string]*Command)
 	for _, command := range cli.Commands {
 		cli.AddCommandToMap(command)
 	}
@@ -146,6 +144,11 @@ func (self *CLI) Run(arguments []string) (err error) {
 	//  self.Action = helpCommand.Action
 	//}
 
+	// TODO: So previous version this code is started from, would execute actions
+	// located inside the command, but then still run default action. This is
+	// really poorly designed. we want to make a rich parsing function that loads
+	// up a ACTIVE_MAP then use switch case to go through that ACTIVE_MAP and
+	// execute the actions
 	// Run default Action
 	err = HandleAction(self.DefaultAction, NewContext(self))
 	if err != nil {
@@ -155,11 +158,22 @@ func (self *CLI) Run(arguments []string) (err error) {
 	return err
 }
 
+func HandleAction(action interface{}, context *Context) error {
+	if a, ok := action.(ActionFunc); ok {
+		return a(context)
+	} else if a, ok := action.(func(*Context) error); ok {
+		return a(context)
+	} else if a, ok := action.(func(*Context)); ok { // deprecated function signature
+		a(context)
+		return nil
+	}
+	return errInvalidActionType
+}
+
 // TODO: Using a map to pointers, we can load all the commands into this map,
 // then use the name or alias to pull out the pointer for simple lookup.
 func (self *CLI) AddCommandToMap(command Command) {
-	self.CommandMap[command.Name] = &command
-	for _, alias := range command.Aliases {
+	for _, alias := range command.Names() {
 		self.CommandMap[alias] = &command
 	}
 }
@@ -202,19 +216,4 @@ func (self *CLI) VisibleCommands() []Command {
 
 func (self *CLI) HasVisibleCommands() bool {
 	return (len(self.VisibleCommands()) > 0)
-}
-
-// HandleAction attempts to figure out which Action signature was used.  If
-// it's an ActionFunc or a func with the legacy signature for Action, the func
-// is run!
-func HandleAction(action interface{}, context *Context) error {
-	if a, ok := action.(ActionFunc); ok {
-		return a(context)
-	} else if a, ok := action.(func(*Context) error); ok {
-		return a(context)
-	} else if a, ok := action.(func(*Context)); ok { // deprecated function signature
-		a(context)
-		return nil
-	}
-	return errInvalidActionType
 }
