@@ -94,6 +94,10 @@ func New(cli *CLI) *CLI {
 	//	}
 	//}
 
+	// TODO: I really like this concept, where we could have theoritical different
+	// places to write the content. Perhaps even support piping it to HTML or
+	// other creative things, but that should be optional and modular, we lay the
+	// groundwork though by having this
 	// TODO: Add support for 'nohup' like functionality to output all stdout to text file
 	// TODO: How can we merge these two? It should be possible and could work very well
 	if cli.Writer == nil {
@@ -120,29 +124,9 @@ func New(cli *CLI) *CLI {
 func (self *CLI) Run(arguments []string) (err error) {
 	// TODO: Add shell completion code (old code used to be here)
 
-	// TODO: This is tail, why did we bother to make the function if we are not
-	// going to use it?
-	// TODO: This is a big thing, we should make this its own function.
-	// TODO: Parse should probably return to a switch case, then that switch case
-	// can resolve the actions that need to be called. instead of assigning. then
-	// doing 5 if checks
-
 	// TODO: So here, is where we would see if any action is called, and if
 	// defaultaction is nil, then we just call help, this avoids any used
 	// memory by just applying the functionality in order of operations
-
-	// TODO: Cant we determine this earlier? like by checking if current parsed command is a command?
-
-	// TODO: arguments come from context, we really need to parse
-	// THESE SHOULD BE MOVED OUTSIDE THIS, AND PASSED TO THIS FUCN
-	//args = os.Args
-	//argCount = len(args)
-
-	// TODO: This should be called from a switch/case that handles the data from a
-	// parse commmand parsing the args
-	//if self.Action == nil {
-	//  self.Action = helpCommand.Action
-	//}
 
 	// TODO: So previous version this code is started from, would execute actions
 	// located inside the command, but then still run default action. This is
@@ -150,6 +134,14 @@ func (self *CLI) Run(arguments []string) (err error) {
 	// up a ACTIVE_MAP then use switch case to go through that ACTIVE_MAP and
 	// execute the actions
 	// Run default Action
+
+	// TODO: Here we want to build the argument/flag/command/subcommand map by
+	// parsing the arguments, then we process it. This will also be where we just
+	// run the help command if no DefaultAction is defined. We dont need all this
+	// extra logic assigning help to default action, or having special functions
+	// for showhelp and close vs show help, we just do it all here and reduce our
+	// overall codebase signficiantly
+
 	err = HandleAction(self.DefaultAction, NewContext(self))
 	if err != nil {
 		fmt.Println("[Error] " + err.Error())
