@@ -75,6 +75,35 @@ func main() {
 }
 ```
 
+**Alternative Initialization Methods For 'Logger' Object**
+The following illustrates the variety of methods to initialize the `Logger`
+object:
+
+```
+// NewSimpleLogger is init with: (App Name, Output Format, OutputToStdOut)
+// The simple logger by default logs to the application data of the 
+// user executing the binary: `~/.local/share/appName/appName.log`
+logger := log.NewSimpleLogger("appName", log.JSON, false) 
+
+
+// NewDefaultLogger is init with: (App Name, LogToDefaultUserFile, LogToStdOut)
+// The default logger logs to default user location defined above as JSON 
+// if the first bool is set to true, and logs to StdOut in DefaultWithANSI
+// format if second bool is set to true.
+logger := log.NewDefaultLogger("appName", true, true)
+```
+
+Then there is the function to create a `Logger` object with the maximum amount
+of customization:
+
+```
+// The following is used to create a logger object with an arbitrary log file
+logger := log.NewFileLogger("appName", log.SECONDS, log.VERY_VERBOSE, log.JSON, "/var/log/app-name.log")
+```
+
+After a `Logger` object is created, any output can be added after the fact,
+`NewLogger` functions that add outputs by default are conviences to simplify
+usage.
 
 ## Development
 The biggest development priority currently is expanding the documentation, this

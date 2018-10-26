@@ -19,10 +19,7 @@ func Print(level LogLevel, message string) {
 		level:     level,
 		message:   message,
 	}
-	// TODO: Format & Print LOG_ENTRY
 	fmt.Println(entry.Message)
-	// TODO: When the before/acter action hook is built, we can just
-	// leverage that system
 	switch entry.level {
 	case FATAL, PANIC:
 		os.Exit(1)

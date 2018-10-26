@@ -23,10 +23,13 @@ import (
 // and normal functionality.
 
 // TODO: Is this redudant between usage text and description?
+
 // TODO: Move all text into locales so we can support localization
 // Text to override the USAGE section of help
 // Description of the program argument format.
+
 // TODO: No better name than "argsusage"? Becauswe I have no idea what that means
+
 // TODO: Category concept doesnt seem to be used really. Shouldn't be generic "Category" unless its generic, its not.
 type CLI struct {
 	Name             string
@@ -37,9 +40,11 @@ type CLI struct {
 	UsageText        string
 	ArgsUsage        string
 	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
-	Commands          []Command
-	Subcommands       map[string]Command
-	Flags             map[string]Flag
+
+	Commands    map[string]Commands
+	Subcommands map[string]Command
+	Flags       map[string]Flag
+
 	Logger            log.Logger
 	CompiledOn        time.Time
 	HideHelp          bool
@@ -92,19 +97,18 @@ func New(cli *CLI) *CLI {
 	if cli.Writer == nil {
 		cli.Writer = os.Stdout
 	}
-	if cli.Logger.AppName == "" {
-		cli.Logger = log.NewLogger(cli.Name, 1, true, true, false)
+	if cli.Logger.Name == "" {
+		cli.Logger = log.NewSimpleLogger(cli.Name, log.JSON, true)
 	}
-
-	self.Commands = InitCommands()
-	if !self.HideVersion {
-		self.appendFlag(VersionFlag)
+	cli.Commands = InitCommands()
+	if !cli.HideVersion {
+		cli.appendFlag(VersionFlag)
 	}
-	self.categories = CommandCategories{}
-	for _, command := range self.Commands {
-		self.categories = self.categories.AddCommand(command.Category, command)
+	cli.CommandCategories = CommandCategories{}
+	for _, command := range cli.Commands {
+		cli.AddCommand(d.Category, command)
 	}
-	sort.Sort(self.categories)
+	sort.Sort(cli.categories)
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
@@ -194,6 +198,10 @@ func (self *CLI) Run(arguments []string) (err error) {
 
 	self.handleExitCoder(context, err)
 	return err
+}
+
+func (self *CLI) AddCommand(command Command) {
+	self.Commands[command.Name] = command
 }
 
 func (self *CLI) AddCommandCategory(categoryName, categoryDescription string, command Command) {
@@ -416,7 +424,6 @@ func HandleAction(action interface{}, context *Context) error {
 		a(context)
 		return nil
 	}
-
 	return errInvalidActionType
 }
 

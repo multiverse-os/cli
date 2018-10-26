@@ -36,9 +36,10 @@ type Command struct {
 }
 
 type Commands []Command
-type CommandsByName []Command
 
-func InitCommands(command Command) (commands Commands) {
+func InitCommands() (commands Commands) {
+	// TODO: This inits a slice of commands, moving towards either radix tree or
+	// just map
 	return append(commands, Command{
 		Name:          "help",
 		Aliases:       []string{"h"},

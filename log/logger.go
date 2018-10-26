@@ -22,9 +22,29 @@ func NewLogger(name string, resolution TimeResolution, verbosity VerbosityLevel)
 	}
 }
 
-func NewStdOutLogger(name string, resolution TimeResolution, verbosity VerbosityLevel) Logger {
+func NewStdOutLogger(name string, format Format, resolution TimeResolution, verbosity VerbosityLevel) Logger {
 	logger := NewLogger(name, resolution, verbosity)
-	logger.AddStdOutWithFormat(JSON)
+	logger.AddStdOutWithFormat(format)
+	return logger
+}
+
+func NewDefaultLogger(name string, stdOut bool, fileOut bool) Logger {
+	logger := NewLogger(name, MINUTES, NORMAL)
+	if fileOut {
+		logger.AddDefaultUserLogWithFormat(JSON)
+	}
+	if stdOut {
+		logger.AddStdOutWithFormat(DefaultWithANSI)
+	}
+	return logger
+}
+
+func NewSimpleLogger(name string, format Format, printToStdOut bool) Logger {
+	logger := NewLogger(name, MINUTES, NORMAL)
+	logger.AddDefaultUserLogWithFormat(format)
+	if printToStdOut {
+		logger.AddStdOutWithFormat(DefaultWithANSI)
+	}
 	return logger
 }
 
@@ -71,6 +91,14 @@ func (self *Logger) AddFileOutput(format Format, path string) {
 	} else {
 		FatalError(err)
 	}
+}
+
+func (self *Logger) AddDefaultUserLogWithFormat(format Format) {
+	logFilePath, err := self.InitLogFile(UserLogPath(self.Name))
+	if err != nil {
+		FatalError(err)
+	}
+	self.AddFileOutput(format, logFilePath)
 }
 
 func (self *Logger) AddLogFileWithFormat(format Format) {
