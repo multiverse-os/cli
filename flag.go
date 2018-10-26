@@ -15,16 +15,17 @@ type Flag struct {
 	Value       interface{}
 }
 
-var VersionFlag Flag = BoolFlag{
-	Name:   "version",
-	Alias:  "v",
-	Usage:  "Print version",
-	Hidden: true,
-}
-
-var HelpFlag Flag = BoolFlag{
-	Name:   "help",
-	Alias:  "h",
-	Usage:  "Print help text",
-	Hidden: true,
-}
+// TODO: How about we don't use globals?
+//var VersionFlag Flag = BoolFlag{
+//	Name:   "version",
+//	Alias:  "v",
+//	Usage:  "Print version",
+//	Hidden: true,
+//}
+//
+//var HelpFlag Flag = BoolFlag{
+//	Name:   "help",
+//	Alias:  "h",
+//	Usage:  "Print help text",
+//	Hidden: true,
+//}

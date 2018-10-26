@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"text/tabwriter"
 	"text/template"
@@ -11,6 +10,10 @@ import (
 	text "github.com/multiverse-os/cli-framework/text"
 	color "github.com/multiverse-os/cli-framework/text/color"
 )
+
+type helpPrinter func(w io.Writer, templ string, data interface{})
+
+var HelpPrinter helpPrinter = printHelp
 
 // TODO: Shouldnt this be in the RenderHelpText func ?
 //if !self.HideHelp && checkHelp(context) {
@@ -33,14 +36,14 @@ func (self *CLI) PrintHelp() {
 		fmt.Println(color.Strong(self.Description))
 	}
 	if self.Usage != "" {
-		if self.NoANSI {
+		if self.NoANSIFormatting {
 			fmt.Println("Usage")
 		} else {
 			fmt.Println(color.Strong("Usage"))
 		}
 		fmt.Print(text.Repeat(" ", 4))
 
-		if self.NoANSI {
+		if self.NoANSIFormatting {
 			fmt.Print(self.Name)
 		} else {
 			fmt.Print(color.Header(self.Name))
@@ -94,15 +97,16 @@ var SubcommandHelpTemplate = `Name
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
-type helpPrinter func(w io.Writer, templ string, data interface{})
+// TODO: There is literally no reason we need a special function for this
+//func ShowCLIHelpAndExit(c *Context, exitCode int) {
+//	ShowCLIHelp(c)
+//	os.Exit(exitCode)
+//}
 
-var HelpPrinter helpPrinter = printHelp
-
-func ShowCLIHelpAndExit(c *Context, exitCode int) {
-	ShowCLIHelp(c)
-	os.Exit(exitCode)
-}
-
+// TODO: We need to move to a programmatic way instead of just chaining together
+// strings and using linebreaks and spaces to do TUI visual. It would be much
+// much better to do this via functions, then we can easily modify it, easily
+// add if statements, etc.
 func ShowCLIHelp(c *Context) {
 	c.CLI.PrintBanner()
 	c.CLI.PrintHelp()
@@ -120,10 +124,13 @@ func DefaultCLIComplete(c *Context) {
 	}
 }
 
-func ShowCommandHelpAndExit(c *Context, command string, code int) {
-	ShowCommandHelp(c, command)
-	os.Exit(code)
-}
+// TODO: There is no reason to have ShowCommandHelp and ShowCommandHelpAndExit
+// as separate functions. This is prime example of unnecessary bloat in this
+// codebase.
+//func ShowCommandHelpAndExit(c *Context, command string, code int) {
+//	ShowCommandHelp(c, command)
+//	os.Exit(code)
+//}
 
 func ShowCommandHelp(ctx *Context, command string) error {
 	if command == "" {
@@ -131,18 +138,20 @@ func ShowCommandHelp(ctx *Context, command string) error {
 		return nil
 	}
 
-	for _, c := range ctx.CLI.Commands {
-		if c.HasName(command) {
-			HelpPrinter(ctx.CLI.Writer, CommandHelpTemplate, c)
-			return nil
-		}
-	}
+	// TODO: Thhis is real gross, totally should not be doing this kind of stuff
+	//for _, c := range ctx.CLI.Commands {
+	//if c.HasName(command) {
+	//	HelpPrinter(ctx.CLI.Writer, CommandHelpTemplate, c)
+	//	return nil
+	//}
+	//}
 
-	if ctx.CLI.CommandNotFound == nil {
-		return NewExitError(fmt.Sprintf("No help topic for '%v'", command), 3)
-	}
+	// TODO: No
+	//if ctx.CLI.CommandNotFound == nil {
+	//	return NewExitError(fmt.Sprintf("No help topic for '%v'", command), 3)
+	//}
 
-	ctx.CLI.CommandNotFound(ctx, command)
+	//ctx.CLI.CommandNotFound(ctx, command)
 	return nil
 }
 
@@ -153,22 +162,6 @@ func ShowSubcommandHelp(c *Context) error {
 
 func PrintVersion(c *Context) {
 	fmt.Fprintf(c.CLI.Writer, "%v version %v\n", c.CLI.Name, c.CLI.Version.String())
-}
-
-// ShowCompletions prints the lists of commands within a given context
-func ShowCompletions(c *Context) {
-	a := c.CLI
-	if a != nil && a.BashComplete != nil {
-		a.BashComplete(c)
-	}
-}
-
-// ShowCommandCompletions prints the custom completions for a given command
-func ShowCommandCompletions(ctx *Context, command string) {
-	c := ctx.CLI.Command(command)
-	if c != nil && c.BashComplete != nil {
-		c.BashComplete(ctx)
-	}
 }
 
 func printHelp(out io.Writer, templ string, data interface{}) {
@@ -184,29 +177,33 @@ func printHelp(out io.Writer, templ string, data interface{}) {
 	w.Flush()
 }
 
-func checkVersion(c *Context) bool {
-	found := false
-	if VersionFlag.GetName() != "" {
-		eachName(VersionFlag.GetName(), func(name string) {
-			if c.GlobalBool(name) || c.Bool(name) {
-				found = true
-			}
-		})
-	}
-	return found
-}
+// TODO: Why are we doing a check version? It should be present
+//func checkVersion(c *Context) bool {
+//	found := false
+//	if VersionFlag.GetName() != "" {
+//		eachName(VersionFlag.GetName(), func(name string) {
+//			if c.GlobalBool(name) || c.Bool(name) {
+//				found = true
+//			}
+//		})
+//	}
+//	return found
+//}
 
-func checkHelp(c *Context) bool {
-	found := false
-	if HelpFlag.GetName() != "" {
-		eachName(HelpFlag.GetName(), func(name string) {
-			if c.GlobalBool(name) || c.Bool(name) {
-				found = true
-			}
-		})
-	}
-	return found
-}
+// TODO: Again why are we checking if help exists? it should be present by
+// default, there is almost noc ases we would not have help text for a
+// command-line interface
+//func checkHelp(c *Context) bool {
+//	found := false
+//	if HelpFlag.GetName() != "" {
+//		eachName(HelpFlag.GetName(), func(name string) {
+//			if c.GlobalBool(name) || c.Bool(name) {
+//				found = true
+//			}
+//		})
+//	}
+//	return found
+//}
 
 // TODO: why?
 //func checkCommandHelp(c *Context, name string) bool {
@@ -229,38 +226,40 @@ func checkHelp(c *Context) bool {
 //	return false
 //}
 
-func checkShellCompleteFlag(a *CLI, arguments []string) (bool, []string) {
-	if !a.BashCompletion {
-		return false, arguments
-	}
-	pos := len(arguments) - 1
-	lastArg := arguments[pos]
-	if lastArg != "--"+BashCompletionFlag.GetName() {
-		return false, arguments
-	}
-	return true, arguments[:pos]
-}
+// TODO: COmmand completion should be done with radix trees
 
-func checkCompletions(c *Context) bool {
-	if !c.shellComplete {
-		return false
-	}
-	if args := c.Args(); args.Present() {
-		name := args.First()
-		if cmd := c.CLI.Command(name); cmd != nil {
-			// let the command handle the completion
-			return false
-		}
-	}
-	ShowCompletions(c)
-	return true
-}
-
-func checkCommandCompletions(c *Context, name string) bool {
-	if !c.shellComplete {
-		return false
-	}
-
-	ShowCommandCompletions(c, name)
-	return true
-}
+//func checkShellCompleteFlag(a *CLI, arguments []string) (bool, []string) {
+//	if !a.BashCompletion {
+//		return false, arguments
+//	}
+//	pos := len(arguments) - 1
+//	lastArg := arguments[pos]
+//	if lastArg != "--"+BashCompletionFlag.GetName() {
+//		return false, arguments
+//	}
+//	return true, arguments[:pos]
+//}
+//
+//func checkCompletions(c *Context) bool {
+//	if !c.shellComplete {
+//		return false
+//	}
+//	if args := c.Args(); args.Present() {
+//		name := args.First()
+//		if cmd := c.CLI.Command(name); cmd != nil {
+//			// let the command handle the completion
+//			return false
+//		}
+//	}
+//	ShowCompletions(c)
+//	return true
+//}
+//
+//func checkCommandCompletions(c *Context, name string) bool {
+//	if !c.shellComplete {
+//		return false
+//	}
+//
+//	ShowCommandCompletions(c, name)
+//	return true
+//}

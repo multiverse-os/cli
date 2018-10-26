@@ -12,7 +12,7 @@ func main() {
 		Name:    "Example Program",
 		Version: cli.Version{Major: 0, Minor: 1, Patch: 1},
 		Usage:   "make an explosive entrance",
-		Action: func(c *cli.Context) error {
+		DefaultAction: func(c *cli.Context) error {
 			fmt.Println("Example output for an action (or command)!")
 			return nil
 		},

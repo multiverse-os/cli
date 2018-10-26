@@ -3,10 +3,8 @@ package cli
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
 	"sync"
 	"time"
 
@@ -41,9 +39,11 @@ type CLI struct {
 	ArgsUsage        string
 	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
 
-	Commands    map[string]Commands
-	Subcommands map[string]Command
+	Commands    Commands
+	Subcommands Commands
 	Flags       map[string]Flag
+
+	CommandMap map[string]*Command
 
 	Logger            log.Logger
 	CompiledOn        time.Time
@@ -65,6 +65,11 @@ type CLI struct {
 	CommandNotFound CommandNotFoundFunc
 	ExitErrHandler  ExitErrHandlerFunc
 	OnUsageError    OnUsageErrorFunc
+}
+
+func (self *CLI) PrintBanner() {
+	fmt.Println(color.Header(self.Name) + "  " + color.Strong("v"+self.Version.String()))
+	fmt.Println(color.Light(text.Repeat("=", 80)))
 }
 
 // Setup and New dont seem to have any reason to be separate
@@ -102,33 +107,24 @@ func New(cli *CLI) *CLI {
 	}
 	cli.Commands = InitCommands()
 	if !cli.HideVersion {
-		cli.appendFlag(VersionFlag)
+		// TODO: We should just have an init function that loads hidden version and
+		// help flags. we can use a 'bool' to say if they are visible or not, same
+		// with commands above
+		//cli.appendFlag(VersionFlag)
 	}
 	cli.CommandCategories = CommandCategories{}
 	for _, command := range cli.Commands {
-		cli.AddCommand(d.Category, command)
+		cli.AddCommandToMap(command)
 	}
-	sort.Sort(cli.categories)
+	return cli
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
-	// TODO: Shell completion
-	// handle the completion flag separately from the flagset since
-	// completion could be attempted after a flag, but before its value was put
-	// on the command line. this causes the flagset to interpret the completion
-	// flag name as the value of the flag before it which is undesirable
-	// note that we can only do this because the shell autocomplete function
-	// always appends the completion flag at the end of the command
-	//shellComplete, arguments := checkShellCompleteFlag(self, arguments)
-	//context.shellComplete = shellComplete
-
-	// TODO: Uhh, what is this?
-	set.SetOutput(ioutil.Discard)
+	// TODO: Add shell completion code (old code used to be here)
 
 	// TODO: This is tail, why did we bother to make the function if we are not
 	// going to use it?
 	// TODO: This is a big thing, we should make this its own function.
-	err = set.Parse(arguments[1:])
 	// TODO: Parse should probably return to a switch case, then that switch case
 	// can resolve the actions that need to be called. instead of assigning. then
 	// doing 5 if checks
@@ -137,243 +133,62 @@ func (self *CLI) Run(arguments []string) (err error) {
 	// defaultaction is nil, then we just call help, this avoids any used
 	// memory by just applying the functionality in order of operations
 
-	context := NewContext(self, set, nil)
-	// TODO: What is normalize flags? we junkered most of the blaoted flag code in favor of a single reflect func
-	normErr := normalizeFlags(self.Flags, set)
-	if normErr != nil {
-		fmt.Fprintln(self.Writer, normErr)
-		ShowCLIHelp(context)
-		return nerr
-	}
-	if err != nil {
-		// TODO: Cant we determine this earlier? like by checking if current parsed command is a command?
-		if self.OnUsageError != nil {
-			err := self.OnUsageError(context, err, false)
-			self.handleExitCoder(context, err)
-			return err
-		}
-		fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
-		ShowCLIHelp(context)
-		return err
-	}
+	// TODO: Cant we determine this earlier? like by checking if current parsed command is a command?
 
-	if self.After != nil {
-		defer func() {
-			if afterErr := self.After(context); afterErr != nil {
-				if err != nil {
-					err = NewMultiError(err, afterErr)
-				} else {
-					err = afterErr
-				}
-			}
-		}()
-	}
+	// TODO: arguments come from context, we really need to parse
+	// THESE SHOULD BE MOVED OUTSIDE THIS, AND PASSED TO THIS FUCN
+	//args = os.Args
+	//argCount = len(args)
 
-	if self.Before != nil {
-		beforeErr := self.Before(context)
-		if beforeErr != nil {
-			fmt.Fprintf(self.Writer, "%v\n\n", beforeErr)
-			ShowCLIHelp(context)
-			self.handleExitCoder(context, beforeErr)
-			err = beforeErr
-			return err
-		}
-	}
-
-	args := context.Args()
-	if args.Present() {
-		name := args.First()
-		c := self.Command(name)
-		if c != nil {
-			return c.Run(context)
-		}
-	}
-
-	if self.Action == nil {
-		self.Action = helpCommand.Action
-	}
+	// TODO: This should be called from a switch/case that handles the data from a
+	// parse commmand parsing the args
+	//if self.Action == nil {
+	//  self.Action = helpCommand.Action
+	//}
 
 	// Run default Action
-	err = HandleAction(self.Action, context)
+	err = HandleAction(self.DefaultAction, NewContext(self))
+	if err != nil {
+		fmt.Println("[Error] " + err.Error())
+	}
 
-	self.handleExitCoder(context, err)
 	return err
 }
 
-func (self *CLI) AddCommand(command Command) {
-	self.Commands[command.Name] = command
-}
-
-func (self *CLI) AddCommandCategory(categoryName, categoryDescription string, command Command) {
-	self.WriteMutex.Lock()
-	self.CommandCategories[category] = CommandCategory{Name: categoryName, categoryDescription: description, Commands: append(self.CommandCategories(command))}
-	self.WriteMutex.Unlock()
-}
-
-// RunAndExitOnError calls .Run() and exits non-zero if an error was returned
-//
-// Deprecated: instead you should return an error that fulfills cli.ExitCoder
-// to cli.CLI.Run. This will cause the application to exit with the given eror
-// code in the cli.ExitCoder
-func (self *CLI) RunAndExitOnError() {
-	if err := self.Run(os.Args); err != nil {
-		fmt.Fprintln(self.errWriter(), err)
-		OsExiter(1)
+// TODO: Using a map to pointers, we can load all the commands into this map,
+// then use the name or alias to pull out the pointer for simple lookup.
+func (self *CLI) AddCommandToMap(command Command) {
+	self.CommandMap[command.Name] = &command
+	for _, alias := range command.Aliases {
+		self.CommandMap[alias] = &command
 	}
 }
 
-// RunAsSubcommand invokes the subcommand given the context, parses ctx.Args() to
-// generate command-specific flags
-func (self *CLI) RunAsSubcommand(ctx *Context) (err error) {
-	// append help to commands
-	if len(self.Commands) > 0 {
-		if self.Command(helpCommand.Name) == nil && !self.HideHelp {
-			self.Commands = append(self.Commands, helpCommand)
-			if (HelpFlag != BoolFlag{}) {
-				self.appendFlag(HelpFlag)
-			}
-		}
+func (self *CLI) VisibleFlags() (visibleFlags []Flag) {
+	// TODO the first variable assignement ehre is key, it could be used for building
+	// a new map of only visible flags
+	for _, flag := range self.Flags {
+		visibleFlags = append(visibleFlags, flag)
 	}
-
-	newCmds := []Command{}
-	for _, c := range self.Commands {
-		newCmds = append(newCmds, c)
-	}
-	self.Commands = newCmds
-
-	// parse flags
-	set, err := flagSet(self.Name, self.Flags)
-	if err != nil {
-		return err
-	}
-
-	set.SetOutput(ioutil.Discard)
-	err = set.Parse(ctx.Args().Tail())
-	nerr := normalizeFlags(self.Flags, set)
-	context := NewContext(self, set, ctx)
-
-	if nerr != nil {
-		fmt.Fprintln(self.Writer, nerr)
-		fmt.Fprintln(self.Writer)
-		if len(self.Commands) > 0 {
-			ShowSubcommandHelp(context)
-		} else {
-			ShowCommandHelp(ctx, context.Args().First())
-		}
-		return nerr
-	}
-
-	if checkCompletions(context) {
-		return nil
-	}
-
-	if err != nil {
-		if self.OnUsageError != nil {
-			err = self.OnUsageError(context, err, true)
-			self.handleExitCoder(context, err)
-			return err
-		}
-		fmt.Fprintf(self.Writer, "%s %s\n\n", "Incorrect Usage.", err.Error())
-		ShowSubcommandHelp(context)
-		return err
-	}
-
-	if len(self.Commands) > 0 {
-		if checkSubcommandHelp(context) {
-			return nil
-		}
-	} else {
-		if checkCommandHelp(ctx, context.Args().First()) {
-			return nil
-		}
-	}
-
-	if self.After != nil {
-		defer func() {
-			afterErr := self.After(context)
-			if afterErr != nil {
-				self.handleExitCoder(context, err)
-				if err != nil {
-					err = NewMultiError(err, afterErr)
-				} else {
-					err = afterErr
-				}
-			}
-		}()
-	}
-
-	if self.Before != nil {
-		beforeErr := self.Before(context)
-		if beforeErr != nil {
-			self.handleExitCoder(context, beforeErr)
-			err = beforeErr
-			return err
-		}
-	}
-
-	args := context.Args()
-	if args.Present() {
-		name := args.First()
-		c := self.Command(name)
-		if c != nil {
-			return c.Run(context)
-		}
-	}
-
-	// Run default Action
-	err = HandleAction(self.Action, context)
-	self.handleExitCoder(context, err)
-	return err
-}
-
-// Command returns the named command on CLI. Returns nil if the command does not exist
-func (self *CLI) Command(name string) *Command {
-	for _, c := range self.Commands {
-		if c.HasName(name) {
-			return &c
-		}
-	}
-
-	return nil
-}
-
-func (self *CLI) Categories() CommandCategories {
-	return self.categories
-}
-
-func (self *CLI) VisibleFlags() []Flag {
-	return visibleFlags(self.Flags)
+	return visibleFlags
 }
 
 func (self *CLI) HasVisibleFlags() bool {
 	return (len(self.Flags) > 0)
 }
 
-func (self *CLI) hasFlag(flag Flag) bool {
-	for _, f := range self.Flags {
-		if flag == f {
-			return true
-		}
-	}
-	return false
-}
-
-func (self *CLI) VisibleCategories() []*CommandCategory {
-	ret := []*CommandCategory{}
-	for _, category := range self.categories {
-		if visible := func() *CommandCategory {
-			for _, command := range category.Commands {
-				if !command.Hidden {
-					return category
-				}
-			}
-			return nil
-		}(); visible != nil {
-			ret = append(ret, visible)
-		}
-	}
-	return ret
-}
+// TODO: We moved flags to a map, like above, we should be opting to use a map
+// to pointers of flags, then store all the names and aliases so we can store
+// several of the same pointers to different names then just use the map to pull
+// things out instead of iterating over each thing and doing bool checks
+//func (self *CLI) hasFlag(flag Flag) bool {
+//	for _, f := range self.Flags {
+//		if flag == f {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 func (self *CLI) VisibleCommands() []Command {
 	ret := []Command{}
@@ -389,29 +204,6 @@ func (self *CLI) HasVisibleCommands() bool {
 	return (len(self.VisibleCommands()) > 0)
 }
 
-func (self *CLI) errWriter() io.Writer {
-	// When the app ErrWriter is nil use the package level one.
-	if self.ErrWriter == nil {
-		return ErrWriter
-	}
-
-	return self.ErrWriter
-}
-
-func (self *CLI) appendFlag(flag Flag) {
-	if !self.hasFlag(flag) {
-		self.Flags = append(self.Flags, flag)
-	}
-}
-
-func (self *CLI) handleExitCoder(context *Context, err error) {
-	if self.ExitErrHandler != nil {
-		self.ExitErrHandler(context, err)
-	} else {
-		HandleExitCoder(err)
-	}
-}
-
 // HandleAction attempts to figure out which Action signature was used.  If
 // it's an ActionFunc or a func with the legacy signature for Action, the func
 // is run!
@@ -425,13 +217,4 @@ func HandleAction(action interface{}, context *Context) error {
 		return nil
 	}
 	return errInvalidActionType
-}
-
-func (self *CLI) LogFile() string {
-	return (self.Logger.Path + self.Logger.Filename)
-}
-
-func (self *CLI) PrintBanner() {
-	fmt.Println(color.Header(self.Name) + "  " + color.Strong("v"+self.Version.String()))
-	fmt.Println(color.Light(text.Repeat("=", 80)))
 }
