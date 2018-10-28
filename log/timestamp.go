@@ -1,29 +1,34 @@
 package log
 
-type TimeResolution int
+import "time"
+
+type TimestampResolution int
 
 const (
+	DISABLED TimestampResolution = iota
 	// FEMTOSECONDS
 	// PICOSECONDS
-	NANOSECONDS TimeResolution = iota
-	MICROSECONDS
-	SECONDS
-	MINUTES
+	NANOSECOND
+	MICROSECOND
+	SECOND
+	MINUTE
 )
 
-func (self *Entry) Timestamp() string {
-	return self.TimestampWithResolution(MINUTES)
+func (self Entry) Timestamp() string {
+	return TimestampWithResolution(self.createdAt, self.timestampResolution)
 }
 
-func (self *Entry) TimestampWithResolution(resolution TimeResolution) string {
+func TimestampWithResolution(timestamp time.Time, resolution TimestampResolution) string {
 	switch resolution {
-	case NANOSECONDS:
-		return self.createdAt.Format("Jan _2 15:04:03:02:01")
-	case MICROSECONDS:
-		return self.createdAt.Format("Jan _2 15:04:03:02")
-	case SECONDS:
-		return self.createdAt.Format("Jan _2 15:04:03")
-	default:
-		return self.createdAt.Format("Jan _2 15:04")
+	case DISABLED:
+		return ""
+	case NANOSECOND:
+		return timestamp.Format("Jan _2 15:04:03:02:01")
+	case MICROSECOND:
+		return timestamp.Format("Jan _2 15:04:03:02")
+	case SECOND:
+		return timestamp.Format("Jan _2 15:04:03")
+	default: // MINUTE
+		return timestamp.Format("Jan _2 15:04")
 	}
 }

@@ -1,9 +1,7 @@
 package log
 
 import (
-	"strings"
-
-	color "github.com/multiverse-os/cli-framework/text/color"
+	text "github.com/multiverse-os/cli-framework/text"
 )
 
 type LogLevel int
@@ -30,10 +28,10 @@ const (
 )
 
 const (
-	QUIET = -1
+	QUIET VerbosityLevel = -1
 )
 
-func (self VerbosityLevel) IncludesLevel(level LogLevel) bool {
+func (self VerbosityLevel) Includes(level LogLevel) bool {
 	switch self {
 	case QUIET:
 		// Quiet; No Logs
@@ -74,73 +72,46 @@ const (
 	FATAL = FATAL_ERROR
 )
 
-func (self LogLevel) UppercaseColorString() string {
+func (self LogLevel) StyledString() string {
 	switch self {
 	case DEBUG:
-		return color.Debug(strings.ToUpper("Debug"))
+		return text.Debug("DEBUG")
 	case INFO:
-		return color.Info(strings.ToUpper("Info"))
+		return text.Info("INFO")
 	case WARN:
-		return color.Warning(strings.ToUpper("Warning"))
+		return text.Warning("WARNING")
 	case NOTICE:
-		return color.Notice(strings.ToUpper("Notice"))
+		return text.Notice("NOTICE")
 	case ERROR:
-		return color.Error(strings.ToUpper("Error"))
+		return text.Error("ERROR")
 	case TRACE:
-		return color.Trace(strings.ToUpper("Trace"))
+		return text.Trace("TRACE")
 	case FATAL:
-		return color.Fatal(strings.ToUpper("Fatal"))
+		return text.Fatal("FATAL")
 	case PANIC:
-		return color.Panic(strings.ToUpper("Panic"))
+		return text.Panic("PANIC")
 	default:
-		return color.Gray(strings.ToUpper("Log"))
+		return text.Gray("LOG")
 	}
-}
-
-func (self LogLevel) ColorString() string {
-	switch self {
-	case DEBUG:
-		return color.Debug("Debug")
-	case INFO:
-		return color.Info("Info")
-	case WARN:
-		return color.Warning("Warning")
-	case NOTICE:
-		return color.Notice("Notice")
-	case ERROR:
-		return color.Error("Error")
-	case TRACE:
-		return color.Trace("Trace")
-	case FATAL:
-		return color.Fatal("Fatal")
-	case PANIC:
-		return color.Panic("Panic")
-	default:
-		return color.Gray("Log")
-	}
-}
-
-func (self LogLevel) UppercaseString() string {
-	return strings.ToUpper(self.String())
 }
 
 func (self LogLevel) String() string {
 	switch self {
 	case DEBUG:
-		return "Debug"
+		return "DEBUG"
 	case INFO:
-		return "Info"
+		return "INFO"
 	case WARN:
-		return "Warning"
+		return "WARNING"
 	case NOTICE:
-		return "Notice"
+		return "NOTICE"
 	case ERROR:
-		return "Error"
+		return "ERROR"
 	case FATAL:
-		return "Fatal"
+		return "FATAL"
 	case PANIC:
-		return "Panic"
+		return "PANIC"
 	default:
-		return "Log"
+		return "LOG"
 	}
 }

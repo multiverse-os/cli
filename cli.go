@@ -10,7 +10,6 @@ import (
 
 	log "github.com/multiverse-os/cli-framework/log"
 	text "github.com/multiverse-os/cli-framework/text"
-	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
 // TODO: Support a slice of functions or map of functions for Before and After, so we can have several functions ran before and after any given
@@ -65,8 +64,8 @@ type CLI struct {
 }
 
 func (self *CLI) PrintBanner() {
-	fmt.Println(color.Header(self.Name) + "  " + color.Strong("v"+self.Version.String()))
-	fmt.Println(color.Light(text.Repeat("=", 80)))
+	fmt.Println(text.Header(self.Name) + "  " + text.Strong("v"+self.Version.String()))
+	fmt.Println(text.Light(text.Repeat("=", 80)))
 }
 
 // Setup and New dont seem to have any reason to be separate
@@ -81,7 +80,7 @@ func New(cli *CLI) *CLI {
 		var err error
 		cli.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
-			log.Print(log.FATAL, "Failed to parse executable working directory in default 'Name' attribute assignment.")
+			cli.Logger.Fatal("Failed to parse executable working directory in default 'Name' attribute assignment.")
 		}
 	}
 
@@ -99,7 +98,8 @@ func New(cli *CLI) *CLI {
 		cli.Writer = os.Stdout
 	}
 	if cli.Logger.Name == "" {
-		cli.Logger = log.NewSimpleLogger(cli.Name, log.JSON, true)
+		fmt.Println("cli.Logger.Name: " + cli.Name)
+		cli.Logger = log.DefaultLogger(cli.Name, true, true)
 	}
 	cli.Commands = InitCommands()
 	if !cli.HideVersion {
@@ -139,7 +139,7 @@ func (self *CLI) Run(arguments []string) (err error) {
 
 	err = HandleAction(self.DefaultAction, NewContext(self))
 	if err != nil {
-		fmt.Println("[Error] " + err.Error())
+		self.Logger.Error(err)
 	}
 
 	return err

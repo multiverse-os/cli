@@ -13,6 +13,12 @@ var (
 //
 // Text to be set in this file
 ///////////////////////////////////////////////////////////////////////////////
+
+//Info("Shutdown initiated, gracefully closing outputs...")
+//Info("Logger currently has no specified outputs, defaulting to ANSI-styled StdOut output.")
+//FatalError(errors.New("Failed to initialize default log path: '" + logPath + "'"))
+//FatalError(errors.New("Name attribute is required to initialize log file"))
+
 //return errors.New("Cannot use two forms of the same flag: " + name + " " + ff.Name)
 //return errors.New("index out of range")
 //defaultVal = fmt.Sprintf(" (default: %s)", strings.Join(defaultVals, ", "))

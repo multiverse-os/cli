@@ -1,4 +1,4 @@
-package color
+package ansi
 
 // CLIHelpTemplate is the text template for the Default help topic.
 // cli.go uses text/template to render templates. You can

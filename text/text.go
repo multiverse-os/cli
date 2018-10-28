@@ -1,7 +1,5 @@
 package text
 
-import "github.com/multiverse-os/cli-framework/text/color"
-
 type enclosure int
 
 const (
@@ -25,25 +23,25 @@ func Enclose(text string, enclosureSymbol enclosure, padding int, ansi string) s
 		if ansi == "" {
 			return ("(" + Repeat(" ", padding) + text + Repeat(" ", padding) + ")")
 		} else {
-			return (ansi + "(" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + ")" + color.RESET)
+			return (ansi + "(" + RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + ")" + RESET)
 		}
 	case brackets:
 		if ansi == "" {
 			return ("[" + Repeat(" ", padding) + text + Repeat(" ", padding) + "]")
 		} else {
-			return (ansi + "[" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + "]" + color.RESET)
+			return (ansi + "[" + RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + "]" + RESET)
 		}
 	case braces:
 		if ansi == "" {
 			return ("{" + Repeat(" ", padding) + text + Repeat(" ", padding) + "}")
 		} else {
-			return (ansi + "{" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + "}" + color.RESET)
+			return (ansi + "{" + RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + "}" + RESET)
 		}
 	case angles:
 		if ansi == "" {
 			return ("<" + Repeat(" ", padding) + text + Repeat(" ", padding) + ">")
 		} else {
-			return (ansi + "<" + color.RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + ">" + color.RESET)
+			return (ansi + "<" + RESET + Repeat(" ", padding) + text + Repeat(" ", padding) + ansi + ">" + RESET)
 		}
 	default:
 		// No Symbol

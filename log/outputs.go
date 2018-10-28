@@ -11,24 +11,36 @@ type Outputs []LogOutput
 type Output int
 
 const (
-	STDOUT Output = iota
+	DEFAULT_LOG Output = iota
+	USER_LOG
+	OS_LOG
+	TERMINAL
 	FILE
+	//SYSLOG     // Not yet supported
+	//JOURNALCTL // Not yet supported
+	//HTTP       // Not yet supported (use case: doing HTTP requests against REST APIs to send logs to chat servers)
+)
+
+// Output Aliases
+const (
+	STDOUT = TERMINAL
 )
 
 type LogOutput interface {
 	Open() error
-	Close()
-
-	Append(entry Entry)
+	Close() error
+	Append(entry Entry) error
 }
 
-// STREAM: File I/O
+// OUTPUT: File I/O
 ///////////////////////////////////////////////////////////////////////////////
 type LogFile struct {
-	format Format
-	mutex  sync.Mutex
-	path   string
-	data   *os.File
+	format  Format
+	mutex   sync.Mutex
+	path    string
+	data    *os.File
+	rotate  bool
+	maxSize int // kb
 }
 
 func (self *LogFile) Open() (err error) {
@@ -40,34 +52,38 @@ func (self *LogFile) Open() (err error) {
 }
 
 // For a clean shutdown, this should be called in shutdown/signal
-func (self *LogFile) Close() {
+func (self *LogFile) Close() error {
 	self.mutex.Lock()
 	self.data.Close()
 	self.mutex.Unlock()
+	return nil
 }
 
-func (self *LogFile) Append(entry Entry) {
+func (self *LogFile) Append(entry Entry) (err error) {
 	self.mutex.Lock()
-	_, err := self.data.WriteString(entry.FormattedOutput())
+	_, err = self.data.WriteString(entry.String())
 	self.mutex.Unlock()
-	if err != nil {
-		FatalError(err)
-	}
+	return err
 }
 
-// STREAM: OS stdout
+// OUTPUT: OS/User (Default) Log File
 ///////////////////////////////////////////////////////////////////////////////
-// There is two versions of this, (1) where we pull apart the "fmt" library
-// and implement all that is needed to interact with StdOut the other, (2)
-// is to just make it simple as possible leveraging the existing "fmt".
-type StdOut struct {
-	format Format
-	mutex  sync.Mutex
+
+// Just use above File I/O, or build custom UserLogFile and OSLogFile types?
+
+// [OS]  [Log File] [Path:'/var/log/APP_NAME/APP_NAME.log\']
+// [User][Log File] [Path:'/home/USER_NAME/.local/share/APP_NAME/APP_NAME.log')
+
+// OUTPUT: Terminal Output (stdout)
+///////////////////////////////////////////////////////////////////////////////
+type Terminal struct{ format Format }
+
+func (self *Terminal) Open() error  { return nil }
+func (self *Terminal) Close() error { return nil }
+func (self *Terminal) Append(entry Entry) error {
+	fmt.Println(entry.String())
+	return nil
 }
 
-func (self *StdOut) Open() error { return nil }
-func (self *StdOut) Close()      {}
-
-func (self *StdOut) Append(entry Entry) {
-	fmt.Println(entry.FormattedOutput())
-}
+// OUTPUT: Syslog Output
+///////////////////////////////////////////////////////////////////////////////

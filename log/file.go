@@ -3,43 +3,55 @@ package log
 import (
 	"os"
 	"os/user"
+	"path"
 	"strings"
 )
 
-func FindOrCreateFile(logFilePath string) bool {
-	if _, err := os.Stat(logFilePath); os.IsNotExist(err) {
-		os.MkdirAll(logFilePath, 0660)
-		os.OpenFile(logFilePath, os.O_RDONLY|os.O_CREATE, 0660)
-		if _, err := os.Stat(logFilePath); os.IsNotExist(err) {
-			return false
+func DefaultLogPath(name string) (logPath string) {
+	if logPath, ok := FindOrCreateFile(DefaultOSLogPath(name)); !ok {
+		if logPath, _ = FindOrCreateFile(DefaultUserLogPath(name)); !ok {
+			workingPath, _ := os.Getwd()
+			return (workingPath + name + ".log")
 		} else {
-			return true
+			return logPath
 		}
 	} else {
-		return true
+		return logPath
 	}
 }
 
-func OSLogPath(appName string) string {
-	return ("/var/log/" + strings.ToLower(appName) + ".log")
+func FindOrCreateFile(filePath string) (string, bool) {
+	filePath, filename := path.Split(filePath)
+	if filename != "" {
+		if _, err := os.Stat((filePath + filename)); os.IsNotExist(err) {
+			os.MkdirAll(filePath, 0700)
+			os.OpenFile((filePath + filename), os.O_RDONLY|os.O_CREATE, 0660)
+			if _, err := os.Stat((filePath + filename)); !os.IsNotExist(err) {
+				return (filePath + filename), true
+			}
+		} else {
+			return (filePath + filename), true
+		}
+	}
+	return "", false
 }
 
-func UserLogPath(appName string) string {
-	appName = strings.ToLower(appName)
+func DefaultOSLogPath(name string) string {
+	return ("/var/log/" + strings.ToLower(name) + ".log")
+}
+
+func DefaultUserLogPath(name string) string {
 	home := os.Getenv("XDG_CONFIG_HOME")
-	if home != "" {
-		return (home + "/.local/share/" + appName + "/")
-	} else {
+	if home == "" {
 		home = os.Getenv("HOME")
-		if home != "" {
-			return (home + "/.local/share/" + appName + "/")
-		} else {
+		if home == "" {
 			currentUser, err := user.Current()
 			if err != nil {
 				FatalError(err)
 			}
 			home = currentUser.HomeDir
-			return (home + "/.local/share/" + appName + "/")
 		}
 	}
+	name = strings.ToLower(name)
+	return home + ("/.local/share/" + name + "/" + name + ".log")
 }

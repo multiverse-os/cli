@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	color "github.com/multiverse-os/cli-framework/text/color"
+	text "github.com/multiverse-os/cli-framework/text"
 )
 
 type Version struct {
@@ -33,21 +33,21 @@ func (self Version) String() string {
 
 func (self Version) ANSIFormattedString() (formattedString string) {
 	if self.Major == 0 {
-		formattedString = color.Light(strconv.Itoa(self.Major))
+		formattedString = text.Light(strconv.Itoa(self.Major))
 	} else {
-		formattedString = color.Bold(color.Blue(strconv.Itoa(self.Major)))
+		formattedString = text.Bold(text.Blue(strconv.Itoa(self.Major)))
 	}
-	formattedString += color.White(".")
+	formattedString += text.White(".")
 	if self.Minor == 0 {
-		formattedString += color.Light(strconv.Itoa(self.Minor))
+		formattedString += text.Light(strconv.Itoa(self.Minor))
 	} else {
-		formattedString += color.Bold(color.Blue(strconv.Itoa(self.Minor)))
+		formattedString += text.Bold(text.Blue(strconv.Itoa(self.Minor)))
 	}
-	formattedString += color.White(".")
+	formattedString += text.White(".")
 	if self.Patch == 0 {
-		formattedString += color.Light(strconv.Itoa(self.Patch))
+		formattedString += text.Light(strconv.Itoa(self.Patch))
 	} else {
-		formattedString += color.Bold(color.LightBlue(strconv.Itoa(self.Patch)))
+		formattedString += text.Bold(text.LightBlue(strconv.Itoa(self.Patch)))
 	}
 	return formattedString
 }

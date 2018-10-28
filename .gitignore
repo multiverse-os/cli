@@ -1,2 +1,5 @@
 *.coverprofile
 node_modules/
+
+# Do not include compiled binaries
+example/example

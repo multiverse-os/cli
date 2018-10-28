@@ -2,164 +2,154 @@ package log
 
 import (
 	"errors"
+	"fmt"
+	"time"
 )
 
+// Add log rotation
+
+// TODO: Write tests for:
+//         1) Hook Logic
+//         2) Verbosity Levels
+//         3) Write to terminal, write to file
+
 type Logger struct {
-	Name           string
-	Verbosity      VerbosityLevel
-	TimeResolution TimeResolution
-	Entries        []Entry
-	Hooks          map[LogLevel]map[HookType][]*Hook
-	Outputs        []LogOutput
+	name                string
+	verbosity           VerbosityLevel
+	timestampResolution TimestampResolution
+	entries             []Entry
+	hooks               map[LogLevel]map[HookType][]*Hook
+	outputs             []LogOutput
 }
 
-func NewLogger(name string, resolution TimeResolution, verbosity VerbosityLevel) Logger {
+func NewLogger(name string, resolution TimestampResolution, verbosity VerbosityLevel) Logger {
+	if name == "" {
+		FatalError(errors.New("Name attribute is required to initialize log file"))
+	}
 	return Logger{
-		Name:           name,
-		Verbosity:      verbosity,
-		TimeResolution: resolution,
-		Entries:        []Entry{},
+		name:                name,
+		verbosity:           verbosity,
+		timestampResolution: resolution,
 	}
 }
 
-func NewStdOutLogger(name string, format Format, resolution TimeResolution, verbosity VerbosityLevel) Logger {
-	logger := NewLogger(name, resolution, verbosity)
-	logger.AddStdOutWithFormat(format)
-	return logger
-}
-
-func NewDefaultLogger(name string, stdOut bool, fileOut bool) Logger {
-	logger := NewLogger(name, MINUTES, NORMAL)
-	if fileOut {
-		logger.AddDefaultUserLogWithFormat(JSON)
+func DefaultLogger(name string, stdOut bool, fileOut bool) Logger {
+	logger := Logger{
+		name:                name,
+		verbosity:           NORMAL,
+		timestampResolution: MINUTE,
 	}
 	if stdOut {
-		logger.AddStdOutWithFormat(DefaultWithANSI)
+		logger.OutputToTerminal(StyledWithANSI)
+	}
+	if fileOut {
+		logger.OutputToDefaultLogFile(JSON)
 	}
 	return logger
 }
 
-func NewSimpleLogger(name string, format Format, printToStdOut bool) Logger {
-	logger := NewLogger(name, MINUTES, NORMAL)
-	logger.AddDefaultUserLogWithFormat(format)
-	if printToStdOut {
-		logger.AddStdOutWithFormat(DefaultWithANSI)
-	}
-	return logger
-}
-
-func NewFileLogger(name string, resolution TimeResolution, verbosity VerbosityLevel, format Format, logPath string) Logger {
+func TerminalLogger(name string, format Format, resolution TimestampResolution, verbosity VerbosityLevel) Logger {
 	logger := NewLogger(name, resolution, verbosity)
-	logFilePath, err := logger.InitLogFile(UserLogPath(name))
-	if err != nil {
-		FatalError(err)
-	}
-	logger.AddFileOutput(format, logFilePath)
+	logger.OutputToTerminal(format)
 	return logger
 }
 
-func (self *Logger) InitLogFile(logFilePath string) (string, error) {
-	if ok := FindOrCreateFile(logFilePath); ok {
-		return logFilePath, nil
-	} else {
-		userLogFilePath := UserLogPath(self.Name)
-		if ok := FindOrCreateFile(userLogFilePath); ok {
-			return userLogFilePath, nil
+func FileLogger(name string, format Format, logPath string, resolution TimestampResolution, verbosity VerbosityLevel) Logger {
+	logger := NewLogger(name, resolution, verbosity)
+	if logPath, ok := FindOrCreateFile(logPath); !ok {
+		FatalError(errors.New("Failed to initialize default log path: '" + logPath + "'"))
+	}
+	logger.OutputToFile(format, logPath)
+	return logger
+}
+
+// Append To Outputs
+///////////////////////////////////////////////////////////////////////////////
+func (self *Logger) Append(entry Entry) {
+	if self.verbosity.Includes(entry.level) {
+		if self.HasOutputs() {
+			for _, out := range self.outputs {
+				out.Append(entry)
+			}
 		} else {
-			return "", errors.New("Failed to initialize log file")
+			Info("Logger has no outputs defined; defaulting to ANSI styled terminal output.")
+			self.OutputToTerminal(StyledWithANSI)
 		}
 	}
-	return logFilePath, nil
 }
 
-//
 // Outputs
 ///////////////////////////////////////////////////////////////////////////////
-func (self *Logger) AddFileOutput(format Format, path string) {
-	logFilePath, err := self.InitLogFile(path)
-	if err != nil {
-		FatalError(err)
+func (self *Logger) OutputToFile(format Format, outputPath string) {
+	if outputPath, ok := FindOrCreateFile(outputPath); !ok {
+		FatalError(errors.New("Failed to initialized specified log path: '" + outputPath + "'"))
 	} else {
 		logFile := &LogFile{
 			format: format,
-			path:   logFilePath,
+			path:   outputPath,
 		}
+		fmt.Println("Output Path is currently: ", outputPath)
 		err := logFile.Open()
 		if err != nil {
 			FatalError(err)
 		} else {
-			self.Outputs = append(self.Outputs, logFile)
+			self.outputs = append(self.outputs, logFile)
 		}
 	}
 }
 
-func (self *Logger) AddDefaultUserLogWithFormat(format Format) {
-	logFilePath, err := self.InitLogFile(UserLogPath(self.Name))
-	if err != nil {
-		FatalError(err)
+func (self *Logger) OutputToDefaultLogFile(format Format) {
+	Debug("Test")
+	if logPath, ok := FindOrCreateFile(DefaultUserLogPath(self.name)); !ok {
+		FatalError(errors.New("Failed to initialize default user log path: '" + logPath + "'"))
+	} else {
+		self.OutputToFile(format, logPath)
 	}
-	self.AddFileOutput(format, logFilePath)
 }
 
-func (self *Logger) AddLogFileWithFormat(format Format) {
-	self.AddOutput(FILE, format)
-}
-
-func (self *Logger) AddStdOutWithFormat(format Format) {
-	self.AddOutput(STDOUT, format)
-}
-
-func (self *Logger) AddFileOutputWithFormat(format Format, path string) {
-	self.AddFileOutput(format, path)
-}
-
-func (self *Logger) AddOutput(output Output, format Format) {
+func (self *Logger) OutputTo(output Output, format Format) {
 	switch output {
 	case FILE:
-		self.AddFileOutput(format, UserLogPath(self.Name))
-	case STDOUT:
-		self.Outputs = append(self.Outputs, &StdOut{
+		self.OutputToFile(format, DefaultLogPath(self.name))
+	case TERMINAL:
+		self.outputs = append(self.outputs, &Terminal{
 			format: format,
 		})
 	}
 }
 
-//
+func (self *Logger) OutputToTerminal(format Format) {
+	self.OutputTo(TERMINAL, format)
+}
+
+func (self Logger) HasOutputs() bool   { return (len(self.outputs) != 0) }
+func (self Logger) HasValues() bool    { return (len(self.outputs) != 0) }
+func (self Logger) HasErrors() bool    { return (len(self.outputs) != 0) }
+func (self Logger) HasTimestamp() bool { return (self.timestampResolution != DISABLED) }
+
+// Create Log Entries
+///////////////////////////////////////////////////////////////////////////////
+func (self Logger) Log(level LogLevel, message string) Entry {
+	return Entry{
+		createdAt:           time.Now(),
+		level:               level,
+		message:             message,
+		timestampResolution: self.timestampResolution,
+	}
+}
+func (self Logger) Info(message string)    { Log(INFO, message).Append() }
+func (self Logger) Warning(message string) { Log(WARNING, message).Append() }
+func (self Logger) Warn(message string)    { Log(WARN, message).Append() }
+func (self Logger) Error(err error)        { Log(ERROR, err.Error()).Append() }
+func (self Logger) FatalError(err error)   { Log(FATAL, err.Error()).Append() }
+func (self Logger) Fatal(message string)   { Log(FATAL, message).Append() }
+func (self Logger) Panic(message string)   { Log(PANIC, message).Append() }
+
 // Graceful Shutdown
 ///////////////////////////////////////////////////////////////////////////////
 func (self *Logger) Shutdown() {
-	for _, output := range self.Outputs {
+	Info("Shutdown initiated, gracefully closing outputs...")
+	for _, output := range self.outputs {
 		output.Close()
 	}
-}
-
-//
-// Standard Log Function Aliases
-///////////////////////////////////////////////////////////////////////////////
-func (self Logger) Info(text string) {
-	self.Log(INFO, text)
-}
-
-func (self Logger) Warning(text string) {
-	self.Log(WARNING, text)
-}
-
-func (self Logger) Warn(text string) {
-	self.Log(WARN, text)
-}
-
-func (self Logger) Error(err error) {
-	self.Log(ERROR, err.Error())
-}
-
-func (self Logger) FatalError(err error) {
-	self.Log(FATAL, err.Error())
-}
-
-func (self Logger) Fatal(text string) {
-	self.Log(FATAL, text)
-}
-
-func (self Logger) Panic(text string) {
-	self.Log(FATAL, text)
 }

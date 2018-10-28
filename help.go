@@ -8,7 +8,6 @@ import (
 	"text/template"
 
 	text "github.com/multiverse-os/cli-framework/text"
-	color "github.com/multiverse-os/cli-framework/text/color"
 )
 
 type helpPrinter func(w io.Writer, templ string, data interface{})
@@ -33,20 +32,20 @@ var HelpPrinter helpPrinter = printHelp
 // TODO: Use table library code to improve the structure of this and do better alignment of values
 func (self *CLI) PrintHelp() {
 	if self.Description != "" {
-		fmt.Println(color.Strong(self.Description))
+		fmt.Println(text.Strong(self.Description))
 	}
 	if self.Usage != "" {
 		if self.NoANSIFormatting {
 			fmt.Println("Usage")
 		} else {
-			fmt.Println(color.Strong("Usage"))
+			fmt.Println(text.Strong("Usage"))
 		}
 		fmt.Print(text.Repeat(" ", 4))
 
 		if self.NoANSIFormatting {
 			fmt.Print(self.Name)
 		} else {
-			fmt.Print(color.Header(self.Name))
+			fmt.Print(text.Header(self.Name))
 		}
 		if self.HasVisibleFlags() {
 			fmt.Print(" [options]")
@@ -61,7 +60,7 @@ func (self *CLI) PrintHelp() {
 			fmt.Println("[arguments...]")
 		}
 		if self.HasVisibleFlags() {
-			fmt.Println("\n" + color.Strong("Options"))
+			fmt.Println("\n" + text.Strong("Options"))
 			for _, flag := range self.VisibleFlags() {
 				fmt.Println("flag: ", flag)
 			}
@@ -70,30 +69,30 @@ func (self *CLI) PrintHelp() {
 }
 
 var CLIHelpTemplate = `{{range $index, $option := .VisibleFlags}}{{if $index}}{{"\n"}}{{end}}{{"\t\t"}}{{$option}}{{end}}{{"\n"}}{{if .VisibleCategories}}{{"\n"}}` +
-	fmt.Sprintf(color.STRONG) + `Commands` + fmt.Sprintf(color.RESET) + `{{range .VisibleCategories}}{{if .Name}}{{"\n"}}{{.Name}}:{{end}}{{end}}{{range .VisibleCommands}}{{"\n\t "}}` + fmt.Sprintf(color.H1) + ` {{join .Names ", "}}` + fmt.Sprintf(color.RESET) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{"\n"}}`
+	fmt.Sprintf(text.STRONG) + `Commands` + fmt.Sprintf(text.RESET) + `{{range .VisibleCategories}}{{if .Name}}{{"\n"}}{{.Name}}:{{end}}{{end}}{{range .VisibleCommands}}{{"\n\t "}}` + fmt.Sprintf(text.H1) + ` {{join .Names ", "}}` + fmt.Sprintf(text.RESET) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{"\n"}}`
 
-var CommandHelpTemplate = fmt.Sprintf(color.H1) + `{{.Name}}` + fmt.Sprintf(color.RESET) + ` - {{.Usage}}{{"\n"}}` + fmt.Sprintf(color.H1) + `Usage` + fmt.Sprintf(color.RESET) +
+var CommandHelpTemplate = fmt.Sprintf(text.H1) + `{{.Name}}` + fmt.Sprintf(text.RESET) + ` - {{.Usage}}{{"\n"}}` + fmt.Sprintf(text.H1) + `Usage` + fmt.Sprintf(text.RESET) +
 	`{{"\n"}}{{if .UsageText}}{{.UsageText}}{{else}}{{.Name}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
 
-` + fmt.Sprintf(color.H2) + `Category` + fmt.Sprintf(color.RESET) + `
+` + fmt.Sprintf(text.H2) + `Category` + fmt.Sprintf(text.RESET) + `
    {{.Category}}{{end}}{{if .Description}}
 
-` + fmt.Sprintf(color.H2) + `Description` + fmt.Sprintf(color.RESET) + `
+` + fmt.Sprintf(text.H2) + `Description` + fmt.Sprintf(text.RESET) + `
    {{.Description}}{{end}}{{if .VisibleFlags}}
 
-` + fmt.Sprintf(color.H2) + `Options` + fmt.Sprintf(color.RESET) + `
+` + fmt.Sprintf(text.H2) + `Options` + fmt.Sprintf(text.RESET) + `
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
 var SubcommandHelpTemplate = `Name
-   ` + fmt.Sprintf(color.H1) + `{{.HelpName}}` + fmt.Sprintf(color.RESET) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
+   ` + fmt.Sprintf(text.H1) + `{{.HelpName}}` + fmt.Sprintf(text.RESET) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
 
-` + fmt.Sprintf(color.H2) + `Usage` + fmt.Sprintf(color.RESET) + `
+` + fmt.Sprintf(text.H2) + `Usage` + fmt.Sprintf(text.RESET) + `
    {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
-` + fmt.Sprintf(color.H2) + `Commands` + fmt.Sprintf(color.RESET) + `{{range .VisibleCategories}}{{if .Name}}
+` + fmt.Sprintf(text.H2) + `Commands` + fmt.Sprintf(text.RESET) + `{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}{{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{if .VisibleFlags}}
-` + fmt.Sprintf(color.H2) + `Options` + fmt.Sprintf(color.RESET) + `
+` + fmt.Sprintf(text.H2) + `Options` + fmt.Sprintf(text.RESET) + `
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
