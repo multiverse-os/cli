@@ -1,6 +1,6 @@
 <img src="https://avatars2.githubusercontent.com/u/24763891?s=400&u=c1150e7da5667f47159d433d8e49dad99a364f5f&v=4"  width="256px" height="256px" align="right" alt="Multiverse OS Logo">
 
-## Multiverse: Scramble (Identity) Suit
+## Multiverse: command-line interface 'cli' Go framework
 **URL** [multiverse-os.org](https://multiverse-os.org)
 
 The `cli-framework` aims to provide a consistent, security focused, internationalization (from the start), and other modern CLI features in such a way that it can be easily used in any software from script to full applications weather system service or web application. In addition to allowing interdepenent access to modular subpackages that can be used individually without being forced to include the entire `cli-framework`. 
