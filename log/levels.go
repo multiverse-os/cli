@@ -1,7 +1,7 @@
 package log
 
 import (
-	text "github.com/multiverse-os/cli-framework/text"
+	text "github.com/multiverse-os/cli/text"
 )
 
 type LogLevel int

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	text "github.com/multiverse-os/cli-framework/text"
+	text "github.com/multiverse-os/cli/text"
 )
 
 type Errors []error

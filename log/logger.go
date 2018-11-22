@@ -14,7 +14,7 @@ import (
 //         3) Write to terminal, write to file
 
 type Logger struct {
-	name                string
+	Name                string
 	verbosity           VerbosityLevel
 	timestampResolution TimestampResolution
 	entries             []Entry
@@ -27,7 +27,7 @@ func NewLogger(name string, resolution TimestampResolution, verbosity VerbosityL
 		FatalError(errors.New("Name attribute is required to initialize log file"))
 	}
 	return Logger{
-		name:                name,
+		Name:                name,
 		verbosity:           verbosity,
 		timestampResolution: resolution,
 	}
@@ -35,7 +35,7 @@ func NewLogger(name string, resolution TimestampResolution, verbosity VerbosityL
 
 func DefaultLogger(name string, stdOut bool, fileOut bool) Logger {
 	logger := Logger{
-		name:                name,
+		Name:                name,
 		verbosity:           NORMAL,
 		timestampResolution: MINUTE,
 	}
@@ -100,7 +100,7 @@ func (self *Logger) OutputToFile(format Format, outputPath string) {
 
 func (self *Logger) OutputToDefaultLogFile(format Format) {
 	Debug("Test")
-	if logPath, ok := FindOrCreateFile(DefaultUserLogPath(self.name)); !ok {
+	if logPath, ok := FindOrCreateFile(DefaultUserLogPath(self.Name)); !ok {
 		FatalError(errors.New("Failed to initialize default user log path: '" + logPath + "'"))
 	} else {
 		self.OutputToFile(format, logPath)
@@ -110,7 +110,7 @@ func (self *Logger) OutputToDefaultLogFile(format Format) {
 func (self *Logger) OutputTo(output Output, format Format) {
 	switch output {
 	case FILE:
-		self.OutputToFile(format, DefaultLogPath(self.name))
+		self.OutputToFile(format, DefaultLogPath(self.Name))
 	case TERMINAL:
 		self.outputs = append(self.outputs, &Terminal{
 			format: format,

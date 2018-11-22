@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	text "github.com/multiverse-os/cli-framework/text"
+	text "github.com/multiverse-os/cli/text"
 )
 
 type Version struct {
