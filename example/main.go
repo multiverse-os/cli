@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	cli "github.com/multiverse-os/cli-framework"
-	log "github.com/multiverse-os/cli-framework/log"
+	cli "github.com/multiverse-os/cli"
+	log "github.com/multiverse-os/cli/log"
 )
 
 func main() {

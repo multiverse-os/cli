@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/multiverse-os/cli-framework/log"
-	text "github.com/multiverse-os/cli-framework/text"
+	log "github.com/multiverse-os/cli/log"
+	text "github.com/multiverse-os/cli/text"
 )
 
 // TODO: Support a slice of functions or map of functions for Before and After, so we can have several functions ran before and after any given

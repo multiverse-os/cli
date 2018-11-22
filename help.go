@@ -7,7 +7,7 @@ import (
 	"text/tabwriter"
 	"text/template"
 
-	text "github.com/multiverse-os/cli-framework/text"
+	text "github.com/multiverse-os/cli/text"
 )
 
 type helpPrinter func(w io.Writer, templ string, data interface{})
