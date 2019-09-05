@@ -38,9 +38,9 @@ type CLI struct {
 	ArgsUsage        string
 	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
 
-	Commands    Commands
-	Subcommands Commands
-	Flags       map[string]Flag
+	Commands        Commands
+	Subcommands     Commands
+	Flags           map[]Flag
 
 	CommandMap map[string]*Command
 

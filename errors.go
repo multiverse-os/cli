@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+// TODO: text.go is a first step in centralizing all the strings in the codebase to a single file so they can be merged
+// into the locales/*.go system and then the switch can be made to support localization
+var (
+	errInvalidActionType = NewExitError("ERROR invalid Action type. Must be `func(*Context`)` or `func(*Context) error).", 2)
+	errDuplicateFlagName = "Cannot use two forms of the same flag %v %v"
+	errIndexOutOfRange   = "index out of range"
+)
+
 var OsExiter = os.Exit
 
 // ErrWriter is used to write errors to the user. This can be anything
