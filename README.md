@@ -38,7 +38,7 @@ func main() {
 		Action: func(c *cli.Context) error {
 			fmt.Println("Example output in response to a command (action)")
 			return nil
-			}
+			},
 		})
 		
 		cmd.Run(os.Args)
