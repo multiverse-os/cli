@@ -95,7 +95,7 @@ import (
 
 func main() {
   cmd := cli.New(&cli.CLI{
-  Flags = []cli.Flag {
+  Flags: []cli.Flag {
     cli.StringFlag{
       Name: "lang",
       Value: "english",
