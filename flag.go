@@ -23,12 +23,14 @@ const (
 // TODO: This file is terrible, we can just use an interface and do a switchcase top determine type
 // this will make a 700 line file maybe 100 lines
 type Flag struct {
-	Names       []string
-	Type        FlagType
-	Description string
-	Usage       string
-	Hidden      bool
-	Value       interface{}
+	Names      []string
+	ShortNames []string
+	Type       FlagType
+	Usage      string
+	Hidden     bool
+	Value      interface{}
+
+	//Description string
 
 	// TODO: Previously this was being used to indicate where it was loaded from.
 	// This may turn out to be a good idea, but for now it will remain commented
@@ -40,16 +42,16 @@ type Flag struct {
 }
 
 // TODO: How about we don't use globals?
-//var VersionFlag Flag = BoolFlag{
-//	Name:   "version",
-//	Alias:  "v",
-//	Usage:  "Print version",
-//	Hidden: true,
-//}
-//
-//var HelpFlag Flag = BoolFlag{
-//	Name:   "help",
-//	Alias:  "h",
-//	Usage:  "Print help text",
-//	Hidden: true,
-//}
+var VersionFlag Flag = BoolFlag{
+	Names:      []string{"version"},
+	ShortNames: []string{"v"},
+	Usage:      "Print version",
+	Hidden:     true,
+}
+
+var HelpFlag Flag = BoolFlag{
+	Name:   []string{"help"},
+	Alias:  []string{"h"},
+	Usage:  "Print help text",
+	Hidden: true,
+}

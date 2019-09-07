@@ -8,7 +8,6 @@ const (
 )
 
 type Hook struct {
-	Type HookType
-
+	Type    HookType
 	Command *Command
 }
