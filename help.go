@@ -16,8 +16,8 @@ import (
 // straight up docuentation to be added to each project just based on the
 // ifnormation in here so we dont have to keep reepating the same things
 
-func PrintBanner(appName, version string) {
-	title := color.White(appName) + "  " + style.Dim(version)
+func (self *CLI) PrintBanner() {
+	title := color.White(self.Name) + "  " + style.Dim(self.Version.String())
 	fmt.Printf(title + "\n" + text.Repeat("=", len(title)) + "\n")
 }
 
@@ -58,11 +58,11 @@ func (self *CLI) PrintHelp() {
 		} else {
 			fmt.Print(color.White(self.Name))
 		}
-		if self.HasVisibleFlags() {
+		if self.visibleFlags {
 			fmt.Print(" [options]")
 		} else {
 		}
-		if self.HasVisibleCommands() {
+		if self.visibleCommands {
 			fmt.Print(" command [command options]")
 		}
 		if self.ArgsUsage != "" {
@@ -71,7 +71,7 @@ func (self *CLI) PrintHelp() {
 			fmt.Println("[arguments...]")
 		}
 		if self.HasVisibleFlags() {
-			fmt.Println("\n" + text.Strong("Options"))
+			fmt.Println("\n" + style.Strong("Options"))
 			for _, flag := range self.VisibleFlags() {
 				fmt.Println("flag: ", flag)
 			}
@@ -120,19 +120,19 @@ var SubcommandHelpTemplate = `Name
 // strings and using linebreaks and spaces to do TUI visual. It would be much
 // much better to do this via functions, then we can easily modify it, easily
 // add if statements, etc.
-func ShowCLIHelp() {
-	c.CLI.PrintBanner()
-	c.CLI.PrintHelp()
-	HelpPrinter(c.CLI.Writer, CLIHelpTemplate, c.CLI)
+func (self *CLI) ShowCLIHelp() {
+	self.PrintBanner()
+	self.PrintHelp()
+	HelpPrinter(self.Writer, CLIHelpTemplate, self)
 }
 
-func DefaultCLIComplete() {
-	for _, command := range c.CLI.Commands {
+func (self *CLI) DefaultCLIComplete() {
+	for _, command := range self.Commands {
 		if command.Hidden {
 			continue
 		}
 		for _, name := range command.Names() {
-			fmt.Fprintln(c.CLI.Writer, name)
+			fmt.Fprintln(self.Writer, name)
 		}
 	}
 }
@@ -145,9 +145,9 @@ func DefaultCLIComplete() {
 //	os.Exit(code)
 //}
 
-func ShowCommandHelp(command string) error {
+func (self *CLI) ShowCommandHelp(command string) error {
 	if len(command) == 0 {
-		HelpPrinter(ctx.CLI.Writer, SubcommandHelpTemplate, ctx.CLI)
+		HelpPrinter(self.Writer, SubcommandHelpTemplate, self)
 		return nil
 	}
 
@@ -169,12 +169,12 @@ func ShowCommandHelp(command string) error {
 }
 
 // ShowSubcommandHelp prints help for the given subcommand
-func ShowSubcommandHelp() error {
-	return ShowCommandHelp(c, c.Command.Name)
-}
+//func (self Command) ShowSubcommandHelp() error {
+//	return ShowCommandHelp(self, self.Name)
+//}
 
-func PrintVersion() {
-	fmt.Fprintf(c.CLI.Writer, "%v version %v\n", c.CLI.Name, c.CLI.Version.String())
+func (self *CLI) PrintVersion() {
+	fmt.Fprintf(self.Writer, "%v version %v\n", self.Name, self.Version.String())
 }
 
 func printHelp(out io.Writer, templ string, data interface{}) {

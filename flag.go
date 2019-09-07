@@ -1,5 +1,7 @@
 package cli
 
+type Flags []Flag
+
 type FlagType int
 
 // TODO: These will provide for better help text, but will also allow for fine
@@ -9,11 +11,11 @@ type FlagType int
 // files for each individual type and only allowed for a few, and maintaince or
 // additions were nightmare scenerio.
 const (
-	BoolFlag     FlagType = 0
-	IntFlag      FlagType = 1
-	StringFlag   FlagType = 2
-	PathFlag     FlagType = 3
-	FilenameFlag FlagType = 4
+	BoolFlag FlagType = iota
+	IntFlag
+	StringFlag
+	PathFlag
+	FilenameFlag
 	// TODO: Decide if this level of distincition will be necessary or would be
 	// better handled with a further validaiton.
 	//URLFlag FlagType = 5
@@ -30,14 +32,11 @@ type Flag struct {
 	Usage   string
 	Hidden  bool
 	Value   interface{}
-
-	//Description string
-
 	// TODO: Previously this was being used to indicate where it was loaded from.
 	// This may turn out to be a good idea, but for now it will remain commented
 	// out.
 	//EnvVar      string
-
+	//Description string
 	//Destination bool
 	//Duration    bool
 }

@@ -39,11 +39,11 @@ func (self Command) Names() []string {
 	return append([]string{self.Name}, self.Aliases...)
 }
 
-func defaultCommands() map[string]Command {
+func defaultCommands() []Command {
 	// TODO: This inits a slice of commands, moving towards either radix tree or
 	// just map
-	return map[string]Command{
-		"help": Command{
+	return []Command{
+		Command{
 			Hidden:  true,
 			Name:    "help",
 			Aliases: []string{"h"},
@@ -63,9 +63,9 @@ func defaultCommands() map[string]Command {
 	}
 }
 
-func (self Command) InitSubcommands() map[string]Command {
-	return map[string]Command{
-		"help": Command{
+func (self Command) InitSubcommands() []Command {
+	return []Command{
+		Command{
 			Name:    "help",
 			Aliases: []string{"h"},
 			Usage:   "List of available commands or details for a specified command",

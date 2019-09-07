@@ -11,6 +11,8 @@ import (
 	log "github.com/multiverse-os/cli/log"
 )
 
+type Action func(input *Input) error
+
 // TODO: Support a slice of functions or map of functions for Before and After, so we can have several functions ran before and after any given
 // function command subcommand and so on for more complex functionality and modularization of code
 
@@ -36,8 +38,11 @@ type CLI struct {
 	ANSI        bool
 	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
 
-	Commands map[string]Command
-	Flags    map[string]Flag
+	Commands []Command
+	Flags    []Flag
+
+	visibleCommands bool
+	visibleFlags    bool
 
 	Logger            log.Logger
 	CompiledAt        time.Time
@@ -52,13 +57,14 @@ type CLI struct {
 	ErrWriter io.Writer
 	// Functions
 	//////////////////////////////////////////////////////////////////////////////
-	DefaultAction interface{}
-	Hooks         map[string]Hook
+	//DefaultAction interface{}
+	Hooks map[string]Hook
 	// Error Functions
 	// TODO: Why not just make these locales and print from standard error log?
 	CommandNotFound func()
 	ExitErrHandler  func()
 	OnUsageError    func()
+	DefaultAction   Action
 }
 
 // Setup and New dont seem to have any reason to be separate
@@ -94,7 +100,7 @@ func New(cli *CLI) *CLI {
 		fmt.Println("cli.Logger.Name: " + cli.Name)
 		cli.Logger = log.DefaultLogger(cli.Name, true, true)
 	}
-	cli.Commands = defaultCommands()
+	cli.Commands = append(cli.Commands, defaultCommands()...)
 	if !cli.HideVersion {
 		// TODO: We should just have an init function that loads hidden version and
 		// help flags. we can use a 'bool' to say if they are visible or not, same

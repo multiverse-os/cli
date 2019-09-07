@@ -52,7 +52,7 @@ func Off(code int) int {
 }
 
 func Sequence(code int) string          { return prefix + strconv.Itoa(code) + suffix }
-func Reset() string                     { return Sequence(reset) }
+func Reset() string                     { return Sequence(RESET) }
 func Open(code int) string              { return Sequence(code) }
 func Close(code int) string             { return Sequence(Off(code)) }
 func Text(code int, text string) string { return Sequence(code) + text + Sequence(Off(code)) }
