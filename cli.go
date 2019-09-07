@@ -32,22 +32,23 @@ type CLI struct {
 	Version     Version
 	Description string
 	Usage       string
-	UsageText   string
 	ArgsUsage   string
 	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
 
-	Commands    Commands
-	Subcommands Commands
-	Flags       []Flag
+	Commands map[string]Command
+	Flags    map[string]Flag
 
 	Logger            log.Logger
-	CompiledOn        time.Time
+	CompiledAt        time.Time
+	CompilerSignature string // This will allow developers to provide signed builds that can be verified to prevent tampering
 	HideHelp          bool
 	HideVersion       bool
 	CommandCategories CommandCategories
 	WriteMutex        sync.Mutex
-	Writer            io.Writer
-	ErrWriter         io.Writer
+
+	// TODO: Are these necessary?
+	Writer    io.Writer
+	ErrWriter io.Writer
 	// Functions
 	//////////////////////////////////////////////////////////////////////////////
 	DefaultAction interface{}
@@ -62,7 +63,7 @@ type CLI struct {
 // Setup and New dont seem to have any reason to be separate
 func New(cli *CLI) *CLI {
 	// TODO: Should just handle compile time and such together with hashing and signatures
-	//cmd.CompiledOn = time.Now()
+	cli.CompiledAt = time.Now()
 
 	// TODO: Parse ARGs here! So we can use it for nil name assignment etc
 
@@ -92,7 +93,7 @@ func New(cli *CLI) *CLI {
 		fmt.Println("cli.Logger.Name: " + cli.Name)
 		cli.Logger = log.DefaultLogger(cli.Name, true, true)
 	}
-	cli.Commands = InitCommands()
+	cli.Commands = defaultCommands()
 	if !cli.HideVersion {
 		// TODO: We should just have an init function that loads hidden version and
 		// help flags. we can use a 'bool' to say if they are visible or not, same
@@ -155,7 +156,7 @@ func (self *CLI) VisibleFlags() (visibleFlags []Flag) {
 }
 
 func (self *CLI) HasVisibleFlags() bool {
-	return (len(self.Flags) > 0)
+	return len(self.Flags) > 0
 }
 
 // TODO: We moved flags to a map, like above, we should be opting to use a map
@@ -171,16 +172,16 @@ func (self *CLI) HasVisibleFlags() bool {
 //	return false
 //}
 
-func (self *CLI) VisibleCommands() []Command {
-	ret := []Command{}
-	for _, command := range self.Commands {
-		if !command.Hidden {
-			ret = append(ret, command)
-		}
-	}
-	return ret
-}
-
-func (self *CLI) HasVisibleCommands() bool {
-	return (len(self.VisibleCommands()) > 0)
-}
+//func (self *CLI) VisibleCommands() []Command {
+//	ret := []Command{}
+//	for _, command := range self.Commands {
+//		if !command.Hidden {
+//			ret = append(ret, command)
+//		}
+//	}
+//	return ret
+//}
+//
+//func (self *CLI) HasVisibleCommands() bool {
+//	return (len(self.VisibleCommands()) > 0)
+//}

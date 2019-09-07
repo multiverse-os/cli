@@ -22,9 +22,10 @@ const (
 
 // TODO: This file is terrible, we can just use an interface and do a switchcase top determine type
 // this will make a 700 line file maybe 100 lines
+// TODO: Maybe just base what has - and -- on size (thats the original method)
 type Flag struct {
-	Names   []string
-	Aliases []string // Short names that will require '-' prefix not '--'
+	Name    string // Primary name
+	Aliases []string
 	Type    FlagType
 	Usage   string
 	Hidden  bool
@@ -41,20 +42,28 @@ type Flag struct {
 	//Duration    bool
 }
 
-func Names() []string {
-	return append(Names, ShortNames...)
+func (flag Flag) Names() []string {
+	return append([]string{flag.Name}, flag.Aliases...)
+}
+
+func prefixFor(name string) string {
+	if len(name) == 1 {
+		return "-"
+	} else {
+		return "--"
+	}
 }
 
 // TODO: How about we don't use globals?
 var VersionFlag Flag = Flag{
-	Names:   []string{"version"},
+	Name:    "version",
 	Aliases: []string{"v"},
 	Usage:   "Print version",
 	Hidden:  true,
 }
 
 var HelpFlag Flag = Flag{
-	Names:   []string{"help"},
+	Name:    "help",
 	Aliases: []string{"h"},
 	Usage:   "Print help text",
 	Hidden:  true,

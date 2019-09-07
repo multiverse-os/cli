@@ -2,17 +2,24 @@ package cli
 
 // TODO: Why do we have 'Usage' AND 'UsageText' seems like we should be merging this in some way. Also is this diff than description?
 type Command struct {
-	Name            string
-	Aliases         []string
+	Name    string
+	Aliases []string
+
 	Category        string
 	CommandCategory *CommandCategory
-	Usage           string
-	UsageText       string
-	Description     string
-	ArgsUsage       string
 	ParentCommand   *Command
-	Subcommands     Commands
+	Subcommands     map[string]Command
 	Flags           map[string]Flag
+
+	// A short description of the usage of this command
+	Usage string
+	// Custom text to show on USAGE section of help
+	//UsageText     string
+	// A longer explanation of how the command works
+	//ArgsUsage     string
+	// A short description of the arguments of this command
+	//Description   string
+
 	//SkipFlagParsing bool
 	SkipArgReorder  bool
 	Hidden          bool
@@ -32,45 +39,49 @@ func (self Command) Names() []string {
 	return append([]string{self.Name}, self.Aliases...)
 }
 
-func InitCommands() (commands Commands) {
+func defaultCommands() map[string]Command {
 	// TODO: This inits a slice of commands, moving towards either radix tree or
 	// just map
-	return append(commands, Command{
-		Name:      "help",
-		Aliases:   []string{"h"},
-		Usage:     "List of available commands or details for a specified command",
-		ArgsUsage: "[command]",
-		//Subcommands: InitSubcommands(),
-		Hidden: true,
-		Action: func() error {
-			// TODO: Args need to be loaded into context so its accessible
-			//args := c.Args()
-			//if args.Present() {
-			//	return ShowCommandHelp(c, args.First())
-			//}
-			//ShowCLIHelp(c)
-			return nil
+	return map[string]Command{
+		"help": Command{
+			Hidden:  true,
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "List of available commands or details for a specified command",
+			//ArgsUsage: "[command]",
+			//Subcommands: InitSubcommands(),
+			Action: func() error {
+				// TODO: Args need to be loaded into context so its accessible
+				//args := c.Args()
+				//if args.Present() {
+				//	return ShowCommandHelp(c, args.First())
+				//}
+				//ShowCLIHelp(c)
+				return nil
+			},
 		},
-	})
+	}
 }
 
-func (self Command) InitSubcommands() (subcommands Commands) {
-	return append(subcommands, Command{
-		Name:          "help",
-		Aliases:       []string{"h"},
-		Usage:         "List of available commands or details for a specified command",
-		ArgsUsage:     "[command]",
-		ParentCommand: &self,
-		Action: func() error {
-			// TODO: Fix this because this is all leading to massive bloat
-			//args := c.Args()
-			//if args.Present() {
-			//	return ShowCommandHelp(c, args.First())
-			//}
-			//return ShowSubcommandHelp(c)
-			return nil
+func (self Command) InitSubcommands() map[string]Command {
+	return map[string]Command{
+		"help": Command{
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "List of available commands or details for a specified command",
+			//ArgsUsage:     "[command]",
+			ParentCommand: &self,
+			Action: func() error {
+				// TODO: Fix this because this is all leading to massive bloat
+				//args := c.Args()
+				//if args.Present() {
+				//	return ShowCommandHelp(c, args.First())
+				//}
+				//return ShowSubcommandHelp(c)
+				return nil
+			},
 		},
-	})
+	}
 }
 
 func (c Command) VisibleFlags() (flags []Flag) {
