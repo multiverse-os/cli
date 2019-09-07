@@ -4,6 +4,7 @@ import (
 	"errors"
 )
 
+// TODO: Should we not be using readline?
 type Argument struct {
 	Raw                string
 	Value              interface{}
