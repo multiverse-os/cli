@@ -46,7 +46,7 @@ func (self *CLI) PrintHelp() {
 		fmt.Println(style.Strong(self.Description))
 	}
 	if len(self.Usage) != 0 {
-		if self.NoANSIFormatting {
+		if self.ANSI {
 			fmt.Println("Usage")
 		} else {
 			fmt.Println(style.Strong("Usage"))

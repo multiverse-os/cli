@@ -4,6 +4,18 @@ import (
 	"strconv"
 )
 
+// Control Sequence Introducer
+// ============================================================================
+// | ESC [ 	0x9B 	CSI | Control Sequence Introducer | Most of the useful      |
+// |                  |                             | sequences, see next     |
+// |                  |                             | section.                |
+// ============================================================================
+// For CSI, or "Control Sequence Introducer" commands, the ESC [ is followed
+// by any number (including none) of "parameter bytes" in the range 0x30–0x3F
+// (ASCII 0–9:;<=>?), then by any number of "intermediate bytes" in the range
+// 0x20–0x2F (ASCII space and !"#$%&'()*+,-./), then finally by a single
+// "final byte" in the range 0x40–0x7E (ASCII @A–Z[\]^_`a–z{).
+
 func ShowCursor() string { return prefix + "?25h" }
 func HideCursor() string { return prefix + "?25l" }
 

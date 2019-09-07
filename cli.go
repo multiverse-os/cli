@@ -33,6 +33,7 @@ type CLI struct {
 	Description string
 	Usage       string
 	ArgsUsage   string
+	ANSI        bool
 	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
 
 	Commands map[string]Command
