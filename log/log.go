@@ -6,12 +6,15 @@ import (
 	"time"
 
 	text "github.com/multiverse-os/cli/text"
+	color "github.com/multiverse-os/cli/text/ansi/color"
+	style "github.com/multiverse-os/cli/text/ansi/style"
 )
 
 type Errors []error
 type Values map[string]string
 
 type Entry struct {
+	format              Format
 	timestampResolution TimestampResolution
 	logger              *Logger
 	level               LogLevel
@@ -19,21 +22,14 @@ type Entry struct {
 	message             string
 	values              Values
 	errors              Errors
-	format              Format
 }
 
 type Format int
 
 const (
-	DefaultFormat Format = iota
-	StyledWithANSI
+	Default Format = iota
+	ANSI
 	JSON
-	IndentedJSON
-)
-
-// Format Aliasing
-const (
-	PrettyJSON = IndentedJSON
 )
 
 // Formatting
@@ -71,42 +67,40 @@ func (self Entry) MarshalJSON() (jsonOutput string, err error) {
 		Errors:    self.errors,
 	}
 	var jsonBytes []byte
-	switch self.format {
-	case IndentedJSON:
-		jsonBytes, err = json.MarshalIndent(entry, "", "  ")
-		jsonOutput = string(jsonBytes)
-	default:
-		jsonBytes, err = json.Marshal(entry)
-		jsonOutput = string(jsonBytes)
-	}
+	jsonBytes, err = json.Marshal(entry)
+	jsonOutput = string(jsonBytes)
 	return jsonOutput, err
 }
 
-func (self Entry) DefaultFormat() Entry { return self.Format(DefaultFormat) }
-func (self Entry) ANSI() Entry          { return self.Format(StyledWithANSI) }
-func (self Entry) JSON() Entry          { return self.Format(JSON) }
-func (self Entry) PrettyJSON() Entry    { return self.Format(PrettyJSON) }
-func (self Entry) IndentedJSON() Entry  { return self.Format(IndentedJSON) }
+func (self Entry) Default() Entry { return self.Format(Default) }
+func (self Entry) ANSI() Entry    { return self.Format(ANSI) }
+func (self Entry) JSON() Entry    { return self.Format(JSON) }
 
 func (self Entry) String() string {
 	switch self.format {
-	case DefaultFormat, StyledWithANSI:
-		return (self.FormattedLevel() + self.FormattedTimestamp() + self.FormattedValues() + self.FormattedMessage())
-	case JSON, PrettyJSON:
+	case ANSI:
+		var values string
+		count := 0
+		for key, value := range self.values {
+			values += (valueStringWithANSI(count, style.Bold(color.Blue(key+"="))) + color.White(value))
+			count++
+		}
+		return self.level.StringWithANSI() + text.Brackets(style.Bold(self.Timestamp())) + values + color.White(self.message)
+	case JSON:
 		var jsonOutput []byte
 		var err error
-		switch self.format {
-		case PrettyJSON:
-			jsonOutput, err = json.MarshalIndent(self, "", "  ")
-		default: // JSON
-			jsonOutput, err = json.Marshal(self)
-		}
+		jsonOutput, err = json.Marshal(self)
 		if err != nil {
-			FatalError(err)
+			Fatal(err.Error())
 		}
 		return string(jsonOutput)
+	default:
+		var values string
+		for key, value := range self.values {
+			values += (key + "=" + value)
+		}
+		return self.level.String() + text.Brackets(self.Timestamp()) + values + self.message
 	}
-	return ""
 }
 
 // Append (print or write to defined outputs)
@@ -149,23 +143,31 @@ func NewLog(format Format, level LogLevel, message string, values Values, errors
 }
 
 func Log(level LogLevel, message string) Entry {
-	return NewLog(StyledWithANSI, level, message, Values{}, []error{})
+	return NewLog(Default, level, message, Values{}, []error{})
+}
+
+func LogWithANSI(level LogLevel, message string) Entry {
+	return NewLog(ANSI, level, message, Values{}, []error{})
+}
+
+func JSONLog(level LogLevel, message string) Entry {
+	return NewLog(JSON, level, message, Values{}, []error{})
 }
 
 func Level(level LogLevel) Entry {
-	return NewLog(StyledWithANSI, level, "", Values{}, []error{})
+	return NewLog(Default, level, "", Values{}, []error{})
 }
 
 func Message(message string) Entry {
-	return NewLog(StyledWithANSI, LOG, message, Values{}, []error{})
+	return NewLog(Default, LOG, message, Values{}, []error{})
 }
 
 func LogWithError(level LogLevel, message string, err error) Entry {
-	return NewLog(StyledWithANSI, level, message, Values{}, []error{err})
+	return NewLog(Default, level, message, Values{}, []error{err})
 }
 
 func LogWithErrors(level LogLevel, message string, errors []error) Entry {
-	return NewLog(StyledWithANSI, level, message, Values{}, errors)
+	return NewLog(Default, level, message, Values{}, errors)
 }
 
 func (self Entry) WithValue(key string, v interface{}) Entry {
@@ -197,15 +199,13 @@ func (self Entry) WithErrors(errors []error) Entry {
 
 // Level With Message Aliasing
 ///////////////////////////////////////////////////////////////////////////////
-func Info(message string)    { Log(INFO, message).Append() }
-func Debug(message string)   { Log(DEBUG, message).Append() }
-func Notice(message string)  { Log(NOTICE, message).Append() }
-func Warn(message string)    { Log(WARN, message).Append() }
-func Warning(message string) { Log(WARNING, message).Append() }
-func Error(err error)        { Log(ERROR, err.Error()).Append() }
-func FatalError(err error)   { Log(FATAL, err.Error()).Append() }
-func Fatal(message string)   { Log(FATAL, message).Append() }
-func Panic(message string)   { Log(PANIC, message).Append() }
+func Info(message string)   { Log(INFO, message).Append() }
+func Debug(message string)  { Log(DEBUG, message).Append() }
+func Notice(message string) { Log(NOTICE, message).Append() }
+func Warn(message string)   { Log(WARN, message).Append() }
+func Error(err error)       { Log(ERROR, err.Error()).Append() }
+func Fatal(message string)  { Log(FATAL, message).Append() }
+func Panic(message string)  { Log(PANIC, message).Append() }
 
 func (self Entry) Info(message string) Entry {
 	self.message = message
@@ -222,11 +222,6 @@ func (self Entry) Warn(message string) Entry {
 	return self
 }
 
-func (self Entry) Warning(message string) Entry {
-	self.message = message
-	return self
-}
-
 func (self Entry) Error(err error) Entry {
 	self.message = err.Error()
 	self.errors = append(self.errors, err)
@@ -235,12 +230,6 @@ func (self Entry) Error(err error) Entry {
 
 func (self Entry) Fatal(message string) Entry {
 	self.message = message
-	return self
-}
-
-func (self Entry) FatalError(err error) Entry {
-	self.message = err.Error()
-	self.errors = append(self.errors, err)
 	return self
 }
 
@@ -255,62 +244,19 @@ func (self Entry) HasValues() bool    { return (len(self.values) != 0) }
 func (self Entry) HasErrors() bool    { return (len(self.errors) != 0) }
 func (self Entry) HasTimestamp() bool { return (self.timestampResolution == DISABLED) }
 
-func (self Values) String() (valuesString string) {
-	if len(self) > 0 {
-		for key, value := range self {
-			valuesString += key + "=" + value
-		}
-	}
-	return valuesString
-}
-
-func (self Values) StyledString() (valuesString string) {
-	if len(self) > 0 {
-		for key, value := range self {
-			valuesString += text.Bold(text.Green(key+"=")) + text.White(value)
-		}
-	}
-	return valuesString
-}
-
-// Foramtted Output Strings
-///////////////////////////////////////////////////////////////////////////////
-// These functions use the defined format of an Entry to generate a formatted
-// string for a given attribute that is displayed using calling .String()
-// on an Entry object. This could allow for future functionality, like
-// truncating length of message depending on
-func (self Entry) FormattedMessage() (formattedLevel string) {
-	return self.message
-}
-
-func (self Entry) FormattedLevel() (formattedLevel string) {
-	switch self.format {
-	case StyledWithANSI:
-		return self.level.StyledString()
+func valueStringWithANSI(count int, key string) string {
+	switch count {
+	case 0:
+		return style.Bold(color.Blue(key + "="))
+	case 1:
+		return style.Bold(color.Green(key + "="))
+	case 2:
+		return style.Bold(color.Fuchsia(key + "="))
+	case 3:
+		return style.Bold(color.Yellow(key + "="))
+	case 4:
+		return style.Bold(color.Cyan(key + "="))
 	default:
-		return self.level.String()
+		return style.Bold(color.Silver(key + "="))
 	}
-}
-
-func (self Entry) FormattedTimestamp() (formattedTimestamp string) {
-	formattedTimestamp = self.Timestamp()
-	if formattedTimestamp != "" {
-		if self.format == StyledWithANSI {
-			text.Bold(formattedTimestamp)
-		}
-		formattedTimestamp = text.Brackets(formattedTimestamp)
-	}
-	return formattedTimestamp
-}
-
-func (self Entry) FormattedValues() (formattedValues string) {
-	if self.HasValues() {
-		switch self.format {
-		case StyledWithANSI:
-			formattedValues = self.values.StyledString()
-		default:
-			formattedValues = self.values.String()
-		}
-	}
-	return formattedValues
 }

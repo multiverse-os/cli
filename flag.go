@@ -23,12 +23,12 @@ const (
 // TODO: This file is terrible, we can just use an interface and do a switchcase top determine type
 // this will make a 700 line file maybe 100 lines
 type Flag struct {
-	Names      []string
-	ShortNames []string
-	Type       FlagType
-	Usage      string
-	Hidden     bool
-	Value      interface{}
+	Names   []string
+	Aliases []string // Short names that will require '-' prefix not '--'
+	Type    FlagType
+	Usage   string
+	Hidden  bool
+	Value   interface{}
 
 	//Description string
 
@@ -41,17 +41,21 @@ type Flag struct {
 	//Duration    bool
 }
 
-// TODO: How about we don't use globals?
-var VersionFlag Flag = BoolFlag{
-	Names:      []string{"version"},
-	ShortNames: []string{"v"},
-	Usage:      "Print version",
-	Hidden:     true,
+func Names() []string {
+	return append(Names, ShortNames...)
 }
 
-var HelpFlag Flag = BoolFlag{
-	Name:   []string{"help"},
-	Alias:  []string{"h"},
-	Usage:  "Print help text",
-	Hidden: true,
+// TODO: How about we don't use globals?
+var VersionFlag Flag = Flag{
+	Names:   []string{"version"},
+	Aliases: []string{"v"},
+	Usage:   "Print version",
+	Hidden:  true,
+}
+
+var HelpFlag Flag = Flag{
+	Names:   []string{"help"},
+	Aliases: []string{"h"},
+	Usage:   "Print help text",
+	Hidden:  true,
 }

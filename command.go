@@ -20,13 +20,17 @@ type Command struct {
 	CustomHelpText  string
 
 	Action       interface{}
-	Before       BeforeFunc
-	After        AfterFunc
-	BashComplete BashCompleteFunc
-	OnUsageError OnUsageErrorFunc
+	Before       func()
+	After        func()
+	BashComplete func()
+	OnUsageError func()
 }
 
 type Commands []Command
+
+func (self Command) Names() []string {
+	return append([]string{self.Name}, self.Aliases...)
+}
 
 func InitCommands() (commands Commands) {
 	// TODO: This inits a slice of commands, moving towards either radix tree or
@@ -38,7 +42,7 @@ func InitCommands() (commands Commands) {
 		ArgsUsage: "[command]",
 		//Subcommands: InitSubcommands(),
 		Hidden: true,
-		Action: func(c *Context) error {
+		Action: func() error {
 			// TODO: Args need to be loaded into context so its accessible
 			//args := c.Args()
 			//if args.Present() {
@@ -57,7 +61,7 @@ func (self Command) InitSubcommands() (subcommands Commands) {
 		Usage:         "List of available commands or details for a specified command",
 		ArgsUsage:     "[command]",
 		ParentCommand: &self,
-		Action: func(c *Context) error {
+		Action: func() error {
 			// TODO: Fix this because this is all leading to massive bloat
 			//args := c.Args()
 			//if args.Present() {
@@ -82,7 +86,7 @@ func (self Command) HasSubcommands() bool {
 	return (len(self.Subcommands) > 0)
 }
 
-func (self Command) Run(ctx *Context) (err error) {
+func (self Command) Run() (err error) {
 	// TODO: So what is not explained here, is we are nesting the CLI function essentially, and running a new instance
 	// every time we use a command or subcommand. This is an interesting design, but could be implemented better than
 	// it is and maybe explain a bit for other developers to make sense of it quicker
@@ -182,9 +186,6 @@ func (self Command) Run(ctx *Context) (err error) {
 // TODO: Use this to then do map to command pointers then use all the various
 // names to map to the same pointers then we can use this to do a ultra simple
 // and quite fast lookup
-func (self Command) Names() []string {
-	return append([]string{self.Name}, self.Aliases...)
-}
 
 //func (self Command) HasName(name string) bool {
 //	if len(self.Aliases) == 0 {

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	log "github.com/multiverse-os/cli/log"
-	text "github.com/multiverse-os/cli/text"
 )
 
 // TODO: Support a slice of functions or map of functions for Before and After, so we can have several functions ran before and after any given
@@ -29,20 +28,17 @@ import (
 
 // TODO: Category concept doesnt seem to be used really. Shouldn't be generic "Category" unless its generic, its not.
 type CLI struct {
-	Name             string
-	Version          Version
-	Description      string
-	NoANSIFormatting bool
-	Usage            string
-	UsageText        string
-	ArgsUsage        string
+	Name        string
+	Version     Version
+	Description string
+	Usage       string
+	UsageText   string
+	ArgsUsage   string
 	// TODO: Store commands and subcommands in a tree object and get rid of this current structure
 
-	Commands        Commands
-	Subcommands     Commands
-	Flags           map[]Flag
-
-	CommandMap map[string]*Command
+	Commands    Commands
+	Subcommands Commands
+	Flags       []Flag
 
 	Logger            log.Logger
 	CompiledOn        time.Time
@@ -58,14 +54,9 @@ type CLI struct {
 	Hooks         map[string]Hook
 	// Error Functions
 	// TODO: Why not just make these locales and print from standard error log?
-	CommandNotFound CommandNotFoundFunc
-	ExitErrHandler  ExitErrHandlerFunc
-	OnUsageError    OnUsageErrorFunc
-}
-
-func (self *CLI) PrintBanner() {
-	fmt.Println(text.Header(self.Name) + "  " + text.Strong("v"+self.Version.String()))
-	fmt.Println(text.Light(text.Repeat("=", 80)))
+	CommandNotFound func()
+	ExitErrHandler  func()
+	OnUsageError    func()
 }
 
 // Setup and New dont seem to have any reason to be separate
@@ -76,7 +67,7 @@ func New(cli *CLI) *CLI {
 	// TODO: Parse ARGs here! So we can use it for nil name assignment etc
 
 	// Default to same name 'go build' uses for executable: the working directory name
-	if cli.Name == "" {
+	if len(cli.Name) == 0 {
 		var err error
 		cli.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
@@ -97,7 +88,7 @@ func New(cli *CLI) *CLI {
 	if cli.Writer == nil {
 		cli.Writer = os.Stdout
 	}
-	if cli.Logger.Name == "" {
+	if len(cli.Logger.Name) == 0 {
 		fmt.Println("cli.Logger.Name: " + cli.Name)
 		cli.Logger = log.DefaultLogger(cli.Name, true, true)
 	}
@@ -109,10 +100,6 @@ func New(cli *CLI) *CLI {
 		//cli.appendFlag(VersionFlag)
 	}
 	cli.CommandCategories = CommandCategories{}
-	cli.CommandMap = make(map[string]*Command)
-	for _, command := range cli.Commands {
-		cli.AddCommandToMap(command)
-	}
 	return cli
 }
 
@@ -137,7 +124,7 @@ func (self *CLI) Run(arguments []string) (err error) {
 	// for showhelp and close vs show help, we just do it all here and reduce our
 	// overall codebase signficiantly
 
-	err = HandleAction(self.DefaultAction, NewContext(self))
+	err = HandleAction(self.DefaultAction)
 	if err != nil {
 		self.Logger.Error(err)
 	}
@@ -145,24 +132,17 @@ func (self *CLI) Run(arguments []string) (err error) {
 	return err
 }
 
-func HandleAction(action interface{}, context *Context) error {
-	if a, ok := action.(ActionFunc); ok {
-		return a(context)
-	} else if a, ok := action.(func(*Context) error); ok {
-		return a(context)
-	} else if a, ok := action.(func(*Context)); ok { // deprecated function signature
-		a(context)
+func HandleAction(action interface{}) error {
+	if a, ok := action.(func()); ok {
+		a()
+		return nil
+	} else if a, ok := action.(func() error); ok {
+		return a()
+	} else if a, ok := action.(func()); ok { // deprecated function signature
+		a()
 		return nil
 	}
 	return errInvalidActionType
-}
-
-// TODO: Using a map to pointers, we can load all the commands into this map,
-// then use the name or alias to pull out the pointer for simple lookup.
-func (self *CLI) AddCommandToMap(command Command) {
-	for _, alias := range command.Names() {
-		self.CommandMap[alias] = &command
-	}
 }
 
 func (self *CLI) VisibleFlags() (visibleFlags []Flag) {

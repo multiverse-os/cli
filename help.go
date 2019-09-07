@@ -8,7 +8,14 @@ import (
 	"text/template"
 
 	text "github.com/multiverse-os/cli/text"
+	color "github.com/multiverse-os/cli/text/ansi/color"
+	style "github.com/multiverse-os/cli/text/ansi/style"
 )
+
+func PrintBanner(appName, version string) {
+	title := color.White(appName) + "  " + style.Dim(version)
+	fmt.Printf(title + "\n" + text.Repeat("=", len(title)) + "\n")
+}
 
 type helpPrinter func(w io.Writer, templ string, data interface{})
 
@@ -31,21 +38,21 @@ var HelpPrinter helpPrinter = printHelp
 // TODO: All lines should be checked for length of 80 and broken into new line if so with the correct tab spacing prefixing it
 // TODO: Use table library code to improve the structure of this and do better alignment of values
 func (self *CLI) PrintHelp() {
-	if self.Description != "" {
-		fmt.Println(text.Strong(self.Description))
+	if len(self.Description) != 0 {
+		fmt.Println(style.Strong(self.Description))
 	}
-	if self.Usage != "" {
+	if len(self.Usage) != 0 {
 		if self.NoANSIFormatting {
 			fmt.Println("Usage")
 		} else {
-			fmt.Println(text.Strong("Usage"))
+			fmt.Println(style.Strong("Usage"))
 		}
 		fmt.Print(text.Repeat(" ", 4))
 
-		if self.NoANSIFormatting {
+		if self.ANSI {
 			fmt.Print(self.Name)
 		} else {
-			fmt.Print(text.Header(self.Name))
+			fmt.Print(color.White(self.Name))
 		}
 		if self.HasVisibleFlags() {
 			fmt.Print(" [options]")
@@ -68,36 +75,39 @@ func (self *CLI) PrintHelp() {
 	}
 }
 
+// TODO: Migrate this to markdown file, to simplify modifciations,
+// customziations and allow for drop in replacements. Then several varations
+// could be supplied.
 var CLIHelpTemplate = `{{range $index, $option := .VisibleFlags}}{{if $index}}{{"\n"}}{{end}}{{"\t\t"}}{{$option}}{{end}}{{"\n"}}{{if .VisibleCategories}}{{"\n"}}` +
-	fmt.Sprintf(text.STRONG) + `Commands` + fmt.Sprintf(text.RESET) + `{{range .VisibleCategories}}{{if .Name}}{{"\n"}}{{.Name}}:{{end}}{{end}}{{range .VisibleCommands}}{{"\n\t "}}` + fmt.Sprintf(text.H1) + ` {{join .Names ", "}}` + fmt.Sprintf(text.RESET) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{"\n"}}`
+	style.Bold(`Commands`) + `{{range .VisibleCategories}}{{if .Name}}{{"\n"}}{{.Name}}:{{end}}{{end}}{{range .VisibleCommands}}{{"\n\t "}}` + color.White(` {{join .Names ", "}}`) + `{{"\t"}}{{.Usage}}{{end}}{{end}}{{"\n"}}`
 
-var CommandHelpTemplate = fmt.Sprintf(text.H1) + `{{.Name}}` + fmt.Sprintf(text.RESET) + ` - {{.Usage}}{{"\n"}}` + fmt.Sprintf(text.H1) + `Usage` + fmt.Sprintf(text.RESET) +
+var CommandHelpTemplate = color.White(`{{.Name}}`) + ` - {{.Usage}}{{"\n"}}` + color.White(`Usage`) +
 	`{{"\n"}}{{if .UsageText}}{{.UsageText}}{{else}}{{.Name}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
 
-` + fmt.Sprintf(text.H2) + `Category` + fmt.Sprintf(text.RESET) + `
+` + color.Silver(`Category`) + `
    {{.Category}}{{end}}{{if .Description}}
 
-` + fmt.Sprintf(text.H2) + `Description` + fmt.Sprintf(text.RESET) + `
+` + color.Silver(`Description`) + `
    {{.Description}}{{end}}{{if .VisibleFlags}}
 
-` + fmt.Sprintf(text.H2) + `Options` + fmt.Sprintf(text.RESET) + `
+` + color.Silver(`Options`) + `
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
 var SubcommandHelpTemplate = `Name
-   ` + fmt.Sprintf(text.H1) + `{{.HelpName}}` + fmt.Sprintf(text.RESET) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
+   ` + color.White(`{{.HelpName}}`) + ` - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
 
-` + fmt.Sprintf(text.H2) + `Usage` + fmt.Sprintf(text.RESET) + `
+` + color.Silver(`Usage`) + `
    {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
 
-` + fmt.Sprintf(text.H2) + `Commands` + fmt.Sprintf(text.RESET) + `{{range .VisibleCategories}}{{if .Name}}
+` + color.Silver(`Commands`) + `{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}{{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{if .VisibleFlags}}
-` + fmt.Sprintf(text.H2) + `Options` + fmt.Sprintf(text.RESET) + `
+` + color.Silver(`Options`) + `
    {{range .VisibleFlags}}{{.}}{{end}}{{end}}
 `
 
 // TODO: There is literally no reason we need a special function for this
-//func ShowCLIHelpAndExit(c *Context, exitCode int) {
+//func ShowCLIHelpAndExit(exitCode int) {
 //	ShowCLIHelp(c)
 //	os.Exit(exitCode)
 //}
@@ -106,13 +116,13 @@ var SubcommandHelpTemplate = `Name
 // strings and using linebreaks and spaces to do TUI visual. It would be much
 // much better to do this via functions, then we can easily modify it, easily
 // add if statements, etc.
-func ShowCLIHelp(c *Context) {
+func ShowCLIHelp() {
 	c.CLI.PrintBanner()
 	c.CLI.PrintHelp()
 	HelpPrinter(c.CLI.Writer, CLIHelpTemplate, c.CLI)
 }
 
-func DefaultCLIComplete(c *Context) {
+func DefaultCLIComplete() {
 	for _, command := range c.CLI.Commands {
 		if command.Hidden {
 			continue
@@ -126,13 +136,13 @@ func DefaultCLIComplete(c *Context) {
 // TODO: There is no reason to have ShowCommandHelp and ShowCommandHelpAndExit
 // as separate functions. This is prime example of unnecessary bloat in this
 // codebase.
-//func ShowCommandHelpAndExit(c *Context, command string, code int) {
+//func ShowCommandHelpAndExit(command string, code int) {
 //	ShowCommandHelp(c, command)
 //	os.Exit(code)
 //}
 
-func ShowCommandHelp(ctx *Context, command string) error {
-	if command == "" {
+func ShowCommandHelp(command string) error {
+	if len(command) == 0 {
 		HelpPrinter(ctx.CLI.Writer, SubcommandHelpTemplate, ctx.CLI)
 		return nil
 	}
@@ -155,11 +165,11 @@ func ShowCommandHelp(ctx *Context, command string) error {
 }
 
 // ShowSubcommandHelp prints help for the given subcommand
-func ShowSubcommandHelp(c *Context) error {
+func ShowSubcommandHelp() error {
 	return ShowCommandHelp(c, c.Command.Name)
 }
 
-func PrintVersion(c *Context) {
+func PrintVersion() {
 	fmt.Fprintf(c.CLI.Writer, "%v version %v\n", c.CLI.Name, c.CLI.Version.String())
 }
 

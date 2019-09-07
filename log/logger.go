@@ -1,7 +1,6 @@
 package log
 
 import (
-	"errors"
 	"fmt"
 	"time"
 )
@@ -15,16 +14,16 @@ import (
 
 type Logger struct {
 	Name                string
-	verbosity           VerbosityLevel
+	verbosity           Verbosity
 	timestampResolution TimestampResolution
 	entries             []Entry
 	hooks               map[LogLevel]map[HookType][]*Hook
 	outputs             []LogOutput
 }
 
-func NewLogger(name string, resolution TimestampResolution, verbosity VerbosityLevel) Logger {
+func NewLogger(name string, resolution TimestampResolution, verbosity Verbosity) Logger {
 	if name == "" {
-		FatalError(errors.New("Name attribute is required to initialize log file"))
+		Fatal("Name attribute is required to initialize log file")
 	}
 	return Logger{
 		Name:                name,
@@ -40,7 +39,7 @@ func DefaultLogger(name string, stdOut bool, fileOut bool) Logger {
 		timestampResolution: MINUTE,
 	}
 	if stdOut {
-		logger.OutputToTerminal(StyledWithANSI)
+		logger.OutputToTerminal(ANSI)
 	}
 	if fileOut {
 		logger.OutputToDefaultLogFile(JSON)
@@ -48,16 +47,16 @@ func DefaultLogger(name string, stdOut bool, fileOut bool) Logger {
 	return logger
 }
 
-func TerminalLogger(name string, format Format, resolution TimestampResolution, verbosity VerbosityLevel) Logger {
+func TerminalLogger(name string, format Format, resolution TimestampResolution, verbosity Verbosity) Logger {
 	logger := NewLogger(name, resolution, verbosity)
 	logger.OutputToTerminal(format)
 	return logger
 }
 
-func FileLogger(name string, format Format, logPath string, resolution TimestampResolution, verbosity VerbosityLevel) Logger {
+func FileLogger(name string, format Format, logPath string, resolution TimestampResolution, verbosity Verbosity) Logger {
 	logger := NewLogger(name, resolution, verbosity)
 	if logPath, ok := FindOrCreateFile(logPath); !ok {
-		FatalError(errors.New("Failed to initialize default log path: '" + logPath + "'"))
+		Fatal("Failed to initialize default log path: '" + logPath + "'")
 	}
 	logger.OutputToFile(format, logPath)
 	return logger
@@ -73,7 +72,7 @@ func (self *Logger) Append(entry Entry) {
 			}
 		} else {
 			Info("Logger has no outputs defined; defaulting to ANSI styled terminal output.")
-			self.OutputToTerminal(StyledWithANSI)
+			self.OutputToTerminal(ANSI)
 		}
 	}
 }
@@ -82,7 +81,7 @@ func (self *Logger) Append(entry Entry) {
 ///////////////////////////////////////////////////////////////////////////////
 func (self *Logger) OutputToFile(format Format, outputPath string) {
 	if outputPath, ok := FindOrCreateFile(outputPath); !ok {
-		FatalError(errors.New("Failed to initialized specified log path: '" + outputPath + "'"))
+		Fatal("Failed to initialized specified log path: '" + outputPath + "'")
 	} else {
 		logFile := &LogFile{
 			format: format,
@@ -91,7 +90,7 @@ func (self *Logger) OutputToFile(format Format, outputPath string) {
 		fmt.Println("Output Path is currently: ", outputPath)
 		err := logFile.Open()
 		if err != nil {
-			FatalError(err)
+			Fatal(err.Error())
 		} else {
 			self.outputs = append(self.outputs, logFile)
 		}
@@ -101,7 +100,7 @@ func (self *Logger) OutputToFile(format Format, outputPath string) {
 func (self *Logger) OutputToDefaultLogFile(format Format) {
 	Debug("Test")
 	if logPath, ok := FindOrCreateFile(DefaultUserLogPath(self.Name)); !ok {
-		FatalError(errors.New("Failed to initialize default user log path: '" + logPath + "'"))
+		Fatal("Failed to initialize default user log path: '" + logPath + "'")
 	} else {
 		self.OutputToFile(format, logPath)
 	}
@@ -141,7 +140,6 @@ func (self Logger) Info(message string)    { Log(INFO, message).Append() }
 func (self Logger) Warning(message string) { Log(WARNING, message).Append() }
 func (self Logger) Warn(message string)    { Log(WARN, message).Append() }
 func (self Logger) Error(err error)        { Log(ERROR, err.Error()).Append() }
-func (self Logger) FatalError(err error)   { Log(FATAL, err.Error()).Append() }
 func (self Logger) Fatal(message string)   { Log(FATAL, message).Append() }
 func (self Logger) Panic(message string)   { Log(PANIC, message).Append() }
 

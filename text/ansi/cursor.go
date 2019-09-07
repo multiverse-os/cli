@@ -1,20 +1,23 @@
 package ansi
 
-// TODO: Consider having a pointer object that can be tracked and more easily
-// moved. Or perhaps just leverage this and put this concept in a higher level
-// terminal library
+import (
+	"strconv"
+)
+
 func ShowCursor() string { return prefix + "?25h" }
 func HideCursor() string { return prefix + "?25l" }
 
 // Absolute Movement
-func MoveCursorTo(row, column int) string { return prefix + row + ";" + column + "H" }
+func MoveCursorTo(row, column int) string {
+	return prefix + strconv.Itoa(row) + ";" + strconv.Itoa(column) + "H"
+}
 
 // Relative Movement
-func MoveCursorUp(rows int) string         { return prefix + rows + "A" }
-func MoveCursorDown(rows int) string       { return prefix + rows + "B" }
-func MoveCursorRight(columns int) string   { return prefix + columns + "C" }
-func MoveCursorLeft(columns int) string    { return prefix + columns + "D" }
-func MoveCursorUpperLeft(count int) string { return prefix + count + "H" }
+func MoveCursorUp(rows int) string         { return prefix + strconv.Itoa(rows) + "A" }
+func MoveCursorDown(rows int) string       { return prefix + strconv.Itoa(rows) + "B" }
+func MoveCursorRight(columns int) string   { return prefix + strconv.Itoa(columns) + "C" }
+func MoveCursorLeft(columns int) string    { return prefix + strconv.Itoa(columns) + "D" }
+func MoveCursorUpperLeft(count int) string { return prefix + strconv.Itoa(count) + "H" }
 func MoveCursorToNextLine() string         { return escape + "E" }
 
 func ClearLineRight() string    { return prefix + "0K" }

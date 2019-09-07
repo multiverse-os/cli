@@ -1,20 +1,24 @@
 package text
 
+import (
+	"fmt"
+)
+
 type BoxType int
 
 const (
-	DefaultBox BoxType = 0
-	HashBox            = 1
-	EqualsBox          = 2
+	DefaultBox BoxType = iota
+	HashBox
+	EqualsBox
 )
 
 type BoxBorder int
 
 const (
-	TopBorder    BoxBorder = 0
-	RightBorder            = 1
-	BottomBorder           = 2
-	LeftBorder             = 3
+	TopBorder BoxBorder = iota
+	RightBorder
+	BottomBorder
+	LeftBorder
 )
 
 func Border(text string, border BoxBorder) string {

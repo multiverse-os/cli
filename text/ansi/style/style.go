@@ -1,56 +1,57 @@
 package style
 
+import (
+	"strconv"
+)
+
 const (
-	escape = "\x1b"
-	prefix = escape + "["
+	prefix = "\x1b["
 	suffix = "m"
 )
 
 const (
-	Reset = 0
+	reset = 0
 	// ANSI Styles
-	Bold          = 1
-	Faint         = 2 // Decreased intensity
-	Italic        = 3 // Not widely support, sometimes inverse.
-	Underline     = 4
-	SlowBlink     = 5 // Less than 150 times per minute
-	RapidBlink    = 6 // Over 150 times per minute
-	Reverse       = 7 // Swaps fg and bg colors
-	Conceal       = 8 // Not widely supported
-	Strikethrough = 9 // Crossed-out
+	bold          = 1
+	dim           = 2 // Decreased intensity
+	italic        = 3 // Not widely support, sometimes inverse.
+	underline     = 4
+	slowBlink     = 5 // Less than 150 times per minute
+	fastBlink     = 6 // Over 150 times per minute
+	reverse       = 7 // Swaps fg and bg colors
+	conceal       = 8 // Not widely supported
+	strikethrough = 9 // Crossed-out
 )
 
 const (
-	Normal   = Reset
-	Strong   = Bold
-	Emphasis = Italic // These help with those familiar with HTML
-	Dim      = Faint
-	Thin     = Faint
-	Inverse  = Reverse
-	Blink    = SlowBlink
-	Hide     = Conceal
-	CrossOut = Strikethrough
+	strong   = bold
+	emphasis = italic // These help with those familiar with HTML
+	thin     = dim
+	inverse  = reverse
+	blink    = slowBlink
+	hide     = conceal
+	crossOut = strikethrough
 )
 
+func Off(code int) int                  { return code + 20 }
 func Sequence(code int) string          { return prefix + strconv.Itoa(code) + suffix }
-func Text(code int, text string) string { return Sequence(code) + text + Sequence(code+20) }
+func Text(code int, text string) string { return Sequence(code) + text + Sequence(Off(code)) }
 
 // Style Text
 ///////////////////////////////////////////////////////////////////////////////
-func Strong(text string) string        { return Style(Strong, text) }
-func Bold(text string) string          { return Style(Bold, text) }
-func Italic(text string) string        { return Style(Italic, text) }
-func Emphasis(text string) string      { return Style(Emphasis, text) }
-func Faint(text string) string         { return Style(Faint, text) }
-func Dim(text string) string           { return Style(Dim, text) }
-func Thin(text string) string          { return Style(Thin, text) }
-func Underline(text string) string     { return Style(Underline, text) }
-func Strikethrough(text string) string { return Style(Strikethrough, text) }
-func Crossout(text string) string      { return Style(CrossOut, text) }
-func Blink(text string) string         { return Style(Blink, text) }
-func SlowBlink(text string) string     { return Style(SlowBlink, text) }
-func FastBlink(text string) string     { return Style(FastBlink, text) }
-func Inverse(text string) string       { return Style(Inverse, text) }
-func Reverse(text string) string       { return Style(Reverse, text) }
-func Conceal(text string) string       { return Style(Conceal, text) }
-func Hide(text string) string          { return Style(Hide, text) }
+func Strong(text string) string        { return Text(strong, text) }
+func Bold(text string) string          { return Text(bold, text) }
+func Italic(text string) string        { return Text(italic, text) }
+func Emphasis(text string) string      { return Text(emphasis, text) }
+func Dim(text string) string           { return Text(dim, text) }
+func Thin(text string) string          { return Text(thin, text) }
+func Underline(text string) string     { return Text(underline, text) }
+func Strikethrough(text string) string { return Text(strikethrough, text) }
+func Crossout(text string) string      { return Text(crossOut, text) }
+func Blink(text string) string         { return Text(blink, text) }
+func SlowBlink(text string) string     { return Text(slowBlink, text) }
+func FastBlink(text string) string     { return Text(fastBlink, text) }
+func Inverse(text string) string       { return Text(inverse, text) }
+func Reverse(text string) string       { return Text(reverse, text) }
+func Conceal(text string) string       { return Text(conceal, text) }
+func Hide(text string) string          { return Text(hide, text) }

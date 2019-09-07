@@ -47,7 +47,7 @@ func DefaultUserLogPath(name string) string {
 		if home == "" {
 			currentUser, err := user.Current()
 			if err != nil {
-				FatalError(err)
+				Fatal(err.Error())
 			}
 			home = currentUser.HomeDir
 		}
