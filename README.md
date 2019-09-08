@@ -5,15 +5,8 @@
 
 The `cli-framework` aims to provide a consistent, security focused, internationalization (from the start), and other modern CLI features in such a way that it can be easily used in any software from script to full applications weather system service or web application. In addition to allowing interdepenent access to modular subpackages that can be used individually without being forced to include the entire `cli-framework`. 
 
-### Foundational Multiverse OS Go Library
-The Multiverse `cli-framework` is a simple command-line interface framework intended to be used for all Multiverse OS command-line tools to ensure a consistent command-line user experience. In addition to providing a new set of tools to satisfy the functional requirements of the Multiverse OS design, the `cli-framework` will be used to build a shim to provide consistent interface to all existing POSIX GNU-utils (while still supporting the original tool interfaces and traditional shells like `bash` and `sh`. 
-
-The new consistent interface will make learning interaction via command-line interface signicantly easier to learn by avoiding the "each-program-has-different-flags" problem where `recursive` can be either `-r` or `-R` or be default, and is not clear without reading through sometimes poorly written but always dense `man` pages. 
-
-Our solution is to provide a consistent shim, making all commands flags doing the same functionality use the sasme flags, commands or subcommands across all the primary command-line tools, the legacy tools and simple interface to quickly add new ones. In combination with the changes introduced by replacing `bash`  with the Multiverse OS alterantive: `scramble` shell.
-
-By simplifying the entire command-line API, making the tools easier to learn, and use, our goal is to introduce new Linux users to the incredible power of the command-line interface while still supporting full backwards compatibility for those still migrating to the new system.
-
+**Multiverse OS Core Go Library**
+The Multiverse `cli-framework` is designed to meet the requirements of Multiverse OS system programs, the result is a command-line interface framework where security and simplicity are development priorities. 
 
 ## Quick Start: the simplest example
 The following command-line tool CLI application will run the `Action`. Unlessthe two default flags/commands: (1) **Help** accessible by the flag `--help` or `-h` or by the command `help` or `h`. (2) **Version** accessible by the flag `--version` or `-v` or by the command `version` or `v` which simply displays the version. 
