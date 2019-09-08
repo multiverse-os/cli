@@ -49,6 +49,27 @@ Defining an action allows the developer to override the default action which
 would be to display the help text. Action can be omitted to display help when
 defining commands, subcommands, and flags which are defined below.
 
+The current default output of the simplest configurations will generate this:
+
+```
+   _                 _  _ 
+  |_| ___  ___  ___ | ||_|
+  | || . ||___||  _|| || |
+  |_||  _|     |___||_||_|
+     |_|               [v0.1.0]
+  Usage:
+    ip-cli [command]
+  
+  Available Commands:
+    help       Display help text, specify a command for in depth command help
+    version    Display version, and compiler information
+  
+  Flags:
+    -h, --help      help for ip-cli
+        --version   version for ip-cli
+
+```
+
 ## Examples
 Below you will find a collection of examples to illustrate the various ways
 the `cli-framework` can be used. 
