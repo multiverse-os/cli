@@ -1,7 +1,6 @@
 package banner
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -12,7 +11,6 @@ type Banner struct {
 	Lines  []string
 	Height int
 	Width  int
-	Length int
 }
 
 func (self Banner) String() (output string) {
@@ -32,15 +30,10 @@ func scrub(text string, char byte) string {
 
 func New(fontName, text string) Banner {
 	font := newFont(fontName)
-
 	banner := Banner{
-		Text:   text,
-		Length: len(text),
+		Text: text,
 	}
-
-	height := font.height
-	fmt.Println("height: ", height)
-	for line := 0; line < height; line++ {
+	for line := 0; line < font.height; line++ {
 		lineText := ""
 		for _, char := range banner.Text {
 			if isASCII(byte(char)) {
@@ -50,12 +43,10 @@ func New(fontName, text string) Banner {
 			lineText += scrub(font.letters[i][line], font.hardblank)
 		}
 		if line < font.baseline || len(strings.TrimSpace(lineText)) > 0 {
-			banner.Lines = append(banner.Lines, strings.TrimRight(lineText, " "))
+			banner.Lines = append(banner.Lines, lineText)
 		}
-
 	}
-
-	if len(banner.Lines[0]) > 0 {
+	if len(banner.Lines) > 0 {
 		banner.Width = len(banner.Lines[0])
 	} else {
 		banner.Width = 0
