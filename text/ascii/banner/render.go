@@ -1,21 +1,27 @@
-package figure
+package banner
 
 import (
 	"bufio"
 	"bytes"
 	"io"
+	"log"
 	"path"
+	"strconv"
 	"strings"
 )
 
-const defaultFont = "standard"
+const ascii_offset = 32
+const first_ascii = ' '
+const last_ascii = '~'
+
+var charDelimiters = [3]string{"@", "#", "$"}
+var hardblanksBlacklist = [2]byte{'a', '2'}
 
 type font struct {
 	name      string
 	height    int
 	baseline  int
 	hardblank byte
-	reverse   bool
 	letters   [][]string
 }
 
@@ -53,7 +59,6 @@ func (font *font) setAttributes(scanner *bufio.Scanner) {
 			font.height = getHeight(text)
 			font.baseline = getBaseline(text)
 			font.hardblank = getHardblank(text)
-			font.reverse = getReverse(text)
 			break
 		}
 	}
@@ -97,4 +102,61 @@ func (font *font) evenLetters() {
 			letter[i] = row + strings.Repeat(" ", longest-len(row))
 		}
 	}
+}
+
+func scrub(text string, char byte) string {
+	return strings.Replace(text, string(char), " ", -1)
+}
+
+func (figure figure) Slicify() (rows []string) {
+	for r := 0; r < figure.font.height; r++ {
+		printRow := ""
+		for _, char := range figure.phrase {
+			if char < first_ascii || char > last_ascii {
+				char = '?'
+			}
+			fontIndex := char - ascii_offset
+			charRowText := scrub(figure.font.letters[fontIndex][r], figure.font.hardblank)
+			printRow += charRowText
+		}
+		if r < figure.font.baseline || len(strings.TrimSpace(printRow)) > 0 {
+			rows = append(rows, strings.TrimRight(printRow, " "))
+		}
+	}
+	return rows
+}
+
+func getHeight(metadata string) int {
+	datum := strings.Fields(metadata)[1]
+	height, _ := strconv.Atoi(datum)
+	return height
+}
+
+func getBaseline(metadata string) int {
+	datum := strings.Fields(metadata)[2]
+	baseline, _ := strconv.Atoi(datum)
+	return baseline
+}
+
+func getHardblank(metadata string) byte {
+	datum := strings.Fields(metadata)[0]
+	hardblank := datum[len(datum)-1]
+	if hardblank == hardblanksBlacklist[0] || hardblank == hardblanksBlacklist[1] {
+		return ' '
+	} else {
+		return hardblank
+	}
+}
+
+func lastCharLine(text string, height int) bool {
+	endOfLine, length := "  ", 2
+	if height == 1 && len(text) > 0 {
+		length = 1
+	}
+	if len(text) >= length {
+		endOfLine = text[len(text)-length:]
+	}
+	return endOfLine == strings.Repeat(charDelimiters[0], length) ||
+		endOfLine == strings.Repeat(charDelimiters[1], length) ||
+		endOfLine == strings.Repeat(charDelimiters[2], length)
 }
