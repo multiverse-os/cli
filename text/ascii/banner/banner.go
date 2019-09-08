@@ -1,20 +1,15 @@
 package banner
 
 import (
-	"bufio"
-	"bytes"
-	"io"
-	"log"
-	"path"
+	"fmt"
 	"strings"
 )
 
 const defaultFont = "standard"
 
 type Banner struct {
-	Phrase string
+	Text   string
 	Lines  []string
-	Font   string
 	Height int
 	Width  int
 	Length int
@@ -27,17 +22,44 @@ func (self Banner) String() (output string) {
 	return output
 }
 
+func isASCII(char byte) bool {
+	return (char < ' ' || char > '~')
+}
+
+func scrub(text string, char byte) string {
+	return strings.Replace(text, string(char), " ", -1)
+}
+
 func New(fontName, text string) Banner {
 	font := newFont(fontName)
 
 	banner := Banner{
 		Text:   text,
-		Font:   font,
-		Width:  width,
-		Lines:  banner.Slicify(),
 		Length: len(text),
 	}
-	banner.Width = len(banner.Lines[0])
+
+	height := font.height
+	fmt.Println("height: ", height)
+	for line := 0; line < height; line++ {
+		lineText := ""
+		for _, char := range banner.Text {
+			if isASCII(byte(char)) {
+				char = '?'
+			}
+			i := char - 32
+			lineText += scrub(font.letters[i][line], font.hardblank)
+		}
+		if line < font.baseline || len(strings.TrimSpace(lineText)) > 0 {
+			banner.Lines = append(banner.Lines, strings.TrimRight(lineText, " "))
+		}
+
+	}
+
+	if len(banner.Lines[0]) > 0 {
+		banner.Width = len(banner.Lines[0])
+	} else {
+		banner.Width = 0
+	}
 
 	return banner
 }

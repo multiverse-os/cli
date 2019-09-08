@@ -4,15 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"log"
 	"path"
 	"strconv"
 	"strings"
 )
-
-const ascii_offset = 32
-const first_ascii = ' '
-const last_ascii = '~'
 
 var charDelimiters = [3]string{"@", "#", "$"}
 var hardblanksBlacklist = [2]byte{'a', '2'}
@@ -26,7 +21,10 @@ type font struct {
 }
 
 func newFont(name string) (font font) {
-	font.setName(name)
+	font.name = name
+	if len(name) < 1 {
+		font.name = defaultFont
+	}
 	fontBytes, err := Asset(path.Join("fonts", font.name+".flf"))
 	if err != nil {
 		panic(err)
@@ -45,37 +43,30 @@ func newFontFromReader(reader io.Reader) (font font) {
 	return font
 }
 
-func (font *font) setName(name string) {
-	font.name = name
-	if len(name) < 1 {
-		font.name = defaultFont
-	}
-}
-
-func (font *font) setAttributes(scanner *bufio.Scanner) {
+func (self *font) setAttributes(scanner *bufio.Scanner) {
 	for scanner.Scan() {
 		text := scanner.Text()
-		if strings.HasPrefix(text, signature) {
-			font.height = getHeight(text)
-			font.baseline = getBaseline(text)
-			font.hardblank = getHardblank(text)
+		if strings.HasPrefix(text, "flf2") {
+			self.height = getHeight(text)
+			self.baseline = getBaseline(text)
+			self.hardblank = getHardblank(text)
 			break
 		}
 	}
 }
 
-func (font *font) setLetters(scanner *bufio.Scanner) {
-	font.letters = append(font.letters, make([]string, font.height, font.height)) //TODO: set spaces from flf
-	for i := range font.letters[0] {
-		font.letters[0][i] = "  "
+func (self *font) setLetters(scanner *bufio.Scanner) {
+	self.letters = append(self.letters, make([]string, self.height, self.height)) //TODO: set spaces from flf
+	for i := range self.letters[0] {
+		self.letters[0][i] = "  "
 	} //TODO: set spaces from flf
 	letterIndex := 0
 	for scanner.Scan() {
 		text, cutLength, letterIndexInc := scanner.Text(), 1, 0
-		if lastCharLine(text, font.height) {
-			font.letters = append(font.letters, []string{})
+		if lastCharLine(text, self.height) {
+			self.letters = append(self.letters, []string{})
 			letterIndexInc = 1
-			if font.height > 1 {
+			if self.height > 1 {
 				cutLength = 2
 			}
 		}
@@ -84,46 +75,24 @@ func (font *font) setLetters(scanner *bufio.Scanner) {
 			if len(text) > 1 {
 				appendText = text[:len(text)-cutLength]
 			}
-			font.letters[letterIndex] = append(font.letters[letterIndex], appendText)
+			self.letters[letterIndex] = append(self.letters[letterIndex], appendText)
 		}
 		letterIndex += letterIndexInc
 	}
 }
 
-func (font *font) evenLetters() {
+func (self *font) evenLetters() {
 	var longest int
-	for _, letter := range font.letters {
+	for _, letter := range self.letters {
 		if len(letter) > 0 && len(letter[0]) > longest {
 			longest = len(letter[0])
 		}
 	}
-	for _, letter := range font.letters {
+	for _, letter := range self.letters {
 		for i, row := range letter {
 			letter[i] = row + strings.Repeat(" ", longest-len(row))
 		}
 	}
-}
-
-func scrub(text string, char byte) string {
-	return strings.Replace(text, string(char), " ", -1)
-}
-
-func (figure figure) Slicify() (rows []string) {
-	for r := 0; r < figure.font.height; r++ {
-		printRow := ""
-		for _, char := range figure.phrase {
-			if char < first_ascii || char > last_ascii {
-				char = '?'
-			}
-			fontIndex := char - ascii_offset
-			charRowText := scrub(figure.font.letters[fontIndex][r], figure.font.hardblank)
-			printRow += charRowText
-		}
-		if r < figure.font.baseline || len(strings.TrimSpace(printRow)) > 0 {
-			rows = append(rows, strings.TrimRight(printRow, " "))
-		}
-	}
-	return rows
 }
 
 func getHeight(metadata string) int {
