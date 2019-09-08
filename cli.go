@@ -36,6 +36,9 @@ type CLI struct {
 	Commands    []Command
 	Flags       []Flag
 
+	visibleFlags    bool
+	visibleCommands bool
+
 	Logger            log.Logger
 	CompiledAt        time.Time
 	CompilerSignature string // This will allow developers to provide signed builds that can be verified to prevent tampering
@@ -65,6 +68,7 @@ func New(cli *CLI) *CLI {
 			cli.Logger.Fatal("Failed to parse executable working directory in default 'Name' attribute assignment.")
 		}
 	}
+	// TODO: Can't just have undefined ones return with this? Seems unnecessary
 	if cli.Version.Undefined() {
 		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
@@ -87,6 +91,11 @@ func New(cli *CLI) *CLI {
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
+	input := LoadInput(&Command{}, []*Flag{})
+	fmt.Println("Loaded input")
+
+	self.renderUI()
+
 	// TODO: Add shell completion code (old code used to be here)
 
 	// TODO: So here, is where we would see if any action is called, and if
@@ -107,25 +116,12 @@ func (self *CLI) Run(arguments []string) (err error) {
 	// for showhelp and close vs show help, we just do it all here and reduce our
 	// overall codebase signficiantly
 
-	err = HandleAction(self.DefaultAction)
+	err = self.DefaultAction(input)
 	if err != nil {
 		self.Logger.Error(err)
 	}
 
 	return err
-}
-
-func HandleAction(action interface{}) error {
-	if a, ok := action.(func()); ok {
-		a()
-		return nil
-	} else if a, ok := action.(func() error); ok {
-		return a()
-	} else if a, ok := action.(func()); ok { // deprecated function signature
-		a()
-		return nil
-	}
-	return errInvalidActionType
 }
 
 func (self *CLI) VisibleFlags() (visibleFlags []Flag) {
