@@ -5,13 +5,17 @@ import (
 	text "github.com/multiverse-os/cli/text"
 	color "github.com/multiverse-os/cli/text/ansi/color"
 	style "github.com/multiverse-os/cli/text/ansi/style"
-	//banner "github.com/multiverse-os/cli/text/ascii/banner"
+	banner "github.com/multiverse-os/cli/text/ascii/banner"
 )
 
 func (self *CLI) renderUI() error {
 	err := template.OutputStdOut(defaultTemplate(), map[string]string{
-		"title":       self.header(),
-		"description": self.Description,
+		"header":            self.header(),
+		"name":              self.Name,
+		"description":       self.Description,
+		"usage":             color.SkyBlue(style.Bold("Usage")),
+		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
+		"availableFlags":    color.SkyBlue(style.Bold("Flags")),
 	})
 	if err != nil {
 		return err
@@ -20,8 +24,19 @@ func (self *CLI) renderUI() error {
 }
 
 func defaultTemplate() string {
-	return `{{.title}}
-{{.description}}
+	return `{{.header}}
+  {{.usage}}:
+    ` + color.Fuchsia(style.Bold(`{{.name}}`)) + ` ` + style.Dim(`[command]`) + `
+  
+  {{.availableCommands}}:
+    ` + style.Bold(`help`) + `       ` + style.Dim(`Display help text, specify a command for in depth command help`) + `
+    ` + style.Bold(`version`) + `    ` + style.Dim(`Display version, and compiler information`) + `
+  
+  {{.availableFlags}}:
+    ` + style.Bold(`-h`) + `, ` + style.Bold(`--help`) + `      ` + style.Dim(`help for {{.name}}`) + `
+        ` + style.Bold(`--version`) + `   ` + style.Dim(`version for {{.name}}`) + `
+
+
 `
 }
 
@@ -47,11 +62,10 @@ func defaultTemplate() string {
 // TicksSlantFont(text string) Banner
 
 func (self *CLI) header() string {
-	//banner := banner.RectanglesFont(self.Name)
-	//version := text.Brackets(color.White("v") + style.Dim(self.Version.String()))
-	//return banner.String()[:(len(banner.String())-(len(self.Version.String())+4))] +
-	//	version + "\n" +
-	//	style.Dim(text.Repeat("=", banner.Width))
-	title := color.White(style.Bold(self.Name)) + "    " + text.Brackets(self.Version.StringWithANSI())
-	return title + "\n" + style.Dim(text.Repeat("=", len(title)))
+	banner := banner.RectanglesFont(self.Name)
+	version := text.Brackets(color.White("v") + style.Dim(self.Version.String()))
+	return style.Bold(color.SkyBlue(banner.StringWithPrefix("  ")[:len(banner.String())+6])) + version
+
+	//title := color.White(style.Bold(self.Name)) + "    " + text.Brackets(self.Version.StringWithANSI())
+	//return title + "\n" + style.Dim(text.Repeat("=", len(title)))
 }

@@ -13,6 +13,13 @@ type Banner struct {
 	Width  int
 }
 
+func (self Banner) StringWithPrefix(spaces string) (output string) {
+	for _, line := range self.Lines {
+		output += spaces + line + "\n"
+	}
+	return output
+}
+
 func (self Banner) String() (output string) {
 	for _, line := range self.Lines {
 		output += line + "\n"
@@ -43,7 +50,9 @@ func New(fontName, text string) Banner {
 			lineText += scrub(font.letters[i][line], font.hardblank)
 		}
 		if line < font.baseline || len(strings.TrimSpace(lineText)) > 0 {
-			banner.Lines = append(banner.Lines, lineText)
+			if !(line == 0 && len(strings.TrimSpace(lineText)) == 0) {
+				banner.Lines = append(banner.Lines, lineText)
+			}
 		}
 	}
 	if len(banner.Lines) > 0 {
@@ -51,7 +60,6 @@ func New(fontName, text string) Banner {
 	} else {
 		banner.Width = 0
 	}
-
 	return banner
 }
 

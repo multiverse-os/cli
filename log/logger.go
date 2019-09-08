@@ -1,16 +1,14 @@
 package log
 
 import (
-	"fmt"
 	"time"
 )
 
-// Add log rotation
-
 // TODO: Write tests for:
-//         1) Hook Logic
-//         2) Verbosity Levels
-//         3) Write to terminal, write to file
+//   1) Hook Logic
+//   2) Log rotation
+//   3) Verbosity Levels
+//   4) Write to terminal, write to file
 
 type Logger struct {
 	Name                string
@@ -89,7 +87,6 @@ func (self *Logger) OutputToFile(format Format, outputPath string) {
 			format: format,
 			path:   outputPath,
 		}
-		fmt.Println("Output Path is currently: ", outputPath)
 		err := logFile.Open()
 		if err != nil {
 			Fatal(err.Error())
@@ -100,7 +97,6 @@ func (self *Logger) OutputToFile(format Format, outputPath string) {
 }
 
 func (self *Logger) OutputToDefaultLogFile(format Format) {
-	Debug("Test")
 	if logPath, ok := FindOrCreateFile(DefaultUserLogPath(self.Name)); !ok {
 		Fatal("Failed to initialize default user log path: '" + logPath + "'")
 	} else {

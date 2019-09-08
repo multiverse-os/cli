@@ -7,6 +7,7 @@ import (
 
 	cli "github.com/multiverse-os/cli"
 	log "github.com/multiverse-os/cli/log"
+	emoji "github.com/multiverse-os/cli/text/emoji"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 		//Version: cli.Version{Major: 0, Minor: 1, Patch: 1},
 		Usage: "make an explosive entrance",
 		DefaultAction: func(input *cli.Input) error {
-			fmt.Println("Example output for an action (or command)!")
+			emoji.Println("Example output :beer: :pizza: :sushi: for an action (or command)!")
 			fmt.Println("version is: ", input.CLI.Version.StringWithANSI())
 			input.CLI.Logger.Info("This should log to both stdout and file")
 			log.Log(log.INFO, "Test info JSON log").StdOut()
