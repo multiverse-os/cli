@@ -64,7 +64,7 @@ func (self Args) Tail() []string {
 
 func (self Args) Swap(a, b int) error {
 	if a >= len(self) || b >= len(self) {
-		return errors.New("index out of range")
+		return errors.New("[cli] index out of range")
 	}
 	self[b], self[a] = self[a], self[b]
 	return nil

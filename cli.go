@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -27,88 +26,59 @@ type Action func(input *Input) error
 // TODO: A problem exist with ordering, its not possible to call global option flags at the end, but long as there is no duplication between
 // flag levels which would be best avoided anyways for confusion reasons the global option flag should be callable anywhere. this is the expected
 // and normal functionality.
+// CompilerSignature string // This will allow developers to provide signed builds that can be verified to prevent tampering
 type CLI struct {
-	Name        string
-	Version     Version
-	Description string
-	Usage       string
-	ANSI        bool
-	Commands    []Command
-	Flags       []Flag
-
-	visibleFlags    bool
-	visibleCommands bool
-
-	Logger            log.Logger
-	CompiledAt        time.Time
-	CompilerSignature string // This will allow developers to provide signed builds that can be verified to prevent tampering
-	HideHelp          bool
-	HideVersion       bool
-	CommandCategories CommandCategories
-	WriteMutex        sync.Mutex
-
-	Writer    io.Writer
-	ErrWriter io.Writer
-	//DefaultAction interface{}
-	Hooks map[string]Hook
-	// Error Functions
-	// TODO: Why not just make these locales and print from standard error log?
-	CommandNotFound func()
-	ExitErrHandler  func()
-	OnUsageError    func()
-	DefaultAction   Action
+	Name          string
+	Version       Version
+	Description   string
+	Usage         string
+	ANSI          bool
+	Commands      []Command
+	Flags         []Flag
+	Logger        log.Logger
+	CompiledAt    time.Time
+	WriteMutex    sync.Mutex
+	Writer        io.Writer
+	ErrWriter     io.Writer
+	Hooks         map[string]Hook
+	DefaultAction Action
 }
 
 func New(cli *CLI) *CLI {
 	cli.CompiledAt = time.Now()
+	if len(cli.Logger.Name) == 0 {
+		cli.Logger = log.DefaultLogger(cli.Name, true, true)
+	}
 	if len(cli.Name) == 0 {
 		var err error
 		cli.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
-			cli.Logger.Fatal("Failed to parse executable working directory in default 'Name' attribute assignment.")
+			cli.Logger.Fatal("failed to assign 'Name' attribute")
 		}
 	}
-	// TODO: Can't just have undefined ones return with this? Seems unnecessary
 	if cli.Version.Undefined() {
 		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
 	if cli.Writer == nil {
 		cli.Writer = os.Stdout
 	}
-	if len(cli.Logger.Name) == 0 {
-		fmt.Println("cli.Logger.Name: " + cli.Name)
-		cli.Logger = log.DefaultLogger(cli.Name, true, true)
-	}
-	cli.Commands = append(cli.Commands, defaultCommands()...)
-	if !cli.HideVersion {
-		// TODO: We should just have an init function that loads hidden version and
-		// help flags. we can use a 'bool' to say if they are visible or not, same
-		// with commands above
-		//cli.appendFlag(VersionFlag)
-	}
-	cli.CommandCategories = CommandCategories{}
 	return cli
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
-	input := LoadInput(&Command{}, []*Flag{})
-	fmt.Println("Loaded input")
-
+	input := LoadInput(self, &Command{}, []*Flag{})
 	self.renderUI()
 
 	// TODO: Add shell completion code (old code used to be here)
-
 	// TODO: So here, is where we would see if any action is called, and if
 	// defaultaction is nil, then we just call help, this avoids any used
 	// memory by just applying the functionality in order of operations
-
 	// TODO: So previous version this code is started from, would execute actions
 	// located inside the command, but then still run default action. This is
 	// really poorly designed. we want to make a rich parsing function that loads
 	// up a ACTIVE_MAP then use switch case to go through that ACTIVE_MAP and
 	// execute the actions
 	// Run default Action
-
 	// TODO: Here we want to build the argument/flag/command/subcommand map by
 	// parsing the arguments, then we process it. This will also be where we just
 	// run the help command if no DefaultAction is defined. We dont need all this
@@ -122,17 +92,4 @@ func (self *CLI) Run(arguments []string) (err error) {
 	}
 
 	return err
-}
-
-func (self *CLI) VisibleFlags() (visibleFlags []Flag) {
-	// TODO the first variable assignement ehre is key, it could be used for building
-	// a new map of only visible flags
-	for _, flag := range self.Flags {
-		visibleFlags = append(visibleFlags, flag)
-	}
-	return visibleFlags
-}
-
-func (self *CLI) HasVisibleFlags() bool {
-	return len(self.Flags) > 0
 }

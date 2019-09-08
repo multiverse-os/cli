@@ -14,6 +14,7 @@ import (
 
 type Logger struct {
 	Name                string
+	format              Format
 	verbosity           Verbosity
 	timestampResolution TimestampResolution
 	entries             []Entry
@@ -35,6 +36,7 @@ func NewLogger(name string, resolution TimestampResolution, verbosity Verbosity)
 func DefaultLogger(name string, stdOut bool, fileOut bool) Logger {
 	logger := Logger{
 		Name:                name,
+		format:              ANSI,
 		verbosity:           NORMAL,
 		timestampResolution: MINUTE,
 	}
@@ -131,6 +133,7 @@ func (self Logger) HasTimestamp() bool { return (self.timestampResolution != DIS
 func (self Logger) Log(level LogLevel, message string) Entry {
 	return Entry{
 		createdAt:           time.Now(),
+		format:              self.format,
 		level:               level,
 		message:             message,
 		timestampResolution: self.timestampResolution,

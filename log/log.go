@@ -82,10 +82,10 @@ func (self Entry) String() string {
 		var values string
 		count := 0
 		for key, value := range self.values {
-			values += (valueStringWithANSI(count, style.Bold(color.Blue(key+"="))) + color.White(value))
+			values += (valueStringWithANSI(count, style.Bold(color.Blue(key+"="))) + style.Dim(color.White(value)))
 			count++
 		}
-		return self.level.StringWithANSI() + text.Brackets(style.Bold(self.Timestamp())) + values + color.White(self.message)
+		return self.level.StringWithANSI() + " " + text.Brackets(style.Bold(self.Timestamp())) + " " + values + " " + color.White(self.message)
 	case JSON:
 		var jsonOutput []byte
 		var err error
@@ -99,7 +99,7 @@ func (self Entry) String() string {
 		for key, value := range self.values {
 			values += (key + "=" + value)
 		}
-		return self.level.String() + text.Brackets(self.Timestamp()) + values + self.message
+		return self.level.String() + " " + text.Brackets(self.Timestamp()) + " " + values + " " + self.message
 	}
 }
 
@@ -247,16 +247,16 @@ func (self Entry) HasTimestamp() bool { return (self.timestampResolution == DISA
 func valueStringWithANSI(count int, key string) string {
 	switch count {
 	case 0:
-		return style.Bold(color.Blue(key + "="))
+		return style.Bold(color.Blue(key))
 	case 1:
-		return style.Bold(color.Green(key + "="))
+		return style.Bold(color.Green(key))
 	case 2:
-		return style.Bold(color.Fuchsia(key + "="))
+		return style.Bold(color.Fuchsia(key))
 	case 3:
-		return style.Bold(color.Yellow(key + "="))
+		return style.Bold(color.Yellow(key))
 	case 4:
-		return style.Bold(color.Cyan(key + "="))
+		return style.Bold(color.Cyan(key))
 	default:
-		return style.Bold(color.Silver(key + "="))
+		return style.Bold(color.Silver(key))
 	}
 }
