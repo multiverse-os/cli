@@ -23,12 +23,12 @@ func TimestampWithResolution(timestamp time.Time, resolution TimestampResolution
 	case DISABLED:
 		return ""
 	case NANOSECOND:
-		return timestamp.Format("Jan _2 15:04:03:02:01")
+		return timestamp.Format("1/2 15:04:03:02:01")
 	case MICROSECOND:
-		return timestamp.Format("Jan _2 15:04:03:02")
+		return timestamp.Format("1/2 15:04:03:02")
 	case SECOND:
-		return timestamp.Format("Jan _2 15:04:03")
+		return timestamp.Format("1/2 15:04:03")
 	default: // MINUTE
-		return timestamp.Format("Jan _2 15:04")
+		return timestamp.Format("1/2 15:04")
 	}
 }

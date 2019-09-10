@@ -128,6 +128,7 @@ func (self *Tree) prefixSearch(query []byte, node *Node, index int, found []byte
 	for _, child := range node.Children() {
 		lettersFound := 0
 		searchLetter := query[index]
+
 		for _, letter := range child.Key() {
 			// A matching letter has been found
 			if searchLetter == letter {
@@ -140,6 +141,7 @@ func (self *Tree) prefixSearch(query []byte, node *Node, index int, found []byte
 				}
 				if index+lettersFound < len(query) {
 					searchLetter = query[index+lettersFound]
+					return child, child.Key(), false
 				}
 			} else {
 				break
@@ -152,17 +154,20 @@ func (self *Tree) prefixSearch(query []byte, node *Node, index int, found []byte
 // The collection will, starting from a given node, recurse and generate
 // strings from every leaf
 func (self *Tree) collect(node *Node, prefix []byte) ([]string, []interface{}) {
+	keys := []string{string(prefix)}
+	values := []interface{}{node.Value}
+
 	if len(node.Children()) == 0 {
-		return []string{string(prefix)}, []interface{}{node.Value}
+		return keys, values
 	}
 
 	// Recursively append
 	for _, child := range node.Children() {
-		bytes := append(prefix, child.Key()...)
-		values := append(node.Value, child.Value...)
+		keys = append(keys, string(child.Key()))
+		values = append(values, child.Value)
 	}
 
-	return []string{string(prefix)}, []interface{}{node.Value}
+	return keys, values
 }
 
 func (self *Tree) Add(key string, value interface{}) *Node {

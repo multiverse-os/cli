@@ -77,15 +77,20 @@ func (self Entry) ANSI() Entry    { return self.Format(ANSI) }
 func (self Entry) JSON() Entry    { return self.Format(JSON) }
 
 func (self Entry) String() string {
+	var values string
+	var timestamp string
 	switch self.format {
 	case ANSI:
-		var values string
 		count := 0
 		for key, value := range self.values {
 			values += (valueStringWithANSI(count, style.Bold(color.Blue(key+"="))) + style.Dim(color.White(value)))
 			count++
 		}
-		return self.level.StringWithANSI() + " " + text.Brackets(style.Bold(self.Timestamp())) + " " + values + " " + color.White(self.message)
+		if self.HasTimestamp() {
+			fmt.Println("Has timestamp, resolution is:", self.timestampResolution)
+			timestamp = " " + text.Brackets(style.Bold(self.Timestamp()))
+		}
+		return self.level.StringWithANSI() + timestamp + " " + values + " " + color.White(self.message)
 	case JSON:
 		var jsonOutput []byte
 		var err error
@@ -95,11 +100,14 @@ func (self Entry) String() string {
 		}
 		return string(jsonOutput)
 	default:
-		var values string
+		if self.HasTimestamp() {
+			fmt.Println("Has timestamp, resolution is:", self.timestampResolution)
+			timestamp = " " + text.Brackets(self.Timestamp())
+		}
 		for key, value := range self.values {
 			values += (key + "=" + value)
 		}
-		return self.level.String() + " " + text.Brackets(self.Timestamp()) + " " + values + " " + self.message
+		return self.level.String() + timestamp + " " + values + " " + self.message
 	}
 }
 
@@ -133,12 +141,13 @@ func (self Entry) StdOut() { self.Terminal() }
 // potentially dangerous user input?
 func NewLog(format Format, level LogLevel, message string, values Values, errors []error) Entry {
 	return Entry{
-		createdAt: time.Now(),
-		level:     level,
-		format:    format,
-		message:   message,
-		values:    values,
-		errors:    errors,
+		createdAt:           time.Now(),
+		timestampResolution: DISABLED,
+		level:               level,
+		format:              format,
+		message:             message,
+		values:              values,
+		errors:              errors,
 	}
 }
 
@@ -242,7 +251,7 @@ func (self Entry) Panic(message string) Entry {
 ///////////////////////////////////////////////////////////////////////////////
 func (self Entry) HasValues() bool    { return (len(self.values) != 0) }
 func (self Entry) HasErrors() bool    { return (len(self.errors) != 0) }
-func (self Entry) HasTimestamp() bool { return (self.timestampResolution == DISABLED) }
+func (self Entry) HasTimestamp() bool { return (self.timestampResolution != DISABLED) }
 
 func valueStringWithANSI(count int, key string) string {
 	switch count {

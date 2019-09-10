@@ -53,7 +53,7 @@ func New(cli *CLI) *CLI {
 		var err error
 		cli.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
-			cli.Logger.Fatal("failed to assign 'Name' attribute")
+			cli.Logger.Fatal(errFailedNameAssignment.Error())
 		}
 	}
 	if cli.Version.Undefined() {
@@ -67,7 +67,7 @@ func New(cli *CLI) *CLI {
 
 func (self *CLI) Run(arguments []string) (err error) {
 	input := LoadInput(self, &Command{}, []*Flag{})
-	self.renderUI()
+	self.renderHelp()
 
 	// TODO: Add shell completion code (old code used to be here)
 	// TODO: So here, is where we would see if any action is called, and if
