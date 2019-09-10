@@ -1,4 +1,6 @@
-package terminal
+package ansi
+
+// TODO: This hasn't been merged in yet, this overlaps with cursor.go
 
 import (
 	"bufio"

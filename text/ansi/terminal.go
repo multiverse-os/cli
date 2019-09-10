@@ -1,4 +1,6 @@
-package text
+package ansi
+
+// TODO: This has not yet been merged in yet, it still overlaps with cursor.go
 
 import (
 	"syscall"
@@ -33,22 +35,17 @@ func (p *unixPty) Resize(x, y int) error {
 	return nil
 }
 
-// ConsoleDim represents the dimensions of a console in rows and columns.
 type ConsoleDim struct {
 	Rows int
 	Cols int
 }
 
-// Common fragments of escape sequences
 const (
 	Esc = "\u001B["
 	Osc = "\u001B]"
 	Bel = "\u0007"
 )
 
-// Common ANSI escapes sequences. These should be used when the desired action
-// is only needed once; otherwise, use the functions (e.g. moving a cursor
-// several lines/columns). See: https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
 const (
 	CursorUp       = Esc + "A"
 	CursorDown     = Esc + "B"
