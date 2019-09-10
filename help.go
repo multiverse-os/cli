@@ -50,9 +50,9 @@ func defaultTemplate() string {
 // Ticks, TicksSlant
 
 func (self *CLI) header() string {
-	banner := banner.RectanglesFont(self.Name)
-	version := text.Brackets(color.White("v") + style.Dim(self.Version.String()))
-	return style.Bold(color.SkyBlue(banner.StringWithPrefix("  ")[:len(banner.String())+6])) + version
+	banner := banner.New("calvins", " "+self.Name)
+	version := text.Brackets(self.Version.StringWithANSI())
+	return style.Bold(color.SkyBlue(banner.String()[:len(banner.String())-1])) + version + "\n"
 	//title := color.White(style.Bold(self.Name)) + "    " + text.Brackets(self.Version.StringWithANSI())
 	//return title + "\n" + style.Dim(text.Repeat("=", len(title)))
 }

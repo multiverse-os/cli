@@ -36,13 +36,13 @@ func (self Version) StringWithANSI() (formattedString string) {
 	if self.Major == 0 {
 		formattedString = style.Thin(strconv.Itoa(self.Major))
 	} else {
-		formattedString = style.Bold(color.Blue(strconv.Itoa(self.Major)))
+		formattedString = style.Bold(color.SkyBlue(strconv.Itoa(self.Major)))
 	}
 	formattedString += color.White(".")
 	if self.Minor == 0 {
 		formattedString += style.Thin(strconv.Itoa(self.Minor))
 	} else {
-		formattedString += style.Bold(color.Blue(strconv.Itoa(self.Minor)))
+		formattedString += style.Bold(color.SkyBlue(strconv.Itoa(self.Minor)))
 	}
 	formattedString += color.White(".")
 	if self.Patch == 0 {
