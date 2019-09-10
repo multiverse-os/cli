@@ -1,3 +1,6 @@
 [submodule "text/ansi"]
 	path = text/ansi
 	url = git://github.com/multiverse-os/ansi
+[submodule "radix"]
+	path = radix
+	url = git://github.com/multiverse-os/radix
