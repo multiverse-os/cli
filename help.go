@@ -43,26 +43,11 @@ func defaultTemplate() string {
 `
 }
 
-// Available Banners
+// Available Banners Fonts
 ///////////////////////////////////////////////////////////////////////////////
-// BigFont(text string) Banner
-// ChunkyFont(text string) Banner
-// CyberLargeFont(text string) Banner
-// CyberMediumFont(text string) Banner
-// DoomFont(text string) Banner
-// EliteFont(text string) Banner
-// Isometric3Font(text string) Banner
-// Isometric4Font(text string) Banner
-// Larry3DFont(text string) Banner
-// LettersFont(text string) Banner
-// NancyJFont(text string) Banner
-// RectanglesFont(text string) Banner
-// ReliefFont(text string) Banner
-// SmallFont(text string) Banner
-// Smisome1Font(text string) Banner
-// StandardFont(text string) Banner
-// TicksFont(text string) Banner
-// TicksSlantFont(text string) Banner
+// Big, Chunky, CyberLarge, CyberMedium, Doom, Elite, Isometric3, Isometric4
+// Larry3D, Letters, NancyJ, Rectangles, Relief, Small, Smisome1, Standard
+// Ticks, TicksSlant
 
 func (self *CLI) header() string {
 	banner := banner.RectanglesFont(self.Name)

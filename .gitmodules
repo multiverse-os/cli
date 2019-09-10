@@ -4,3 +4,6 @@
 [submodule "radix"]
 	path = radix
 	url = git://github.com/multiverse-os/radix
+[submodule "text"]
+	path = text
+	url = git://github.com/multiverse-os/text
