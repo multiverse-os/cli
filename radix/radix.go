@@ -92,11 +92,10 @@ func (self *Tree) PrefixSearch(query string) ([]string, []interface{}) {
 	}
 	// TODO: Node and prefix decladed and not used...
 	node, prefix, ok := self.prefixSearch(self.keyToBytes(query), self.Root, 0, []byte{})
-
 	if !ok {
 		return []string{}, []interface{}{}
 	}
-	return nil, nil
+	return []string{string(prefix)}, []interface{}{node.Value}
 }
 
 func (self *Tree) LongestPrefix(query string) (string, bool) {
@@ -246,7 +245,7 @@ func (self *Tree) String() string {
 	first := true
 
 	self.Root.WalkDepthFirst(
-		func(key []byte, depth int, firstAtDepth bool, lastAtDepth bool, numChildren int) terminate {
+		func(node *Node, depth int, firstAtDepth bool, lastAtDepth bool, numChildren int) terminate {
 
 			if !first && firstAtDepth {
 				output += strings.Repeat(" ", (depth*3)-3) + "|\n"
@@ -254,7 +253,7 @@ func (self *Tree) String() string {
 			if depth > 0 {
 				output += strings.Repeat(" ", (depth*3)-3) + "+- "
 			}
-			output += fmt.Sprintf("[%s]\n", string(key))
+			output += fmt.Sprintf("[%s]\n", string(node.Key()))
 
 			first = false
 			return terminate(false)

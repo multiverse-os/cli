@@ -17,6 +17,9 @@ type Node struct {
 	Value      interface{}
 }
 
+// NOTE: The benefit of doing this instead of just making the variables public
+// is that this allows them to essentially be read-only, which becomes more
+// important when dealing with pointers.
 func (self *Node) Key() []byte                      { return self.key }
 func (self *Node) Parent() *Node                    { return self.parent }
 func (self *Node) Children() []*Node                { return self.children }
@@ -72,7 +75,7 @@ func (self *Node) WalkDepthFirst(walk walkerFunc, depth int) {
 		childCount := len(childNode.Children())
 
 		isLast = (i == currentChildCount-1)
-		stop := walk(childNode.Key(), depth, isFirst, isLast, childCount)
+		stop := walk(childNode, depth, isFirst, isLast, childCount)
 
 		isFirst = false
 		if stop == terminate(true) {
