@@ -5,7 +5,7 @@ import (
 	text "github.com/multiverse-os/cli/text"
 	color "github.com/multiverse-os/cli/text/ansi/color"
 	style "github.com/multiverse-os/cli/text/ansi/style"
-	banner "github.com/multiverse-os/cli/text/ascii/banner"
+	banner "github.com/multiverse-os/cli/text/banner"
 )
 
 // TODO: Since this is being generated from a template, to avoid wasting time,
