@@ -9,7 +9,7 @@ import (
 	"time"
 
 	log "github.com/multiverse-os/cli/log"
-	radix "github.com/multiverse-os/cli/radix"
+	//radix "github.com/multiverse-os/cli/radix"
 )
 
 /// TASKS /////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ import (
 //       * Print data in a variety of ways, such as: Spark Graphs, Tree, List
 ///////////////////////////////////////////////////////////////////////////////
 
-type Action func(input *Input) error
+type Action func(context *Context) error
 
 // TODO: A problem exist with ordering, its not possible to call global option flags at the end, but long as there is no duplication between
 // flag levels which would be best avoided anyways for confusion reasons the global option flag should be callable anywhere. this is the expected
@@ -42,19 +42,19 @@ type CLI struct {
 	Description   string
 	Usage         string
 	ANSI          bool
+	Flags         []Flag
+	Commands      []Command
 	Build         SoftwareBuild
-	Router        *radix.Tree
 	Logger        log.Logger
 	WriteMutex    sync.Mutex
 	Writer        io.Writer
 	ErrorWriter   io.Writer
-	Hooks         map[string]Hook
 	DefaultAction Action
+	//Router        *radix.Tree
 }
 
 func New(cli *CLI) *CLI {
 	cli.Build.CompiledAt = time.Now()
-	// NOTE: If required assignments are missing, set defaults
 	if len(cli.Logger.Name) == 0 {
 		cli.Logger = log.DefaultLogger(cli.Name, true, true)
 	}
@@ -71,17 +71,23 @@ func New(cli *CLI) *CLI {
 	if cli.Writer == nil {
 		cli.Writer = os.Stdout
 	}
-	// NOTE: Parse commands then parse arguments coming into Run
-
 	return cli
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
-	fmt.Println("Entering CLI.Run()")
-	inputs := LoadInput(self, &Command{}, []*Flag{})
+	context := self.parse(arguments[1:])
+
+	fmt.Println("command:", context.Command)
+	fmt.Println("subcommand:", context.Subcommand)
+	for _, flag := range context.Flags {
+		fmt.Println("flag:")
+		fmt.Println("  name:", flag.Name)
+		fmt.Println(" value:", flag.Value)
+	}
+
 	self.renderHelp()
 
-	err = self.DefaultAction(inputs)
+	err = self.DefaultAction(context)
 	if err != nil {
 		self.Logger.Error(err)
 	}
@@ -89,14 +95,11 @@ func (self *CLI) Run(arguments []string) (err error) {
 	return err
 }
 
-type Input struct {
-	CLI     *CLI
-	Command *Command
-	Flags   []*Flag
-}
-
-func LoadInput(cli *CLI, command *Command, flags []*Flag) *Input {
-	return &Input{CLI: cli, Command: command, Flags: flags}
+type Context struct {
+	CLI        *CLI
+	Command    *Command
+	Subcommand *Command
+	Flags      []*Flag
 }
 
 var VersionFlag Flag = Flag{

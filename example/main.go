@@ -14,10 +14,35 @@ func main() {
 		Name:    "example",
 		Version: cli.Version{Major: 0, Minor: 1, Patch: 1},
 		Usage:   "make an explosive entrance",
-		DefaultAction: func(input *cli.Input) error {
-			fmt.Println("Example output for an action (or command)!")
-			fmt.Println("version is: ", input.CLI.Version.StringWithANSI())
-			input.CLI.Logger.Info("This should log to both stdout and file")
+		Flags: []cli.Flag{
+			cli.Flag{
+				Name:  "lang",
+				Value: "english",
+				Usage: "language for the greeting",
+			},
+		},
+		Commands: []cli.Command{
+			cli.Command{
+				Name:    "complete",
+				Aliases: []string{"c"},
+				Usage:   "complete a task on the list",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+			cli.Command{
+				Name:    "add",
+				Aliases: []string{"a"},
+				Usage:   "add a task to the list",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+		},
+		DefaultAction: func(c *cli.Context) error {
+			fmt.Println("command.Name:", c.Command.Name)
+			fmt.Println("subcommand.Name:", c.Subcommand.Name)
+			c.CLI.Logger.Info("This should log to both stdout and file")
 			//log.Log(log.INFO, "Test info JSON log").StdOut()
 			//log.Log(log.INFO, "Test info JSON log").Format(log.JSON).File("./test.log")
 			//log.Log(log.INFO, "Test JSON with values").ANSI().WithValue("test", "value").JSON().StdOut()
