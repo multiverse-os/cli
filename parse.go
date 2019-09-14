@@ -135,7 +135,7 @@ func (self *CLI) parse(arguments []string) *Context {
 
 	context := &Context{
 		CLI:        self,
-		Flags:      []Flag{},
+		Flags:      map[string]Flag{},
 		Command:    Command{},
 		Subcommand: Command{},
 	}
@@ -167,7 +167,7 @@ func (self *CLI) parse(arguments []string) *Context {
 			ok, flag := self.isFlag(flagName)
 			if ok {
 				flag.Value = flagValue
-				context.Flags = append(context.Flags, flag)
+				context.Flags[flag.Name] = flag
 			}
 		} else {
 			if context.Command.isEmpty() {

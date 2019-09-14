@@ -12,11 +12,13 @@ import (
 
 type Action func(context *Context) error
 
+// TODO: Decide if flags should be segregated into global flags and
+// command flags
 type Context struct {
 	CLI        *CLI
 	Command    Command
 	Subcommand Command
-	Flags      []Flag
+	Flags      map[string]Flag
 }
 
 type SoftwareBuild struct {
@@ -91,9 +93,12 @@ func (self *CLI) isSubcommand(command Command, subcommandName string) (bool, Com
 func (self *CLI) Run(arguments []string) (err error) {
 	context := self.parse(arguments[1:])
 
-	if !context.Command.isEmpty() {
+	if _, ok := context.Flags["version"]; ok {
+		self.renderVersion()
+	} else if _, ok = context.Flags["help"]; ok {
+		self.renderHelp()
+	} else if !context.Command.isEmpty() {
 		err = context.Command.Action(context)
-
 	} else {
 		self.renderHelp()
 		err = self.DefaultAction(context)
