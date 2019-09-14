@@ -23,6 +23,8 @@ type Context struct {
 
 type SoftwareBuild struct {
 	CompiledOn time.Time
+	Source     string
+	Signature  string
 }
 
 // TODO: Should shell be a modificaiton of this, or its own object?

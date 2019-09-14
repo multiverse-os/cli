@@ -6,12 +6,19 @@ import (
 	template "github.com/multiverse-os/cli/template"
 	color "github.com/multiverse-os/cli/text/ansi/color"
 	style "github.com/multiverse-os/cli/text/ansi/style"
+	table "github.com/multiverse-os/cli/text/table"
 )
 
 type Version struct {
 	Major int
 	Minor int
 	Patch int
+}
+
+type BuildInformation struct {
+	CompiledAt string
+	Source     string
+	Signature  string
 }
 
 func (self *CLI) renderVersion() error {
@@ -26,10 +33,16 @@ func (self *CLI) renderVersion() error {
 }
 
 func defaultVersionTemplate() string {
+
+	buildInfo := []BuildInformation{
+		{"n/a", "n/a", "n/a"},
+	}
+
 	return `
 {{.header}}` +
 		`  ` + color.White(style.Bold(`Version:`)) + ` {{.version}} ` +
 		`
+` + table.Table(buildInfo) + `
 
 `
 }
