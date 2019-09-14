@@ -110,6 +110,15 @@ func (self *CLI) isSubcommand(command Command, subcommandName string) (bool, Com
 	return false, Command{}
 }
 
+func (self *CLI) isCommandFlag(command Command, flagName string) (bool, Flag) {
+	for _, flag := range command.Flags {
+		if flag.Is(flagName) {
+			return true, flag
+		}
+	}
+	return false, Flag{}
+}
+
 func (self *CLI) Run(arguments []string) (err error) {
 	context := self.parse(arguments[1:])
 

@@ -193,10 +193,18 @@ func (self *CLI) parse(arguments []string) *Context {
 					flagValue = true
 				}
 			}
-			ok, flag := self.isFlag(flagName)
-			if ok {
-				flag.Value = flagValue
-				context.Flags[flag.Name] = flag
+			if context.Command.NotEmpty() {
+				ok, flag := self.isCommandFlag(context.Command, flagName)
+				if ok {
+					flag.Value = flagValue
+					context.Flags[flag.Name] = flag
+				}
+			} else {
+				ok, flag := self.isFlag(flagName)
+				if ok {
+					flag.Value = flagValue
+					context.Flags[flag.Name] = flag
+				}
 			}
 		} else {
 			if context.Command.Empty() {

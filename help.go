@@ -49,11 +49,13 @@ func defaultHelpTemplate(name string, commands []Command, flags []Flag) (t strin
 	t += "{{.header}}\n"
 	t += "  {{.usage}}:\n"
 	t += "    " + color.Fuchsia(style.Bold(name)) + "  " + style.Dim("[command]") + "\n\n"
-	t += "  {{.availableCommands}}:\n"
-	for _, command := range commands {
-		t += "    " + style.Bold(command.Name) + strings.Repeat(" ", (18-len(command.Name))) + style.Dim(command.Usage) + "\n"
+	if len(commands) > 0 {
+		t += "  {{.availableCommands}}:\n"
+		for _, command := range commands {
+			t += "    " + style.Bold(command.Name) + strings.Repeat(" ", (18-len(command.Name))) + style.Dim(command.Usage) + "\n"
+		}
+		t += "\n"
 	}
-	t += "\n"
 	t += "  {{.availableFlags}}:\n"
 	for _, flag := range flags {
 		t += "    " + style.Bold(flag.Alias()+", --"+flag.Name) + strings.Repeat(" ", (12-len(flag.Name))) + style.Dim(flag.Usage) + "\n"
