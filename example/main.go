@@ -16,9 +16,10 @@ func main() {
 		Usage:   "make an explosive entrance",
 		Flags: []cli.Flag{
 			cli.Flag{
-				Name:  "lang",
-				Value: "english",
-				Usage: "language for the greeting",
+				Name:    "lang",
+				Aliases: []string{"l"},
+				Value:   "english",
+				Usage:   "language for the greeting",
 			},
 		},
 		Commands: []cli.Command{
@@ -42,6 +43,11 @@ func main() {
 		DefaultAction: func(c *cli.Context) error {
 			fmt.Println("command.Name:", c.Command.Name)
 			fmt.Println("subcommand.Name:", c.Subcommand.Name)
+			fmt.Println("flags:")
+			for _, flag := range c.Flags {
+				fmt.Println("flag.Name :", flag.Name)
+				fmt.Println("flag.Value:", flag.Value)
+			}
 			c.CLI.Logger.Info("This should log to both stdout and file")
 			//log.Log(log.INFO, "Test info JSON log").StdOut()
 			//log.Log(log.INFO, "Test info JSON log").Format(log.JSON).File("./test.log")

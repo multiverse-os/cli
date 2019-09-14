@@ -13,8 +13,8 @@ import (
 // documentation that can be referrenced from the README.
 
 func (self *CLI) renderHelp() error {
-	err := template.OutputStdOut(defaultTemplate(), map[string]string{
-		"header":            self.header(),
+	err := template.OutputStdOut(defaultHelpTemplate(), map[string]string{
+		"header":            self.header(true),
 		"name":              self.Name,
 		"description":       self.Description,
 		"usage":             color.SkyBlue(style.Bold("Usage")),
@@ -30,15 +30,7 @@ func (self *CLI) renderHelp() error {
 // TODO: Create the below variant as an option and store these options in their
 // own subpackages just like with spinners and loaders in text library.
 ///////////////////////////////////////////////////////////////////////////////
-//
-//  Usage: cmdsafe [global flags ...] command [flags ...]
-//
-//  Global flags:
-//    -db path
-//          The database path (default "data.db")
-//
-
-func defaultTemplate() string {
+func defaultHelpTemplate() string {
 	return `{{.header}}
   {{.usage}}:
     ` + color.Fuchsia(style.Bold(`{{.name}}`)) + ` ` + style.Dim(`[command]`) + `
@@ -58,12 +50,12 @@ func defaultTemplate() string {
 ///////////////////////////////////////////////////////////////////////////////
 // Big, Chunky, CyberLarge, CyberMedium, Doom, Elite, Isometric3, Isometric4
 // Larry3D, Letters, NancyJ, Rectangles, Relief, Small, Smisome1, Standard
-// Ticks, TicksSlant
-
-func (self *CLI) header() string {
+// Ticks, TicksSlant, calvins
+func (self *CLI) header(showVersion bool) string {
 	banner := banner.New("calvins", " "+self.Name)
-	version := text.Brackets(self.Version.StringWithANSI())
+	var version string
+	if showVersion {
+		version = text.Brackets(self.Version.String())
+	}
 	return style.Bold(color.SkyBlue(banner.String()[:len(banner.String())-1])) + version + "\n"
-	//title := color.White(style.Bold(self.Name)) + "    " + text.Brackets(self.Version.StringWithANSI())
-	//return title + "\n" + style.Dim(text.Repeat("=", len(title)))
 }

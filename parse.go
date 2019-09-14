@@ -23,6 +23,23 @@ type Flag struct {
 	Value   interface{}
 }
 
+func defaultFlags() []Flag {
+	return []Flag{
+		Flag{
+			Name:    "version",
+			Aliases: []string{"v"},
+			Usage:   "Print version",
+			Hidden:  true,
+		},
+		Flag{
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "Print help text",
+			Hidden:  true,
+		},
+	}
+}
+
 func (self Flag) Is(name string) bool {
 	for _, flagName := range self.Names() {
 		if flagName == name {
@@ -55,7 +72,49 @@ type Command struct {
 	Subcommands   map[string]Command
 	Flags         map[string]Flag
 	Usage         string
-	Action        interface{}
+	Action        func(c *Context) error
+}
+
+func defaultCommands() []Command {
+	return []Command{
+		Command{
+			Hidden:  true,
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "List of available commands or details for a specified command",
+			Action: func(c *Context) error {
+				c.CLI.renderHelp()
+				return nil
+			},
+		},
+		Command{
+			Hidden:  true,
+			Name:    "version",
+			Aliases: []string{"v"},
+			Usage:   "Display the version number, and other compile details",
+			Action: func(c *Context) error {
+				c.CLI.renderVersion()
+				return nil
+			},
+		},
+	}
+}
+
+func (self Command) InitSubcommands() []Command {
+	return []Command{
+		Command{
+			Name:          "help",
+			Aliases:       []string{"h"},
+			Usage:         "List of available commands or details for a specified command",
+			ParentCommand: &self,
+			Action: func(c *Context) error {
+				// TODO: Build out a template for command help which displays the
+				// subcommands instead of the top level global commands
+				//c.CLI.renderCommandHelp()
+				return nil
+			},
+		},
+	}
 }
 
 func (self Command) Is(name string) bool {
@@ -67,6 +126,7 @@ func (self Command) Is(name string) bool {
 	return false
 }
 
+func (self Command) isEmpty() bool        { return len(self.Name) == 0 }
 func (self Command) Names() []string      { return append([]string{self.Name}, self.Aliases...) }
 func (self Command) HasSubcommands() bool { return len(self.Subcommands) > 0 }
 
@@ -90,16 +150,18 @@ func (self *CLI) parse(arguments []string) *Context {
 		if string(argument[0]) == "-" || len(argument) > 2 && argument[:2] == "--" {
 			argument = strings.ReplaceAll(argument, "-", "")
 			var flagName string
-			var flagValue string
+			var flagValue interface{}
 			if strings.Contains(argument, "=") {
 				flagParts := strings.Split(argument, "=")
 				flagName = flagParts[0]
 				flagValue = flagParts[1]
 			} else {
 				skipArgument = true
+				flagName = argument
 				if len(arguments) > (index + 1) {
-					flagName = argument
 					flagValue = arguments[index+1]
+				} else {
+					flagValue = true
 				}
 			}
 			ok, flag := self.isFlag(flagName)
@@ -123,5 +185,3 @@ func (self *CLI) parse(arguments []string) *Context {
 	}
 	return context
 }
-
-func (self *Command) isEmpty() bool { return len(self.Name) == 0 }
