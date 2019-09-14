@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	log "github.com/multiverse-os/cli/log"
+	radix "github.com/multiverse-os/cli/radix"
 )
 
 /// TASKS /////////////////////////////////////////////////////////////////////
@@ -27,25 +29,32 @@ type Action func(input *Input) error
 // flag levels which would be best avoided anyways for confusion reasons the global option flag should be callable anywhere. this is the expected
 // and normal functionality.
 // CompilerSignature string // This will allow developers to provide signed builds that can be verified to prevent tampering
+type SoftwareBuild struct {
+	Checksum   string
+	Signature  string
+	CompiledAt time.Time
+}
+
+// TODO: Should shell be a modificaiton of this, or its own object?
 type CLI struct {
 	Name          string
 	Version       Version
 	Description   string
 	Usage         string
 	ANSI          bool
-	Commands      []Command
-	Flags         []Flag
+	Build         SoftwareBuild
+	Router        *radix.Tree
 	Logger        log.Logger
-	CompiledAt    time.Time
 	WriteMutex    sync.Mutex
 	Writer        io.Writer
-	ErrWriter     io.Writer
+	ErrorWriter   io.Writer
 	Hooks         map[string]Hook
 	DefaultAction Action
 }
 
 func New(cli *CLI) *CLI {
-	cli.CompiledAt = time.Now()
+	cli.Build.CompiledAt = time.Now()
+	// NOTE: If required assignments are missing, set defaults
 	if len(cli.Logger.Name) == 0 {
 		cli.Logger = log.DefaultLogger(cli.Name, true, true)
 	}
@@ -62,34 +71,87 @@ func New(cli *CLI) *CLI {
 	if cli.Writer == nil {
 		cli.Writer = os.Stdout
 	}
+	// NOTE: Parse commands then parse arguments coming into Run
+
 	return cli
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
-	input := LoadInput(self, &Command{}, []*Flag{})
+	fmt.Println("Entering CLI.Run()")
+	inputs := LoadInput(self, &Command{}, []*Flag{})
 	self.renderHelp()
 
-	// TODO: Add shell completion code (old code used to be here)
-	// TODO: So here, is where we would see if any action is called, and if
-	// defaultaction is nil, then we just call help, this avoids any used
-	// memory by just applying the functionality in order of operations
-	// TODO: So previous version this code is started from, would execute actions
-	// located inside the command, but then still run default action. This is
-	// really poorly designed. we want to make a rich parsing function that loads
-	// up a ACTIVE_MAP then use switch case to go through that ACTIVE_MAP and
-	// execute the actions
-	// Run default Action
-	// TODO: Here we want to build the argument/flag/command/subcommand map by
-	// parsing the arguments, then we process it. This will also be where we just
-	// run the help command if no DefaultAction is defined. We dont need all this
-	// extra logic assigning help to default action, or having special functions
-	// for showhelp and close vs show help, we just do it all here and reduce our
-	// overall codebase signficiantly
-
-	err = self.DefaultAction(input)
+	err = self.DefaultAction(inputs)
 	if err != nil {
 		self.Logger.Error(err)
 	}
 
 	return err
+}
+
+type Input struct {
+	CLI     *CLI
+	Command *Command
+	Flags   []*Flag
+}
+
+func LoadInput(cli *CLI, command *Command, flags []*Flag) *Input {
+	return &Input{CLI: cli, Command: command, Flags: flags}
+}
+
+var VersionFlag Flag = Flag{
+	Name:    "version",
+	Aliases: []string{"v"},
+	Usage:   "Print version",
+	Hidden:  true,
+}
+
+var HelpFlag Flag = Flag{
+	Name:    "help",
+	Aliases: []string{"h"},
+	Usage:   "Print help text",
+	Hidden:  true,
+}
+
+func defaultCommands() []Command {
+	return []Command{
+		Command{
+			Hidden:  true,
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "List of available commands or details for a specified command",
+			//ArgsUsage: "[command]",
+			//Subcommands: InitSubcommands(),
+			Action: func() error {
+				// TODO: Args need to be loaded into context so its accessible
+				//args := c.Args()
+				//if args.Present() {
+				//	return ShowCommandHelp(c, args.First())
+				//}
+				//ShowCLIHelp(c)
+				return nil
+			},
+		},
+	}
+}
+
+func (self Command) InitSubcommands() []Command {
+	return []Command{
+		Command{
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "List of available commands or details for a specified command",
+			//ArgsUsage:     "[command]",
+			ParentCommand: &self,
+			Action: func() error {
+				// TODO: Fix this because this is all leading to massive bloat
+				//args := c.Args()
+				//if args.Present() {
+				//	return ShowCommandHelp(c, args.First())
+				//}
+				//return ShowSubcommandHelp(c)
+				return nil
+			},
+		},
+	}
 }

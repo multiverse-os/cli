@@ -27,6 +27,17 @@ func (self *CLI) renderHelp() error {
 	return nil
 }
 
+// TODO: Create the below variant as an option and store these options in their
+// own subpackages just like with spinners and loaders in text library.
+///////////////////////////////////////////////////////////////////////////////
+//
+//  Usage: cmdsafe [global flags ...] command [flags ...]
+//
+//  Global flags:
+//    -db path
+//          The database path (default "data.db")
+//
+
 func defaultTemplate() string {
 	return `{{.header}}
   {{.usage}}:
