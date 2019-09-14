@@ -25,16 +25,16 @@ type Flag struct {
 
 func (self Flag) Visible() bool { return !self.Hidden }
 
-func (self Flag) Alias() string {
+func (self Flag) NameHelpString() (output string) {
 	if len(self.Aliases) > 0 {
 		if len(self.Aliases[0]) >= 2 {
-			return "--" + self.Aliases[0]
+			output += "--" + self.Aliases[0]
 		} else {
-			return "-" + self.Aliases[0]
+			output += "-" + self.Aliases[0]
 		}
-	} else {
-		return ""
 	}
+	output += ", --" + self.Name
+	return output
 }
 
 func (self Command) visibleFlags() (flags []Flag) {
@@ -87,6 +87,16 @@ type Command struct {
 	Flags       []Flag
 	Usage       string
 	Action      func(c *Context) error
+}
+
+func (self Command) NameHelpString() (output string) {
+	output += self.Name
+	if len(self.Aliases) > 0 {
+		if len(self.Aliases[0]) <= 2 {
+			output += ", " + self.Aliases[0]
+		}
+	}
+	return output
 }
 
 func (self Command) Visible() bool { return !self.Hidden }
