@@ -24,9 +24,27 @@ func main() {
 		},
 		Commands: []cli.Command{
 			cli.Command{
-				Name:    "complete",
+				Name:    "list",
 				Aliases: []string{"c"},
 				Usage:   "complete a task on the list",
+				Flags: []cli.Flag{
+					cli.Flag{
+						Name:    "filter",
+						Aliases: []string{"f"},
+						Value:   "all",
+						Usage:   "filter all the things",
+					},
+				},
+				Subcommands: []cli.Command{
+					cli.Command{
+						Name:  "add",
+						Usage: "lists all of something",
+						Action: func(c *cli.Context) error {
+							fmt.Println("add a thing to the list")
+							return nil
+						},
+					},
+				},
 				Action: func(c *cli.Context) error {
 					return nil
 				},

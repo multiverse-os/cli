@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"strings"
+
 	template "github.com/multiverse-os/cli/template"
 	text "github.com/multiverse-os/cli/text"
 	color "github.com/multiverse-os/cli/text/ansi/color"
@@ -12,10 +14,23 @@ import (
 // and ensuring the documentation is consistent, this should be output to a
 // documentation that can be referrenced from the README.
 
-func (self *CLI) renderHelp() error {
-	err := template.OutputStdOut(defaultHelpTemplate(), map[string]string{
+func (self *CLI) renderCommandHelp(command Command) error {
+	err := template.OutputStdOut(defaultHelpTemplate(self.Name, command.visibleSubcommands(), command.visibleFlags()), map[string]string{
 		"header":            self.header(true),
-		"name":              self.Name,
+		"description":       self.Description,
+		"usage":             color.SkyBlue(style.Bold("Usage")),
+		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
+		"availableFlags":    color.SkyBlue(style.Bold("Flags")),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (self *CLI) renderHelp() error {
+	err := template.OutputStdOut(defaultHelpTemplate(self.Name, self.visibleCommands(), self.visibleFlags()), map[string]string{
+		"header":            self.header(true),
 		"description":       self.Description,
 		"usage":             color.SkyBlue(style.Bold("Usage")),
 		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
@@ -30,20 +45,22 @@ func (self *CLI) renderHelp() error {
 // TODO: Create the below variant as an option and store these options in their
 // own subpackages just like with spinners and loaders in text library.
 ///////////////////////////////////////////////////////////////////////////////
-func defaultHelpTemplate() string {
-	return `{{.header}}
-  {{.usage}}:
-    ` + color.Fuchsia(style.Bold(`{{.name}}`)) + ` ` + style.Dim(`[command]`) + `
-  
-  {{.availableCommands}}:
-    ` + style.Bold(`help`) + `       ` + style.Dim(`Display help text, specify a command for in depth command help`) + `
-    ` + style.Bold(`version`) + `    ` + style.Dim(`Display version, and compiler information`) + `
-  
-  {{.availableFlags}}:
-    ` + style.Bold(`-h`) + `, ` + style.Bold(`--help`) + `      ` + style.Dim(`help for {{.name}}`) + `
-        ` + style.Bold(`--version`) + `   ` + style.Dim(`version for {{.name}}`) + `
+func defaultHelpTemplate(name string, commands []Command, flags []Flag) (t string) {
+	t += "{{.header}}\n"
+	t += "  {{.usage}}:\n"
+	t += "    " + color.Fuchsia(style.Bold(name)) + "  " + style.Dim("[command]") + "\n\n"
+	t += "  {{.availableCommands}}:\n"
+	for _, command := range commands {
+		t += "    " + style.Bold(command.Name) + strings.Repeat(" ", (18-len(command.Name))) + style.Dim(command.Usage) + "\n"
+	}
+	t += "\n"
+	t += "  {{.availableFlags}}:\n"
+	for _, flag := range flags {
+		t += "    " + style.Bold(flag.Alias()+", --"+flag.Name) + strings.Repeat(" ", (12-len(flag.Name))) + style.Dim(flag.Usage) + "\n"
+	}
+	t += "\n"
 
-`
+	return t
 }
 
 // Available Banners Fonts

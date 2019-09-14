@@ -23,19 +23,42 @@ type Flag struct {
 	Value   interface{}
 }
 
+func (self Flag) Visible() bool { return !self.Hidden }
+
+func (self Flag) Alias() string {
+	if len(self.Aliases) > 0 {
+		if len(self.Aliases[0]) >= 2 {
+			return "--" + self.Aliases[0]
+		} else {
+			return "-" + self.Aliases[0]
+		}
+	} else {
+		return ""
+	}
+}
+
+func (self Command) visibleFlags() (flags []Flag) {
+	for _, flag := range self.Flags {
+		if flag.Visible() {
+			flags = append(flags, flag)
+		}
+	}
+	return append(flags, defaultCommandFlags()...)
+}
+
 func defaultFlags() []Flag {
 	return []Flag{
 		Flag{
 			Name:    "version",
 			Aliases: []string{"v"},
 			Usage:   "Print version",
-			Hidden:  true,
+			Hidden:  false,
 		},
 		Flag{
 			Name:    "help",
 			Aliases: []string{"h"},
 			Usage:   "Print help text",
-			Hidden:  true,
+			Hidden:  false,
 		},
 	}
 }
@@ -51,28 +74,30 @@ func (self Flag) Is(name string) bool {
 
 func (flag Flag) Names() []string { return append([]string{flag.Name}, flag.Aliases...) }
 
-func flagPrefix(name string) string {
-	if len(name) >= 2 {
-		return "--"
-	} else {
-		return "-"
-	}
-}
-
 // TODO: Are hooks really necessary? Maybe it would be better to just implement
 // a middleware like functionality and push this even closer to being more like
 // web development to make it easier to comphrehend and extend
 // TODO: Why do we have 'Usage' AND 'UsageText' seems like we should be merging this in some way. Also is this diff than description?
 type Command struct {
-	Hidden        bool
-	Category      int
-	Name          string
-	Aliases       []string
-	ParentCommand *Command
-	Subcommands   map[string]Command
-	Flags         map[string]Flag
-	Usage         string
-	Action        func(c *Context) error
+	Hidden      bool
+	Category    int
+	Name        string
+	Aliases     []string
+	Subcommands []Command
+	Flags       []Flag
+	Usage       string
+	Action      func(c *Context) error
+}
+
+func (self Command) Visible() bool { return !self.Hidden }
+
+func (self *Command) visibleSubcommands() (commands []Command) {
+	for _, command := range self.Subcommands {
+		if command.Visible() {
+			commands = append(commands, command)
+		}
+	}
+	return append(commands, defaultSubcommands()...)
 }
 
 func defaultCommands() []Command {
@@ -100,19 +125,23 @@ func defaultCommands() []Command {
 	}
 }
 
-func (self Command) InitSubcommands() []Command {
+func defaultCommandFlags() []Flag {
+	return []Flag{
+		Flag{
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "Print help text",
+			Hidden:  false,
+		},
+	}
+}
+
+func defaultSubcommands() []Command {
 	return []Command{
 		Command{
-			Name:          "help",
-			Aliases:       []string{"h"},
-			Usage:         "List of available commands or details for a specified command",
-			ParentCommand: &self,
-			Action: func(c *Context) error {
-				// TODO: Build out a template for command help which displays the
-				// subcommands instead of the top level global commands
-				//c.CLI.renderCommandHelp()
-				return nil
-			},
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "List of available commands or details for a specified command",
 		},
 	}
 }
@@ -126,9 +155,9 @@ func (self Command) Is(name string) bool {
 	return false
 }
 
-func (self Command) isEmpty() bool        { return len(self.Name) == 0 }
-func (self Command) Names() []string      { return append([]string{self.Name}, self.Aliases...) }
-func (self Command) HasSubcommands() bool { return len(self.Subcommands) > 0 }
+func (self Command) Empty() bool     { return len(self.Name) == 0 }
+func (self Command) NotEmpty() bool  { return !self.Empty() }
+func (self Command) Names() []string { return append([]string{self.Name}, self.Aliases...) }
 
 func (self *CLI) parse(arguments []string) *Context {
 	var skipArgument bool
@@ -170,15 +199,15 @@ func (self *CLI) parse(arguments []string) *Context {
 				context.Flags[flag.Name] = flag
 			}
 		} else {
-			if context.Command.isEmpty() {
+			if context.Command.Empty() {
 				ok, command := self.isCommand(argument)
 				if ok {
 					context.Command = command
 				}
 			} else {
-				ok, subcommand := self.isSubcommand(context.Command, argument)
+				ok, Subcommand := self.isSubcommand(context.Command, argument)
 				if ok {
-					context.Subcommand = subcommand
+					context.Subcommand = Subcommand
 				}
 			}
 		}

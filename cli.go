@@ -60,9 +60,27 @@ func New(cli *CLI) *CLI {
 	if cli.Writer == nil {
 		cli.Writer = os.Stdout
 	}
-	cli.Flags = defaultFlags()
-	cli.Commands = defaultCommands()
+	cli.Flags = append(cli.Flags, defaultFlags()...)
+	cli.Commands = append(cli.Commands, defaultCommands()...)
 	return cli
+}
+
+func (self *CLI) visibleCommands() (commands []Command) {
+	for _, command := range self.Commands {
+		if command.Visible() {
+			commands = append(commands, command)
+		}
+	}
+	return commands
+}
+
+func (self *CLI) visibleFlags() (flags []Flag) {
+	for _, flag := range self.Flags {
+		if flag.Visible() {
+			flags = append(flags, flag)
+		}
+	}
+	return flags
 }
 
 func (self *CLI) isFlag(flagName string) (bool, Flag) {
@@ -98,8 +116,12 @@ func (self *CLI) Run(arguments []string) (err error) {
 	if _, ok := context.Flags["version"]; ok {
 		self.renderVersion()
 	} else if _, ok = context.Flags["help"]; ok {
-		self.renderHelp()
-	} else if !context.Command.isEmpty() {
+		if context.Command.NotEmpty() {
+			self.renderCommandHelp(context.Command)
+		} else {
+			self.renderHelp()
+		}
+	} else if context.Command.NotEmpty() {
 		err = context.Command.Action(context)
 	} else {
 		self.renderHelp()
