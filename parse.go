@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -22,6 +21,15 @@ type Flag struct {
 	Usage   string
 	Hidden  bool
 	Value   interface{}
+}
+
+func (self Flag) Is(name string) bool {
+	for _, flagName := range self.Names() {
+		if flagName == name {
+			return true
+		}
+	}
+	return false
 }
 
 func (flag Flag) Names() []string { return append([]string{flag.Name}, flag.Aliases...) }
@@ -50,43 +58,66 @@ type Command struct {
 	Action        interface{}
 }
 
-func (self Command) HasSubcommands() bool { return len(self.Subcommands) > 0 }
+func (self Command) Is(name string) bool {
+	for _, commandName := range self.Names() {
+		if commandName == name {
+			return true
+		}
+	}
+	return false
+}
+
 func (self Command) Names() []string      { return append([]string{self.Name}, self.Aliases...) }
+func (self Command) HasSubcommands() bool { return len(self.Subcommands) > 0 }
 
 func (self *CLI) parse(arguments []string) *Context {
 	var skipArgument bool
 
 	context := &Context{
 		CLI:        self,
-		Flags:      []*Flag{},
-		Command:    &Command{},
-		Subcommand: &Command{},
+		Flags:      []Flag{},
+		Command:    Command{},
+		Subcommand: Command{},
 	}
 
 	// TODO: Decide if flags before command should be global or if flags will in
 	// general get ran by globals then command flags regardless of placement
 	for index, argument := range arguments {
-		fmt.Println("argument:", argument)
 		if skipArgument {
 			skipArgument = false
 			continue
 		}
-		if string(argument[0]) == "-" || argument[:2] == "--" {
+		if string(argument[0]) == "-" || len(argument) > 2 && argument[:2] == "--" {
 			argument = strings.ReplaceAll(argument, "-", "")
+			var flagName string
+			var flagValue string
 			if strings.Contains(argument, "=") {
-				flag := strings.Split(argument, "=")
-				context.Flags = append(context.Flags, &Flag{Name: flag[0], Value: flag[1]})
+				flagParts := strings.Split(argument, "=")
+				flagName = flagParts[0]
+				flagValue = flagParts[1]
 			} else {
 				skipArgument = true
 				if len(arguments) > (index + 1) {
-					context.Flags = append(context.Flags, &Flag{Name: argument, Value: arguments[index+1]})
+					flagName = argument
+					flagValue = arguments[index+1]
 				}
+			}
+			ok, flag := self.isFlag(flagName)
+			if ok {
+				flag.Value = flagValue
+				context.Flags = append(context.Flags, flag)
 			}
 		} else {
 			if context.Command.isEmpty() {
-				context.Command = &Command{Name: argument}
+				ok, command := self.isCommand(argument)
+				if ok {
+					context.Command = command
+				}
 			} else {
-				context.Subcommand = &Command{Name: argument}
+				ok, subcommand := self.isSubcommand(context.Command, argument)
+				if ok {
+					context.Subcommand = subcommand
+				}
 			}
 		}
 	}

@@ -74,6 +74,33 @@ func New(cli *CLI) *CLI {
 	return cli
 }
 
+func (self *CLI) isFlag(flagName string) (bool, Flag) {
+	for _, flag := range self.Flags {
+		if flag.Is(flagName) {
+			return true, flag
+		}
+	}
+	return false, Flag{}
+}
+
+func (self *CLI) isCommand(commandName string) (bool, Command) {
+	for _, command := range self.Commands {
+		if command.Is(commandName) {
+			return true, command
+		}
+	}
+	return false, Command{}
+}
+
+func (self *CLI) isSubcommand(command Command, subcommandName string) (bool, Command) {
+	for _, subcommand := range command.Subcommands {
+		if subcommand.Is(subcommandName) {
+			return true, subcommand
+		}
+	}
+	return false, Command{}
+}
+
 func (self *CLI) Run(arguments []string) (err error) {
 	context := self.parse(arguments[1:])
 
@@ -97,9 +124,9 @@ func (self *CLI) Run(arguments []string) (err error) {
 
 type Context struct {
 	CLI        *CLI
-	Command    *Command
-	Subcommand *Command
-	Flags      []*Flag
+	Command    Command
+	Subcommand Command
+	Flags      []Flag
 }
 
 var VersionFlag Flag = Flag{
