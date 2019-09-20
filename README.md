@@ -20,6 +20,8 @@ The `cli-framework` aims to provide a consistent, security focused, internationa
     
     * **ASCII-based visualizations** in the form of **Tables**, **Graphs/Histograms**, **QR Codes**, **Banners**, and development continues to improve each visualization with default icon characters available by default in Debian linux.
 
+    * **Animated loading bars, and spinners** with a variety of different animation styles, and an esay API to extend and implement custom loading animations.
+
     * **Localization support** extending passed just alternate strings, but correct formating of numbers, currency, and dates; inspired by rails.
 
     * *(Planned)* Middleware support to replace a overly complex hook before/after action. The goal is to simplify system apaplication development by using development patterns familiar to web developers to make the entire process more familiar and easier.
