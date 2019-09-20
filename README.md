@@ -69,7 +69,11 @@ the `cli-framework` can be used.
 
 ### Arguments
 
-You can lookup arguments by calling the `Args` function on `cli.Context`, e.g.:
+Below is the simpliest initalization of the `cli` framework. It opts out of
+commands, flags, and just passes down your arguments to the default action. It
+still provides version, help output, and executable release information like
+developer signature (this may move to a different library eventually). You can 
+lookup arguments by calling the `Args` function on `cli.Context`, e.g.:
 
 ```go
 package main
@@ -86,7 +90,7 @@ func main() {
     Action: func(c *cli.Context) error {
       fmt.Printf("Hello %q", c.Args().Get(0))
       return nil
-    }
+    },
   })
 
   cmd.Run(os.Args)
