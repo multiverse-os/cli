@@ -3,10 +3,29 @@
 ## Multiverse: command-line interface 'cli' Go framework
 **URL** [multiverse-os.org](https://multiverse-os.org)
 
-The `cli-framework` aims to provide a consistent, security focused, internationalization (from the start), and other modern CLI features in such a way that it can be easily used in any software from script to full applications weather system service or web application. In addition to allowing interdepenent access to modular subpackages that can be used individually without being forced to include the entire `cli-framework`. 
+The `cli-framework` aims to provide a consistent, security focused, internationalization (in development), and other modern CLI features in such a way that it can be easily used in any software from script to full applications weather system service or web application. In addition to allowing interdepenent access to modular subpackages that can be used individually without being forced to include the entire `cli-framework`. 
 
-**Multiverse OS Core Go Library**
-The Multiverse `cli-framework` is designed to meet the requirements of Multiverse OS system programs, the result is a command-line interface framework where security and simplicity are development priorities. The framework includes all the necessary components for a high quality system application, featuring ANSI coloring, full VT-100 terminal control, variety of data input types, input validation, both `CLI` and `Sh` interfaces, daemonization, PID handling, custom CLI templates, basic OS interaction (for example, generic access to default cache and applcation directories provided by the OS), logging, localization, and ASCII graphs, QR codes, banners, and tables to render data in a human readable format. However unlike other libraries, each of these features beyond the most basic functionality needed for a CLI program are provided as sublibraries enabling devlepers to easily mix-and-match with their favorite libraries, or selectively use CLI framework components without creating bloated software. 
+#### Multiverse OS Core Framework
+`cli-framework` is designed to meet the requirements of Multiverse OS system applications; since this powers the low-level interface of each core application, Multiverse developers understand the importance of opting for simplicity, while still trying to provide a complete and intuitive user experience. *This is not production ready, it just reached v0.1.0, it currently does not provide validation or have adequate sanitization for both input, but also output printed to Terminal.*
+
+**Features** 
+
+    * **Full VT100 support** providing ANSI coloring, cursor, and terminal control. (A grid system is being developed, improvements to color to make it even easier to use, and CSS styling are planned features). 
+    
+    * **Built-ins for user input** including secure password input, list/menu, multiselect, shell, and input validaiton for all basic types. (Not fully implemented)
+    
+    * **Support for both command processor (flags, commands, and subcommands), and shell style `cli` interfaces**. In addition to interactive CLI tools, the Multiverse OS `cli` framework provides functionality for daemonization, PID handling, singals, and other basic functionality of a service. 
+    
+    * **Custom help, version, and shell output via basic templates** and soon formatting will extend to logging, human readable output.
+    
+    * **ASCII-based visualizations** in the form of **Tables**, **Graphs/Histograms**, **QR Codes**, **Banners**, and development continues to improve each visualization with default icon characters available by default in Debian linux.
+
+    * **Localization support** extending passed just alternate strings, but correct formating of numbers, currency, and dates; inspired by rails.
+
+    * *(Planned)* Middleware support to replace a overly complex hook before/after action. The goal is to simplify system apaplication development by using development patterns familiar to web developers to make the entire process more familiar and easier.
+
+This library just laws down the foundation for user interface development, next Multiverse OS developers will be offering a`gui` framework to work in sync with this library to provide full functionality and user experience for system application.
+
 
 ## Quick Start: the simplest example
 The following command-line tool CLI application will run the `Action`. Unlessthe two default flags/commands: (1) **Help** accessible by the flag `--help` or `-h` or by the command `help` or `h`. (2) **Version** accessible by the flag `--version` or `-v` or by the command `version` or `v` which simply displays the version. 
