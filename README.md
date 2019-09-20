@@ -159,3 +159,5 @@ func main() {
   cmd.Run(os.Args)
 }
 ```
+
+*(Add argument examples, and link to various subpackage examples)*
