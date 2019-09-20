@@ -10,21 +10,21 @@ The `cli-framework` aims to provide a consistent, security focused, internationa
 
 **Features** 
 
-    * **Full VT100 support** providing ANSI coloring, cursor, and terminal control. (A grid system is being developed, improvements to color to make it even easier to use, and CSS styling are planned features). 
-    
-    * **Built-ins for user input** including secure password input, list/menu, multiselect, shell, and input validaiton for all basic types. (Not fully implemented)
-    
-    * **Support for both command processor (flags, commands, and subcommands), and shell style `cli` interfaces**. In addition to interactive CLI tools, the Multiverse OS `cli` framework provides functionality for daemonization, PID handling, singals, and other basic functionality of a service. 
-    
-    * **Custom help, version, and shell output via basic templates** and soon formatting will extend to logging, human readable output.
-    
-    * **ASCII-based visualizations** in the form of **Tables**, **Graphs/Histograms**, **QR Codes**, **Banners**, and development continues to improve each visualization with default icon characters available by default in Debian linux.
+  * **Full VT100 support** providing ANSI coloring, cursor, and terminal control. (A grid system is being developed, improvements to color to make it even easier to use, and CSS styling are planned features). 
+  
+  * **Built-ins for user input** including secure password input, list/menu, multiselect, shell, and input validaiton for all basic types. (Not fully implemented)
+  
+  * **Support for both command processor (flags, commands, and subcommands), and shell style `cli` interfaces**. In addition to interactive CLI tools, the Multiverse OS `cli` framework provides functionality for daemonization, PID handling, singals, and other basic functionality of a service. 
+  
+  * **Custom help, version, and shell output via basic templates** and soon formatting will extend to logging, human readable output.
+  
+  * **ASCII-based visualizations** in the form of **Tables**, **Graphs/Histograms**, **QR Codes**, **Banners**, and development continues to improve each visualization with default icon characters available by default in Debian linux.
 
-    * **Animated loading bars, and spinners** with a variety of different animation styles, and an esay API to extend and implement custom loading animations.
+  * **Animated loading bars, and spinners** with a variety of different animation styles, and an esay API to extend and implement custom loading animations.
 
-    * **Localization support** extending passed just alternate strings, but correct formating of numbers, currency, and dates; inspired by rails.
+  * **Localization support** extending passed just alternate strings, but correct formating of numbers, currency, and dates; inspired by rails.
 
-    * *(Planned)* Middleware support to replace a overly complex hook before/after action. The goal is to simplify system apaplication development by using development patterns familiar to web developers to make the entire process more familiar and easier.
+  * *(Planned)* Middleware support to replace a overly complex hook before/after action. The goal is to simplify system apaplication development by using development patterns familiar to web developers to make the entire process more familiar and easier.
 
 This library just laws down the foundation for user interface development, next Multiverse OS developers will be offering a`gui` framework to work in sync with this library to provide full functionality and user experience for system application.
 
