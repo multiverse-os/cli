@@ -77,7 +77,7 @@ func (self *CLI) header(showVersion bool) string {
 	// move it out of the package and call that package if this is != 0
 	// This new file could handle all the various templates. Which should also
 	// include version output
-	if len(self.Header) == 0 {
+	if len(self.HelpHeader) == 0 {
 		banner := banner.New("calvins", " "+self.Name)
 		var version string
 		if showVersion {
@@ -85,6 +85,6 @@ func (self *CLI) header(showVersion bool) string {
 		}
 		return style.Bold(color.SkyBlue(banner.String()[:len(banner.String())-1])) + version + "\n"
 	} else {
-		return self.Header
+		return self.HelpHeader
 	}
 }

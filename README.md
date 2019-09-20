@@ -1,12 +1,14 @@
 <img src="https://avatars2.githubusercontent.com/u/24763891?s=400&u=c1150e7da5667f47159d433d8e49dad99a364f5f&v=4"  width="256px" height="256px" align="right" alt="Multiverse OS Logo">
 
-## Multiverse: command-line interface 'cli' Go framework
+## Multiverse OS: Go 'cli' Framework
 **URL** [multiverse-os.org](https://multiverse-os.org)
 
-The `cli-framework` aims to provide a consistent, security focused, internationalization (in development), and other modern CLI features in such a way that it can be easily used in any software from script to full applications weather system service or web application. In addition to allowing interdepenent access to modular subpackages that can be used individually without being forced to include the entire `cli-framework`. 
+The `cli-framework` aims to provide a consistent, security focused, framework for creating command-line tools from the standard command-processor (commands, flags, arguments), shell interfaces, and background daemons. The framework design is directly inspired by feature complete web application frameworks like Ruby's `rails`, which translates to internationalization (in development), and other modern CLI features *(see below for full list)*. The framework is specifically designed to have an incredibly light code footprint, with each of the features divded into subpackages enabling developers to select just the components they need; so the framework can be suited for simple scripts to full applications. 
+
 
 #### Multiverse OS Core Framework
 `cli-framework` is designed to meet the requirements of Multiverse OS system applications; since this powers the low-level interface of each core application, Multiverse developers understand the importance of opting for simplicity, while still trying to provide a complete and intuitive user experience. *This is not production ready, it just reached v0.1.0, it currently does not provide validation or have adequate sanitization for both input, but also output printed to Terminal.*
+
 
 **Features** 
 
@@ -88,8 +90,8 @@ The current default output of the simplest configurations will generate this:
 Below you will find a collection of examples to illustrate the various ways
 the `cli-framework` can be used. 
 
-### Arguments
 
+### Arguments
 Below is the simpliest initalization of the `cli` framework. It opts out of
 commands, flags, and just passes down your arguments to the default action. It
 still provides version, help output, and executable release information like
@@ -119,7 +121,6 @@ func main() {
 ```
 
 ### Flags
-
 Setting and querying flags is simple.
 
 ```go
