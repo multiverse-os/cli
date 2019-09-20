@@ -71,10 +71,20 @@ func defaultHelpTemplate(name string, commands []Command, flags []Flag) (t strin
 // Larry3D, Letters, NancyJ, Rectangles, Relief, Small, Smisome1, Standard
 // Ticks, TicksSlant, calvins
 func (self *CLI) header(showVersion bool) string {
-	banner := banner.New("calvins", " "+self.Name)
-	var version string
-	if showVersion {
-		version = text.Brackets(self.Version.String())
+	// TODO: Calling the banner.New() MUST be moved into separate template file
+	// because its kinda bullky since it calls in a bunch of fonts currently. And
+	// ideally we want to avoid calling it in if we don't use it. To do that we
+	// move it out of the package and call that package if this is != 0
+	// This new file could handle all the various templates. Which should also
+	// include version output
+	if len(self.Header) == 0 {
+		banner := banner.New("calvins", " "+self.Name)
+		var version string
+		if showVersion {
+			version = text.Brackets(self.Version.String())
+		}
+		return style.Bold(color.SkyBlue(banner.String()[:len(banner.String())-1])) + version + "\n"
+	} else {
+		return self.Header
 	}
-	return style.Bold(color.SkyBlue(banner.String()[:len(banner.String())-1])) + version + "\n"
 }

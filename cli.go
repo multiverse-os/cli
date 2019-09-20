@@ -19,6 +19,7 @@ type Context struct {
 	Command    Command
 	Subcommand Command
 	Flags      map[string]Flag
+	Arguments  []string
 }
 
 type SoftwareBuild struct {
@@ -30,6 +31,7 @@ type SoftwareBuild struct {
 // TODO: Should shell be a modificaiton of this, or its own object?
 type CLI struct {
 	Name          string
+	HelpHeader    string
 	Version       Version
 	Description   string
 	Usage         string

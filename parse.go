@@ -177,10 +177,21 @@ func (self *CLI) parse(arguments []string) *Context {
 		Flags:      map[string]Flag{},
 		Command:    Command{},
 		Subcommand: Command{},
+		Arguments:  []string{},
 	}
 
-	// TODO: Decide if flags before command should be global or if flags will in
-	// general get ran by globals then command flags regardless of placement
+	// NOTE: **************************************************
+	//         This parse method is temporary, a router based
+	//         on a static double trie for at least handling
+	//         the command, subcommand, and possibly 3 levels
+	//         of commands. This will also provide a built in
+	//         completer without needing to build special file
+	//         for each shell.
+	//        [shlexer] also this shell lexer needs to be merged
+	//         in and reviewed against the mattn one to see if
+	//         we can improve our rough draft
+	//       **************************************************
+
 	for index, argument := range arguments {
 		if skipArgument {
 			skipArgument = false
@@ -221,11 +232,12 @@ func (self *CLI) parse(arguments []string) *Context {
 				ok, command := self.isCommand(argument)
 				if ok {
 					context.Command = command
-				}
-			} else {
-				ok, Subcommand := self.isSubcommand(context.Command, argument)
-				if ok {
-					context.Subcommand = Subcommand
+					ok, Subcommand := self.isSubcommand(context.Command, arguments[index+1])
+					if ok {
+						context.Subcommand = Subcommand
+						context.Arguments = arguments[(index + 1):]
+					}
+					return context
 				}
 			}
 		}
