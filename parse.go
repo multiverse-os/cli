@@ -232,10 +232,12 @@ func (self *CLI) parse(arguments []string) *Context {
 				ok, command := self.isCommand(argument)
 				if ok {
 					context.Command = command
-					ok, Subcommand := self.isSubcommand(context.Command, arguments[index+1])
-					if ok {
-						context.Subcommand = Subcommand
-						context.Arguments = arguments[(index + 1):]
+					if len(arguments) < index+1 {
+						ok, Subcommand := self.isSubcommand(context.Command, arguments[index+1])
+						if ok {
+							context.Subcommand = Subcommand
+							context.Arguments = arguments[(index + 1):]
+						}
 					}
 					return context
 				}
