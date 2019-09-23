@@ -14,7 +14,7 @@ import (
 // and ensuring the documentation is consistent, this should be output to a
 // documentation that can be referrenced from the README.
 
-func (self *CLI) renderCommandHelp(command Command) error {
+func (self *CLI) RenderCommandHelp(command Command) error {
 	err := template.OutputStdOut(defaultHelpTemplate(self.Name, command.visibleSubcommands(), command.visibleFlags()), map[string]string{
 		"header":            self.header(true),
 		"description":       self.Description,
@@ -28,7 +28,7 @@ func (self *CLI) renderCommandHelp(command Command) error {
 	return nil
 }
 
-func (self *CLI) renderHelp() error {
+func (self *CLI) RenderHelp() error {
 	err := template.OutputStdOut(defaultHelpTemplate(self.Name, self.visibleCommands(), self.visibleFlags()), map[string]string{
 		"header":            self.header(true),
 		"usageDescription":  self.Usage,

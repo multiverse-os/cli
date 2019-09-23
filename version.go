@@ -21,7 +21,7 @@ type BuildInformation struct {
 	Signature  string
 }
 
-func (self *CLI) renderVersion() error {
+func (self *CLI) RenderVersion() error {
 	err := template.OutputStdOut(defaultVersionTemplate(), map[string]string{
 		"header":  self.header(false),
 		"version": self.Version.String(),

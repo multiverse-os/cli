@@ -19,7 +19,7 @@ type Context struct {
 	Command    Command
 	Subcommand Command
 	Flags      map[string]Flag
-	Arguments  []string
+	Args       []string
 }
 
 type SoftwareBuild struct {
@@ -125,18 +125,18 @@ func (self *CLI) Run(arguments []string) (err error) {
 	context := self.parse(arguments[1:])
 
 	if _, ok := context.Flags["version"]; ok {
-		self.renderVersion()
+		self.RenderVersion()
 	} else if _, ok = context.Flags["help"]; ok {
 		if context.Command.NotEmpty() {
-			self.renderCommandHelp(context.Command)
+			self.RenderCommandHelp(context.Command)
 		} else {
-			self.renderHelp()
+			self.RenderHelp()
 		}
 	} else if context.Command.NotEmpty() {
 		err = context.Command.Action(context)
 	} else {
-		self.renderHelp()
-		err = self.DefaultAction(context)
+		self.RenderHelp()
+		//err = self.DefaultAction(context)
 	}
 
 	if err != nil {

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -118,7 +119,7 @@ func defaultCommands() []Command {
 			Aliases: []string{"h"},
 			Usage:   "List of available commands or details for a specified command",
 			Action: func(c *Context) error {
-				c.CLI.renderHelp()
+				c.CLI.RenderHelp()
 				return nil
 			},
 		},
@@ -128,7 +129,7 @@ func defaultCommands() []Command {
 			Aliases: []string{"v"},
 			Usage:   "Display the version number, and other compile details",
 			Action: func(c *Context) error {
-				c.CLI.renderVersion()
+				c.CLI.RenderVersion()
 				return nil
 			},
 		},
@@ -174,10 +175,10 @@ func (self *CLI) parse(arguments []string) *Context {
 
 	context := &Context{
 		CLI:        self,
-		Flags:      map[string]Flag{},
+		Flags:      make(map[string]Flag),
 		Command:    Command{},
 		Subcommand: Command{},
-		Arguments:  []string{},
+		Args:       []string{},
 	}
 
 	// NOTE: **************************************************
@@ -232,11 +233,14 @@ func (self *CLI) parse(arguments []string) *Context {
 				ok, command := self.isCommand(argument)
 				if ok {
 					context.Command = command
-					if len(arguments) < index+1 {
+					if len(arguments) >= index+1 {
 						ok, Subcommand := self.isSubcommand(context.Command, arguments[index+1])
 						if ok {
+							fmt.Println("sub parsed")
 							context.Subcommand = Subcommand
-							context.Arguments = arguments[(index + 1):]
+						} else {
+							fmt.Println("not subcommand, turning into args")
+							context.Args = arguments[index+1:]
 						}
 					}
 					return context
