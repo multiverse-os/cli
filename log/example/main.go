@@ -2,21 +2,21 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	log "github.com/multiverse-os/cli-framework/log"
-	"github.com/multiverse-os/cli-framework/os/fs"
-	text "github.com/multiverse-os/cli-framework/text"
+	log "github.com/multiverse-os/cli/log"
+	color "github.com/multiverse-os/cli/text/ansi/color"
+	style "github.com/multiverse-os/cli/text/ansi/style"
 )
 
 func main() {
-	banner()
-	// Ephemeral Log Interface Example
-	log.Info("Print INFO level log to terminal (stdout)")
-	log.Log(log.WARN, "Write WARN level log to file (working directory)").File(fs.WorkingDirectory + "/debub.log")
+	wd, _ := os.Getwd()
+	log.Info("Print log to terminal (stdout)")
+	log.Log(log.WARN, "Write WARN level log to file (working directory)").File(wd + "/debub.log")
 
 }
 
 func banner() {
-	fmt.Println(text.Light("(Minimalistic)") + text.Gray(" Log Example"))
-	fmt.Println(text.Light(text.White("==========================")))
+	fmt.Println(style.Dim("(Minimalistic)") + color.Gray(" Log Example"))
+	fmt.Println(style.Dim(color.White("==========================")))
 }

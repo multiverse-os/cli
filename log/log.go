@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	text "github.com/multiverse-os/cli/text"
 	color "github.com/multiverse-os/cli/text/ansi/color"
 	style "github.com/multiverse-os/cli/text/ansi/style"
 )
@@ -88,7 +87,7 @@ func (self Entry) String() string {
 		}
 		if self.HasTimestamp() {
 			fmt.Println("Has timestamp, resolution is:", self.timestampResolution)
-			timestamp = " " + text.Brackets(style.Bold(self.Timestamp()))
+			timestamp = " " + "[ " + style.Bold(self.Timestamp()) + " ]"
 		}
 		return self.level.StringWithANSI() + timestamp + " " + values + " " + color.White(self.message)
 	case JSON:
@@ -102,7 +101,7 @@ func (self Entry) String() string {
 	default:
 		if self.HasTimestamp() {
 			fmt.Println("Has timestamp, resolution is:", self.timestampResolution)
-			timestamp = " " + text.Brackets(self.Timestamp())
+			timestamp = " " + "[ " + self.Timestamp() + " ]"
 		}
 		for key, value := range self.values {
 			values += (key + "=" + value)
