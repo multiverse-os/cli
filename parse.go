@@ -92,7 +92,7 @@ type Command struct {
 func (self Command) NameHelpString() (output string) {
 	output += self.Name
 	if len(self.Aliases) > 0 {
-		if len(self.Aliases[0]) <= 2 {
+		if len(self.Aliases[0]) > 1 {
 			output += ", " + self.Aliases[0]
 		}
 	}

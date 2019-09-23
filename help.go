@@ -31,7 +31,7 @@ func (self *CLI) renderCommandHelp(command Command) error {
 func (self *CLI) renderHelp() error {
 	err := template.OutputStdOut(defaultHelpTemplate(self.Name, self.visibleCommands(), self.visibleFlags()), map[string]string{
 		"header":            self.header(true),
-		"description":       self.Description,
+		"usageDescription":  self.Usage,
 		"usage":             color.SkyBlue(style.Bold("Usage")),
 		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
 		"availableFlags":    color.SkyBlue(style.Bold("Flags")),
@@ -46,7 +46,8 @@ func (self *CLI) renderHelp() error {
 // own subpackages just like with spinners and loaders in text library.
 ///////////////////////////////////////////////////////////////////////////////
 func defaultHelpTemplate(name string, commands []Command, flags []Flag) (t string) {
-	t += "{{.header}}\n"
+	t += "{{.header}}"
+	t += "  {{.usageDescription}}\n\n"
 	t += "  {{.usage}}:\n"
 	t += "    " + color.Fuchsia(style.Bold(name)) + "  " + style.Dim("[command]") + "\n\n"
 	if len(commands) > 0 {
