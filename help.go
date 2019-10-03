@@ -4,66 +4,49 @@ import (
 	"strings"
 
 	template "github.com/multiverse-os/cli/template"
+	templates "github.com/multiverse-os/cli/template/templates"
 	text "github.com/multiverse-os/cli/text"
 	color "github.com/multiverse-os/cli/text/ansi/color"
 	style "github.com/multiverse-os/cli/text/ansi/style"
 	banner "github.com/multiverse-os/cli/text/banner"
 )
 
+type helpType int
+
+const (
+	applicationHelp helpType = iota
+	commandHelp
+)
+
 // TODO: Since this is being generated from a template, to avoid wasting time,
 // and ensuring the documentation is consistent, this should be output to a
 // documentation that can be referrenced from the README.
-
 func (self *CLI) RenderCommandHelp(command Command) error {
-	err := template.OutputStdOut(defaultHelpTemplate(self.Name, command.visibleSubcommands(), command.visibleFlags()), map[string]string{
-		"header":            self.header(true),
-		"description":       self.Description,
-		"usage":             color.SkyBlue(style.Bold("Usage")),
-		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
-		"availableFlags":    color.SkyBlue(style.Bold("Flags")),
-	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return self.RenderHelpTemplate(commandHelp, command)
+}
+func (self *CLI) RenderApplicationHelp() error {
+	return self.RenderHelpTemplate(applicationHelp, Command{})
 }
 
-func (self *CLI) RenderHelp() error {
-	err := template.OutputStdOut(defaultHelpTemplate(self.Name, self.visibleCommands(), self.visibleFlags()), map[string]string{
+func (self *CLI) RenderHelpTemplate(renderType helpType, command Command) (err error) {
+	helpOptions := map[string]string{
 		"header":            self.header(true),
 		"usageDescription":  self.Usage,
 		"usage":             color.SkyBlue(style.Bold("Usage")),
 		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
 		"availableFlags":    color.SkyBlue(style.Bold("Flags")),
-	})
+	}
+	switch renderType {
+	case applicationHelp:
+		err = template.OutputStdOut(templates.DefaultHelp(self.Name, self.visibleCommands(), self.visibleFlags()), helpOptions)
+	case commandHelp:
+		err = template.OutputStdOut(templates.DefaultHelp(self.Name, command.visibleSubcommands(), command.visibleCommandFlags()), helpOptions)
+	}
 	if err != nil {
 		return err
+	} else {
+		return nil
 	}
-	return nil
-}
-
-// TODO: Create the below variant as an option and store these options in their
-// own subpackages just like with spinners and loaders in text library.
-///////////////////////////////////////////////////////////////////////////////
-func defaultHelpTemplate(name string, commands []Command, flags []Flag) (t string) {
-	t += "{{.header}}"
-	t += "  {{.usageDescription}}\n\n"
-	t += "  {{.usage}}:\n"
-	t += "    " + color.Fuchsia(style.Bold(name)) + "  " + style.Dim("[command]") + "\n\n"
-	if len(commands) > 0 {
-		t += "  {{.availableCommands}}:\n"
-		for _, command := range commands {
-			t += "    " + style.Bold(command.NameHelpString()) + strings.Repeat(" ", (18-len(command.NameHelpString()))) + style.Dim(command.Usage) + "\n"
-		}
-		t += "\n"
-	}
-	t += "  {{.availableFlags}}:\n"
-	for _, flag := range flags {
-		t += "    " + style.Bold(flag.NameHelpString()) + strings.Repeat(" ", (18-len(flag.NameHelpString()))) + style.Dim(flag.Usage) + "\n"
-	}
-	t += "\n"
-
-	return t
 }
 
 // Available Banners Fonts
@@ -88,4 +71,27 @@ func (self *CLI) header(showVersion bool) string {
 	} else {
 		return self.HelpHeader
 	}
+}
+
+// TODO: Create the below variant as an option and store these options in their
+// own subpackages just like with spinners and loaders in text library.
+///////////////////////////////////////////////////////////////////////////////
+func defaultHelp(name string, commands []Command, flags []Flag) (t string) {
+	t += "{{.header}}"
+	t += "  {{.usage}}:\n"
+	t += "    " + color.Fuchsia(style.Bold(name)) + "  " + style.Dim("[command]") + "\n\n"
+	if len(commands) > 0 {
+		t += "  {{.availableCommands}}:\n"
+		for _, command := range commands {
+			t += "    " + style.Bold(command.NameHelpString()) + strings.Repeat(" ", (18-len(command.NameHelpString()))) + style.Dim(command.Usage) + "\n"
+		}
+		t += "\n"
+	}
+	t += "  {{.availableFlags}}:\n"
+	for _, flag := range flags {
+		t += "    " + style.Bold(flag.NameHelpString()) + strings.Repeat(" ", (18-len(flag.NameHelpString()))) + style.Dim(flag.Usage) + "\n"
+	}
+	t += "\n"
+
+	return t
 }

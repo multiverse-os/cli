@@ -12,6 +12,10 @@ import (
 
 type Action func(context *Context) error
 
+// TODO: It would be great to impelement a middleware like system to
+// make CLI programming similar to web programming. Reusing these conceepts
+// should make it more familiar and easier to transpose code
+
 // TODO: Decide if flags should be segregated into global flags and
 // command flags
 type Context struct {
@@ -22,7 +26,7 @@ type Context struct {
 	Args       []string
 }
 
-type SoftwareBuild struct {
+type Build struct {
 	CompiledOn time.Time
 	Source     string
 	Signature  string
@@ -31,7 +35,6 @@ type SoftwareBuild struct {
 // TODO: Should shell be a modificaiton of this, or its own object?
 type CLI struct {
 	Name          string
-	HelpHeader    string
 	Version       Version
 	Description   string
 	Usage         string
@@ -123,7 +126,6 @@ func (self *CLI) isCommandFlag(command Command, flagName string) (bool, Flag) {
 
 func (self *CLI) Run(arguments []string) (err error) {
 	context := self.parse(arguments[1:])
-
 	if _, ok := context.Flags["version"]; ok {
 		self.RenderVersion()
 	} else if _, ok = context.Flags["help"]; ok {
@@ -136,7 +138,7 @@ func (self *CLI) Run(arguments []string) (err error) {
 		err = context.Command.Action(context)
 	} else {
 		self.RenderHelp()
-		//err = self.DefaultAction(context)
+		err = self.DefaultAction(context)
 	}
 
 	if err != nil {
