@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	template "github.com/multiverse-os/cli/template"
-	templates "github.com/multiverse-os/cli/template/templates"
 	text "github.com/multiverse-os/cli/text"
 	color "github.com/multiverse-os/cli/text/ansi/color"
 	style "github.com/multiverse-os/cli/text/ansi/style"
