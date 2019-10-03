@@ -40,7 +40,7 @@ type CLI struct {
 	Usage         string
 	Flags         []Flag
 	Commands      []Command
-	Build         SoftwareBuild
+	Build         Build
 	Logger        log.Logger
 	Writer        io.Writer
 	DefaultAction Action

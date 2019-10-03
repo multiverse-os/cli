@@ -1,9 +1,5 @@
 package cli
 
-import (
-	"strings"
-)
-
 type FlagType int
 
 const (

@@ -1,9 +1,5 @@
 package cli
 
-import (
-	"strings"
-)
-
 type Command struct {
 	Hidden      bool
 	Category    int
