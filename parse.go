@@ -5,7 +5,7 @@ import (
 )
 
 func (self *CLI) parse(arguments []string) *Context {
-	var skipArgument bool
+	var skipNextArgument bool
 
 	context := &Context{
 		CLI:        self,

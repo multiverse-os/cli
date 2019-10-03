@@ -61,7 +61,7 @@ func defaultCommands() []Command {
 			Aliases: []string{"h"},
 			Usage:   "List of available commands or details for a specified command",
 			Action: func(c *Context) error {
-				c.CLI.RenderHelp()
+				c.CLI.RenderApplicationHelp()
 				return nil
 			},
 		},

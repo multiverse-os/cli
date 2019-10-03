@@ -43,15 +43,6 @@ func (self Flag) Is(name string) bool {
 	return false
 }
 
-func (self Command) visibleFlags() (flags []Flag) {
-	for _, flag := range self.Flags {
-		if flag.Visible() {
-			flags = append(flags, flag)
-		}
-	}
-	return append(flags, defaultCommandFlags()...)
-}
-
 func defaultFlags() []Flag {
 	return []Flag{
 		Flag{

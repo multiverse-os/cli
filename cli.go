@@ -132,12 +132,12 @@ func (self *CLI) Run(arguments []string) (err error) {
 		if context.Command.NotEmpty() {
 			self.RenderCommandHelp(context.Command)
 		} else {
-			self.RenderHelp()
+			self.RenderApplicationHelp()
 		}
 	} else if context.Command.NotEmpty() {
 		err = context.Command.Action(context)
 	} else {
-		self.RenderHelp()
+		self.RenderApplicationHelp()
 		err = self.DefaultAction(context)
 	}
 

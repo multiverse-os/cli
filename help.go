@@ -29,7 +29,7 @@ func (self *CLI) RenderApplicationHelp() error {
 
 func (self *CLI) RenderHelpTemplate(renderType helpType, command Command) (err error) {
 	helpOptions := map[string]string{
-		"header":            self.header(true),
+		"header":            self.asciiHeader("calvins"),
 		"usageDescription":  self.Usage,
 		"usage":             color.SkyBlue(style.Bold("Usage")),
 		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
@@ -37,9 +37,9 @@ func (self *CLI) RenderHelpTemplate(renderType helpType, command Command) (err e
 	}
 	switch renderType {
 	case applicationHelp:
-		err = template.OutputStdOut(templates.DefaultHelp(self.Name, self.visibleCommands(), self.visibleFlags()), helpOptions)
+		err = template.OutputStdOut(DefaultHelp(self.Name, self.visibleCommands(), self.visibleFlags()), helpOptions)
 	case commandHelp:
-		err = template.OutputStdOut(templates.DefaultHelp(self.Name, command.visibleSubcommands(), command.visibleCommandFlags()), helpOptions)
+		err = template.OutputStdOut(DefaultHelp(self.Name, command.visibleSubcommands(), command.visibleFlags()), helpOptions)
 	}
 	if err != nil {
 		return err
@@ -53,42 +53,32 @@ func (self *CLI) RenderHelpTemplate(renderType helpType, command Command) (err e
 // Big, Chunky, CyberLarge, CyberMedium, Doom, Elite, Isometric3, Isometric4
 // Larry3D, Letters, NancyJ, Rectangles, Relief, Small, Smisome1, Standard
 // Ticks, TicksSlant, calvins
-func (self *CLI) header(showVersion bool) string {
-	// TODO: Calling the banner.New() MUST be moved into separate template file
-	// because its kinda bullky since it calls in a bunch of fonts currently. And
-	// ideally we want to avoid calling it in if we don't use it. To do that we
-	// move it out of the package and call that package if this is != 0
-	// This new file could handle all the various templates. Which should also
-	// include version output
-	if len(self.HelpHeader) == 0 {
-		banner := banner.New("calvins", " "+self.Name)
-		var version string
-		if showVersion {
-			version = text.Brackets(self.Version.String())
-		}
-		return style.Bold(color.SkyBlue(banner.String()[:len(banner.String())-1])) + version + "\n"
-	} else {
-		return self.HelpHeader
-	}
+func (self *CLI) asciiHeader(font string) string {
+	banner := banner.New(font, " "+self.Name)
+	return style.Bold(color.SkyBlue(banner.String()[:len(banner.String())-1])) + text.Brackets(self.Version.String()) + "\n"
+}
+
+func (self *CLI) simpleHeader() string {
+	return style.Bold(color.SkyBlue(self.Name)) + text.Brackets(self.Version.String()) + "\n"
 }
 
 // TODO: Create the below variant as an option and store these options in their
 // own subpackages just like with spinners and loaders in text library.
 ///////////////////////////////////////////////////////////////////////////////
-func defaultHelp(name string, commands []Command, flags []Flag) (t string) {
+func DefaultHelp(name string, commands []Command, flags []Flag) (t string) {
 	t += "{{.header}}"
 	t += "  {{.usage}}:\n"
 	t += "    " + color.Fuchsia(style.Bold(name)) + "  " + style.Dim("[command]") + "\n\n"
 	if len(commands) > 0 {
 		t += "  {{.availableCommands}}:\n"
 		for _, command := range commands {
-			t += "    " + style.Bold(command.NameHelpString()) + strings.Repeat(" ", (18-len(command.NameHelpString()))) + style.Dim(command.Usage) + "\n"
+			t += "    " + style.Bold(command.String()) + strings.Repeat(" ", (18-len(command.String()))) + style.Dim(command.Usage) + "\n"
 		}
 		t += "\n"
 	}
 	t += "  {{.availableFlags}}:\n"
 	for _, flag := range flags {
-		t += "    " + style.Bold(flag.NameHelpString()) + strings.Repeat(" ", (18-len(flag.NameHelpString()))) + style.Dim(flag.Usage) + "\n"
+		t += "    " + style.Bold(flag.String()) + strings.Repeat(" ", (18-len(flag.String()))) + style.Dim(flag.Usage) + "\n"
 	}
 	t += "\n"
 

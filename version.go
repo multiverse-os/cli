@@ -23,7 +23,7 @@ type BuildInformation struct {
 
 func (self *CLI) RenderVersion() error {
 	err := template.OutputStdOut(defaultVersionTemplate(), map[string]string{
-		"header":  self.header(false),
+		"header":  self.asciiHeader("calvins"),
 		"version": self.Version.String(),
 	})
 	if err != nil {
