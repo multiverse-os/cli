@@ -13,6 +13,94 @@
 The `cli-framework` aims to provide a consistent, security focused, framework for creating command-line tools from the standard command-processor (commands, flags, arguments), shell interfaces, and background daemons. The framework design is directly inspired by feature complete web application frameworks like Ruby's `rails`, which translates to internationalization (in development), and other modern CLI features *(see below for full list)*. The framework is specifically designed to have an incredibly light code footprint, with each of the features divded into subpackages enabling developers to select just the components they need; so the framework can be suited for simple scripts to full applications. 
 
 
+#### Ontology of a command-line interfaces 
+To simplify working with the framework, we need to define terms that will be
+used when interacting with the library. The software has a smaller code
+footprint than other CLI frameworks, but it also is capable of offering more
+complexity by combining logic to avoid unnecessary code repititon.
+
+```
+// For example a simple single command CLI tool allows the user to define a
+command, and by default any *non-flag* values after the last (endpoint) command
+is accepted as paramters, which is parsed into a comma separated slice. 
+ app-cli open /path/to/file.md
+ \_____/ \__/ \______________/
+    |     |          |
+   app  command  parameters
+```
+
+Other solutions have multiple struct types dedicated to each Flag data type
+(bool, string, int,...), and instead of doing this we provided a generic
+validation tool for flags given the desired type. This data can then be
+validated, and if valid be output as the desired type. Doing it this way means
+if we want to use the flag as an `int` value for one assignment, but since the
+flag data itself is not typed, its typed to whatever we want, immediately after 
+use it to assign a `string`. 
+
+```
+// The flags before commands are global flags within the application scope, and
+// are listed when using the help command or flag (by default both are provided). 
+// Flags following a command (even after the parameters) are first checked
+// against the command flags listed when running help command/flag after a
+// command: 
+
+ app-cli command help
+ \_____/  \___/  \__/
+    |       |     |
+   app    command subcommand 
+```
+
+The subcommand in this example is the endpoint (terminal, or edge) command. Our
+coommands are recursively defined, generating a command tree. If the last
+command when executing the the `app-cli` is not an endpoint command, meaning it
+functions as a category for subcommands, it will by default output the help text
+for that command. If it is the endpoint but it expected paramters, it will
+output the help text for the endpoint command with an error by default. If no
+parameters are required, and it is the endpoint command (edge of command tree)
+it will execute as expected. 
+
+If a developer overlooks the step of validating, and tries to output a flag as a
+value not contained within the string, it will return the string value by
+default (TODO: Decide if it should return an accompanying bool, or error
+response with nil if it fails). 
+
+
+
+```
+app-cli command --command-flag=test subcommand --subcommand-flag test paramters
+ --subcommand-flag flag2
+```
+
+Flags trailing will first check if the subcommand has the defined flag, then the
+command, and finally the global scope. In this case, we just add it to the,
+context as a global flag without an error by default.
+
+
+
+#### Multiverse OS Core Framework
+`cli-framework` is designed to meet the requirements of Multiverse OS system applications; since this powers the low-level interface of each core application, Multiverse developers understand the importance of opting for simplicity, while still trying to provide a complete and intuitive user experience. *This is not production ready, it just reached v0.1.0, it currently does not provide validation or have adequate sanitization for both input, but also output printed to Terminal.*
+
+
+**Features** 
+
+  * **Full VT100 support** providing ANSI coloring, cursor, and terminal control. (A grid system is being developed, improvements to color to make it even easier to use, and CSS styling are planned features). 
+  
+  * **Built-ins for user input** including secure password input, list/menu, multiselect, shell, and input validaiton for all basic types. (Not fully implemented)
+  
+  * **Support for both command processor (flags, commands, and subcommands), and shell style `cli` interfaces**. In addition to interactive CLI tools, the Multiverse OS `cli` framework provides functionality for daemonization, PID handling, singals, and other basic functionality of a service. 
+  
+  * **Custom help, version, and shell output via basic templates** and soon formatting will extend to logging, human readable output.
+ app-cli --open-file /path/to/file.md
+ \_____/  \_______/  \______________/
+    |         |          |
+   app      flag(global)  parameters
+```
+
+
+If a developer overlooks the step of validating,
+and tries to output
+
+
 #### Multiverse OS Core Framework
 `cli-framework` is designed to meet the requirements of Multiverse OS system applications; since this powers the low-level interface of each core application, Multiverse developers understand the importance of opting for simplicity, while still trying to provide a complete and intuitive user experience. *This is not production ready, it just reached v0.1.0, it currently does not provide validation or have adequate sanitization for both input, but also output printed to Terminal.*
 
