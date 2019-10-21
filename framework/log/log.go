@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	color "github.com/multiverse-os/cli/text/ansi/color"
-	style "github.com/multiverse-os/cli/text/ansi/style"
+	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
+	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
 )
 
 type Errors []error

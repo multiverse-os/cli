@@ -1,13 +1,13 @@
 package cli
 
 import (
-	"strings"
+	//"strings"
 
-	template "github.com/multiverse-os/cli/template"
-	text "github.com/multiverse-os/cli/text"
-	color "github.com/multiverse-os/cli/text/ansi/color"
-	style "github.com/multiverse-os/cli/text/ansi/style"
-	banner "github.com/multiverse-os/cli/text/banner"
+	banner "github.com/multiverse-os/cli/framework/ascii/banner"
+	template "github.com/multiverse-os/cli/framework/template"
+	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
+	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
+	text "github.com/multiverse-os/cli/framework/text"
 )
 
 type helpType int
@@ -37,9 +37,9 @@ func (self *CLI) RenderHelpTemplate(renderType helpType, command Command) (err e
 	}
 	switch renderType {
 	case applicationHelp:
-		err = template.OutputStdOut(DefaultHelp(self.Name, self.visibleCommands(), self.visibleFlags()), helpOptions)
+		err = template.OutputStdOut(self.Help(), helpOptions)
 	case commandHelp:
-		err = template.OutputStdOut(DefaultHelp(self.Name, command.visibleSubcommands(), command.visibleFlags()), helpOptions)
+		err = template.OutputStdOut(self.CommandHelp(command), helpOptions)
 	}
 	if err != nil {
 		return err
@@ -64,21 +64,39 @@ func (self *CLI) simpleHeader() string {
 
 // TODO: Create the below variant as an option and store these options in their
 // own subpackages just like with spinners and loaders in text library.
+// TODO: Check if a template is speicifed otherwise show default. Or rather
+// probably cache?
 ///////////////////////////////////////////////////////////////////////////////
-func DefaultHelp(name string, commands []Command, flags []Flag) (t string) {
+func (self *CLI) Help() (t string) {
 	t += "{{.header}}"
 	t += "  {{.usage}}:\n"
-	t += "    " + color.Fuchsia(style.Bold(name)) + "  " + style.Dim("[command]") + "\n\n"
-	if len(commands) > 0 {
-		t += "  {{.availableCommands}}:\n"
-		for _, command := range commands {
-			t += "    " + style.Bold(command.String()) + strings.Repeat(" ", (18-len(command.String()))) + style.Dim(command.Usage) + "\n"
-		}
-		t += "\n"
+	t += "    " + color.Fuchsia(style.Bold(self.Name)) + "  " + style.Dim("[command]") + "\n\n"
+	t += "  {{.availableCommands}}:\n"
+	for _, command := range self.Commands {
+		t += command.Help()
 	}
+	t += "\n"
 	t += "  {{.availableFlags}}:\n"
-	for _, flag := range flags {
-		t += "    " + style.Bold(flag.String()) + strings.Repeat(" ", (18-len(flag.String()))) + style.Dim(flag.Usage) + "\n"
+	for _, flag := range self.Flags {
+		t += flag.Help()
+	}
+	t += "\n"
+
+	return t
+}
+
+func (self *CLI) CommandHelp(command Command) (t string) {
+	t += "{{.header}}"
+	t += "  {{.usage}}:\n"
+	t += "    " + style.Bold(color.Fuchsia(self.Name)+" "+color.SkyBlue(command.Name)) + " " + style.Dim("[command]") + "\n\n"
+	t += "  {{.availableCommands}}:\n"
+	for _, command := range command.visibleSubcommands() {
+		t += command.Help()
+	}
+	t += "\n"
+	t += "  {{.availableFlags}}:\n"
+	for _, flag := range self.Flags {
+		t += flag.Help()
 	}
 	t += "\n"
 

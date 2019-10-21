@@ -1,7 +1,7 @@
 package log
 
 import (
-	color "github.com/multiverse-os/cli/text/ansi/color"
+	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
 )
 
 type LogLevel int

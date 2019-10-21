@@ -6,7 +6,7 @@ import (
 	"os"
 
 	cli "github.com/multiverse-os/cli"
-	log "github.com/multiverse-os/cli/log"
+	log "github.com/multiverse-os/cli/framework/log"
 )
 
 func main() {
@@ -16,29 +16,29 @@ func main() {
 		Usage:   "make an explosive entrance",
 		Flags: []cli.Flag{
 			cli.Flag{
-				Name:    "lang",
-				Aliases: []string{"l"},
-				Value:   "english",
-				Usage:   "language for the greeting",
+				Name:        "lang",
+				Aliases:     []string{"l"},
+				Value:       "english",
+				Description: "language for the greeting",
 			},
 		},
 		Commands: []cli.Command{
 			cli.Command{
-				Name:    "list",
-				Aliases: []string{"c"},
-				Usage:   "complete a task on the list",
+				Name:        "list",
+				Aliases:     []string{"c"},
+				Description: "complete a task on the list",
 				Flags: []cli.Flag{
 					cli.Flag{
-						Name:    "filter",
-						Aliases: []string{"f"},
-						Value:   "all",
-						Usage:   "filter all the things",
+						Name:        "filter",
+						Aliases:     []string{"f"},
+						Value:       "all",
+						Description: "filter all the things",
 					},
 				},
 				Subcommands: []cli.Command{
 					cli.Command{
-						Name:  "add",
-						Usage: "lists all of something",
+						Name:        "add",
+						Description: "lists all of something",
 						Action: func(c *cli.Context) error {
 							fmt.Println("add a thing to the list")
 							return nil
@@ -50,9 +50,9 @@ func main() {
 				},
 			},
 			cli.Command{
-				Name:    "add",
-				Aliases: []string{"a"},
-				Usage:   "add a task to the list",
+				Name:        "add",
+				Aliases:     []string{"a"},
+				Description: "add a task to the list",
 				Action: func(c *cli.Context) error {
 					return nil
 				},

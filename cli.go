@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	log "github.com/multiverse-os/cli/log"
+	log "github.com/multiverse-os/cli/framework/log"
 	//radix "github.com/multiverse-os/cli/radix"
 )
 

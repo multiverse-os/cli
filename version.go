@@ -3,10 +3,10 @@ package cli
 import (
 	"strconv"
 
-	template "github.com/multiverse-os/cli/template"
-	color "github.com/multiverse-os/cli/text/ansi/color"
-	style "github.com/multiverse-os/cli/text/ansi/style"
-	table "github.com/multiverse-os/cli/text/table"
+	table "github.com/multiverse-os/cli/framework/ascii/table"
+	template "github.com/multiverse-os/cli/framework/template"
+	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
+	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
 )
 
 type Version struct {
