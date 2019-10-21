@@ -15,17 +15,6 @@ type Action func(context *Context) error
 // TODO: It would be great to impelement a middleware like system to
 // make CLI programming similar to web programming. Reusing these conceepts
 // should make it more familiar and easier to transpose code
-
-// TODO: Decide if flags should be segregated into global flags and
-// command flags
-type Context struct {
-	CLI        *CLI
-	Command    Command
-	Subcommand Command
-	Flags      map[string]Flag
-	Args       []string
-}
-
 type Build struct {
 	CompiledOn time.Time
 	Source     string
@@ -129,12 +118,12 @@ func (self *CLI) Run(arguments []string) (err error) {
 	if _, ok := context.Flags["version"]; ok {
 		self.RenderVersion()
 	} else if _, ok = context.Flags["help"]; ok {
-		if context.Command.NotEmpty() {
+		if !context.Command.Empty() {
 			self.RenderCommandHelp(context.Command)
 		} else {
 			self.RenderApplicationHelp()
 		}
-	} else if context.Command.NotEmpty() {
+	} else if !context.Command.Empty() {
 		err = context.Command.Action(context)
 	} else {
 		self.RenderApplicationHelp()

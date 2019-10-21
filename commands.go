@@ -6,6 +6,26 @@ import (
 	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
 )
 
+type commandType int
+
+// TODO: Commands are a tree, think about this. Not just in the since that radix
+// tree can be used to do autocomplete on the fly, but the logical structure of
+// supporting multiple levels of commands results in a command tree. Each node
+// needs an action, even if that action is just printing help. BUT we can just
+// assume help if its not specified reasonably. So could do
+//
+//   ./app command1 command2 :value_name
+//
+//  which is putting us closer to a web-route:
+//
+//    /command1/command2/:value_name
+
+const (
+	TopLevelCommand commandType = iota // is top level
+	SubcommandCommand
+	EdgeCommand
+)
+
 type Command struct {
 	Hidden      bool
 	Category    int
@@ -15,6 +35,11 @@ type Command struct {
 	Flags       []Flag
 	Description string
 	Action      func(c *Context) error
+	// TODO: Contextual (perhaps would be worth having a Argument and store this
+	// in that, then just assign the above to the Argument.
+	parent     *Command
+	subcommand *Command
+	depth      int
 }
 
 func (self Command) Help() string {
@@ -25,9 +50,21 @@ func (self Command) Help() string {
 		"\n"
 }
 
-func (self Command) Visible() bool   { return !self.Hidden }
+func (self Command) Visible() bool { return !self.Hidden }
+
+func (self Command) IsSubcommand() bool { return self.parent == nil }
+
+// Depth
+func (self Command) CommandDepth() int {
+}
+
+func (self Command) MaxCommandDepth() int {
+}
+
+// IsEdge
+// GetEdge
+
 func (self Command) Empty() bool     { return len(self.Name) == 0 }
-func (self Command) NotEmpty() bool  { return !self.Empty() }
 func (self Command) Names() []string { return append([]string{self.Name}, self.Aliases...) }
 
 func (self Command) Usage() (output string) {
