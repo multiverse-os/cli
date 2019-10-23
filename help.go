@@ -68,7 +68,7 @@ func commandUsage(cmd Command) string {
 func flagUsage(flag Flag) (output string) {
 	if !IsNil(flag.DefaultValue) {
 		if !IsBlank(flag.DefaultValue.(string)) {
-			output = " [Default: " + flag.DefaultValue.(string) + "]"
+			output = " [≅ " + flag.DefaultValue.(string) + "]"
 		}
 	}
 	return "    " + style.Bold(flag.usage()) + strings.Repeat(" ", (18-len(flag.usage()))) + style.Dim(flag.Description) + output + "\n"
@@ -82,15 +82,15 @@ func flagUsage(flag Flag) (output string) {
 // templating easily. Really need a better way.
 ///////////////////////////////////////////////////////////////////////////////
 func (self *CLI) help() (t string) {
-	t += "{{.header}}"
-	t += "  {{.usage}}:\n"
+	t += "\n{{.header}}"
+	t += "  {{.usage}}\n"
 	t += "    " + color.Fuchsia(style.Bold(self.Name)) + "  " + style.Dim("[command]") + "\n\n"
-	t += "  {{.availableCommands}}:\n"
+	t += "  {{.availableCommands}}\n"
 	for _, command := range self.Commands {
 		t += commandUsage(command)
 	}
 	t += "\n"
-	t += "  {{.availableFlags}}:\n"
+	t += "  {{.availableFlags}}\n"
 	for _, flag := range self.Flags {
 		t += flagUsage(flag)
 	}
@@ -102,14 +102,14 @@ func (self *CLI) help() (t string) {
 // TODO: If default value is provided, should indicate this
 func (self *CLI) commandHelp(command Command) (t string) {
 	t += "{{.header}}"
-	t += "  {{.usage}}:\n"
+	t += "  {{.usage}}\n"
 	t += "    " + style.Bold(color.Fuchsia(self.Name)+" "+color.SkyBlue(command.Name)) + " " + style.Dim("[command]") + "\n\n"
-	t += "  {{.availableCommands}}:\n"
+	t += "  {{.availableCommands}}\n"
 	for _, command := range command.visibleSubcommands() {
 		t += commandUsage(command)
 	}
 	t += "\n"
-	t += "  {{.availableFlags}}:\n"
+	t += "  {{.availableFlags}}\n"
 	for _, flag := range self.Flags {
 		t += flagUsage(flag)
 	}

@@ -1,5 +1,9 @@
 package cli
 
+import (
+	"strings"
+)
+
 type Command struct {
 	Hidden      bool
 	Category    int
@@ -10,6 +14,28 @@ type Command struct {
 	Flags       []Flag
 	Description string
 	Action      func(c *Context) error
+}
+
+// NOTE: Must cascade through parents recursively if the flag is missing. If no
+// commands in the path have the flag defined, then it is ignored.
+func (self *Command) Flag(name string) (*Flag, bool) {
+	name = strings.ToLower(name)
+	for _, flag := range self.Flags {
+		if flag.Name == name || flag.Alias == name {
+			return &flag, true
+		}
+		//if self.ParentCommand
+	}
+	return nil, false
+}
+
+func (self *Command) Subcommand(name string) (Command, bool) {
+	for _, subcommand := range self.Subcommands {
+		if subcommand.Name == name || subcommand.Alias == name {
+			return subcommand, true
+		}
+	}
+	return Command{}, false
 }
 
 func (self Command) is(name string) bool  { return self.Name == name || self.Alias == name }

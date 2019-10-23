@@ -25,4 +25,5 @@ func (self Flag) usage() (output string) {
 }
 
 // Public Methods ////
+
 func Flags(flags ...Flag) []Flag { return flags }

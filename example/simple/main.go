@@ -57,7 +57,9 @@ func main() {
 			},
 		),
 		DefaultAction: func(c *cli.Context) error {
-			fmt.Println("Command.Name:", c.Command.Name)
+			fmt.Println("Command Path:         ", c.CommandPath)
+			fmt.Println("Command Path Length:  ", len(c.CommandPath))
+			fmt.Println("Command.Name:         ", c.Command.Name)
 			fmt.Println("flags:")
 			for _, flag := range c.Flags {
 				fmt.Println("flag.Name :", flag.Name)

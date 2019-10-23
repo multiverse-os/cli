@@ -7,19 +7,33 @@ import (
 	"strings"
 )
 
-func IsZero(i int) bool       { return i == 0 }
-func IsBlank(str string) bool { return IsZero(len(str)) }
-func IsEmpty(value []interface{}) bool {
-	return IsZero(len(value))
-}
+// TODO: This should migrate into its own package (the generic equivialence
+// helpers) the idea would be to provide a collection of helpers to make all of
+// our code cleaner and more expressive in the same way rails extends the
+// epxressiveness of default ruby
+// These may seem pointless but they will also simplify validation of values and
+// provide helpers for developers to simplify validation
+
+func IsZero(i int) bool                { return i == 0 }
+func IsBlank(str string) bool          { return IsZero(len(str)) }
+func IsEmpty(value []interface{}) bool { return IsZero(len(value)) }
 func IsNil(value interface{}) bool {
 	switch value.(type) {
+	case int:
+		return value.(int) == 0
+	case string:
+		return value.(string) == ""
 	case error:
 		return value.(error) == nil
 	default:
 		return value == nil
 	}
 }
+func IsGreaterThan(gt, value int) bool         { return (gt > value) }
+func IsGreaterOrEqualThan(gte, value int) bool { return (gte >= value) }
+func IsLessThan(lt, value int) bool            { return (lt < value) }
+func IsLessOrEqualThan(lte, value int) bool    { return (lte <= value) }
+func IsBetween(start, end, value int) bool     { return start < value && value < end }
 
 var trueValues = []string{"t", "true", "y", "yes", "1"}
 var falseValues = []string{"f", "false", "n", "no", "0"}
