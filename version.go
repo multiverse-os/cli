@@ -3,10 +3,10 @@ package cli
 import (
 	"strconv"
 
-	table "github.com/multiverse-os/cli/framework/ascii/table"
 	template "github.com/multiverse-os/cli/framework/template"
 	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
 	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
+	table "github.com/multiverse-os/cli/framework/text/table"
 )
 
 type Version struct {
@@ -15,13 +15,7 @@ type Version struct {
 	Patch int
 }
 
-type BuildInformation struct {
-	CompiledAt string
-	Source     string
-	Signature  string
-}
-
-func (self *CLI) RenderVersion() error {
+func (self *CLI) renderVersion() error {
 	err := template.OutputStdOut(defaultVersionTemplate(), map[string]string{
 		"header":  self.asciiHeader("calvins"),
 		"version": self.Version.String(),
@@ -33,23 +27,23 @@ func (self *CLI) RenderVersion() error {
 }
 
 func defaultVersionTemplate() string {
-
-	buildInfo := []BuildInformation{
-		{"n/a", "n/a", "n/a"},
-	}
-
-	return `
-{{.header}}` +
-		`  ` + color.White(style.Bold(`Version:`)) + ` {{.version}} ` +
-		`
-` + table.Table(buildInfo) + `
-
-`
+	return "\n{{.header}}  " + color.White(style.Bold("Version:")) +
+		" {{.version}} \n" + table.Table(struct {
+		CompiledAt string
+		Signature  string
+		Source     string
+	}{
+		"n/a",
+		"n/a",
+		"n/a",
+	}) + "\n"
 }
 
-func (self Version) Undefined() bool {
+func (self Version) undefined() bool {
 	return (self.Major == 0 && self.Minor == 0 && self.Patch == 0)
 }
+
+// Public Methods ////
 
 func (self Version) OlderThan(v Version) bool {
 	return (self.Major < v.Major || (self.Major == v.Major && self.Minor < v.Minor) ||

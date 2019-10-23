@@ -3,136 +3,114 @@ package cli
 import (
 	"io"
 	"os"
-	"path/filepath"
 	"time"
-
-	log "github.com/multiverse-os/cli/framework/log"
+	//log "github.com/multiverse-os/cli/framework/log"
 	//radix "github.com/multiverse-os/cli/radix"
 )
+
+// Ontology of a command-line interface
+///////////////////////////////////////////////////////////////////////////////
+//
+//            global flag    command flag             parameters
+//              __|___        ____|_____             ____|_____
+//             /      \      /          \           /          \
+//     app-cli --flag=2 open --file=thing template /path/to/file
+//     \_____/          \__/              \______/
+//        |              |                   |
+//   application       command             subcommand
 
 type Action func(context *Context) error
 
 // TODO: It would be great to impelement a middleware like system to
 // make CLI programming similar to web programming. Reusing these conceepts
 // should make it more familiar and easier to transpose code
+// TODO: Provide a way to register an RSS feed that can be used for checking for
+// updates.
 type Build struct {
-	CompiledOn time.Time
-	Source     string
-	Signature  string
+	CompiledAt time.Time
+	//Signature  string
+	//Source     string
 }
 
 // TODO: Should shell be a modificaiton of this, or its own object?
+// Output should be a generic thing we write to, this needs to support for
+// example writing to both console and log file. And support writing to
+// arbitrary locations to be flexible as possible
+// TODO: Organize commands into a command tree for better lookup. With the root
+// of the tree being the cli name *(This change is pretty important because it
+// allows us to move a lot of logic previously duplicated on both Commands and
+// CLI to only the command secion)*
+// TODO: Ability to have multiple errors, for example we can parse and provide
+// all errors at once regarding input so user does not need to trial and
+// error to get the information how to fix issues but can instead fix all at
+// once and rerun the command.
 type CLI struct {
 	Name          string
+	ArgsRequired  int // For simple scripts, like one that converts a file and requires filename
+	Locale        string
 	Version       Version
 	Description   string
-	Usage         string
-	Flags         []Flag
 	Commands      []Command
+	Flags         []Flag
+	CommandTree   *Command
 	Build         Build
-	Logger        log.Logger
-	Writer        io.Writer
+	Outputs       []io.Writer
 	DefaultAction Action
+	Errors        []error
 	//Router        *radix.Tree
 }
 
 func New(cli *CLI) *CLI {
-	cli.Build.CompiledOn = time.Now()
-	if len(cli.Logger.Name) == 0 {
-		cli.Logger = log.DefaultLogger(cli.Name, true, true)
+	if IsBlank(cli.Name) {
+		cli.Name, _ = os.Executable()
 	}
-	if len(cli.Name) == 0 {
-		var err error
-		cli.Name, err = filepath.Abs(filepath.Dir(os.Args[0]))
-		if err != nil {
-			cli.Logger.Fatal(errFailedNameAssignment.Error())
-		}
+	if IsBlank(cli.Locale) {
+
 	}
-	if cli.Version.Undefined() {
+	// TODO: Migrate to a system that just lets us add logger as one of the
+	// outputs, enabling outputing to x number of locations which can easily be a
+	// logfile in addition to stdout
+	//if len(cli.Logger.Name) == 0 {
+	//	cli.Logger = log.DefaultLogger(cli.Name, true, true)
+	//}
+	if cli.Version.undefined() {
 		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
-	if cli.Writer == nil {
-		cli.Writer = os.Stdout
+	if IsZero(len(cli.Outputs)) {
+		cli.Outputs = append(cli.Outputs, os.Stdout)
 	}
-	cli.Flags = append(cli.Flags, defaultFlags()...)
-	cli.Commands = append(cli.Commands, defaultCommands()...)
+	cli.CommandTree = &Command{
+		Name:        cli.Name,
+		Subcommands: cli.Commands,
+		Flags:       cli.Flags,
+		Action:      cli.DefaultAction,
+	}
+	cli.Build.CompiledAt = time.Now()
 	return cli
-}
-
-func (self *CLI) visibleCommands() (commands []Command) {
-	for _, command := range self.Commands {
-		if command.Visible() {
-			commands = append(commands, command)
-		}
-	}
-	return commands
-}
-
-func (self *CLI) visibleFlags() (flags []Flag) {
-	for _, flag := range self.Flags {
-		if flag.Visible() {
-			flags = append(flags, flag)
-		}
-	}
-	return flags
-}
-
-func (self *CLI) isFlag(flagName string) (bool, Flag) {
-	for _, flag := range self.Flags {
-		if flag.Is(flagName) {
-			return true, flag
-		}
-	}
-	return false, Flag{}
-}
-
-func (self *CLI) isCommand(commandName string) (bool, Command) {
-	for _, command := range self.Commands {
-		if command.Is(commandName) {
-			return true, command
-		}
-	}
-	return false, Command{}
-}
-
-func (self *CLI) isSubcommand(command Command, subcommandName string) (bool, Command) {
-	for _, subcommand := range command.Subcommands {
-		if subcommand.Is(subcommandName) {
-			return true, subcommand
-		}
-	}
-	return false, Command{}
-}
-
-func (self *CLI) isCommandFlag(command Command, flagName string) (bool, Flag) {
-	for _, flag := range command.Flags {
-		if flag.Is(flagName) {
-			return true, flag
-		}
-	}
-	return false, Flag{}
 }
 
 func (self *CLI) Run(arguments []string) (err error) {
 	context := self.parse(arguments[1:])
 	if _, ok := context.Flags["version"]; ok {
-		self.RenderVersion()
+		self.renderVersion()
 	} else if _, ok = context.Flags["help"]; ok {
-		if !context.Command.Empty() {
-			self.RenderCommandHelp(context.Command)
+		if context.hasNoCommands() {
+			// TODO: If the command is help remember that it will need to render
+			// command.Parent
+			//self.RenderCommandHelp(context.Command())
 		} else {
-			self.RenderApplicationHelp()
+			self.renderApplicationHelp()
 		}
-	} else if !context.Command.Empty() {
-		err = context.Command.Action(context)
+	} else if !context.hasNoCommands() {
+		//err = context.Command().Action(context)
 	} else {
-		self.RenderApplicationHelp()
+		self.renderApplicationHelp()
 		err = self.DefaultAction(context)
 	}
-
-	if err != nil {
-		self.Logger.Error(err)
-	}
+	// Use outputs writer and make a method on CLI to do that
+	//if err != nil {
+	//	self.Logger.Error(err)
+	//}
 
 	return err
 }
