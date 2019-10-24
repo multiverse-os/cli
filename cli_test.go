@@ -1,14 +1,8 @@
-package main
+package cli
 
-import (
-	"fmt"
-	"os"
-
-	cli "github.com/multiverse-os/cli"
-)
-
-func main() {
-	cmd := cli.New(&cli.CLI{
+// Mocking ////////////////////////////////////////////////////////////////////
+func CommandTreeCLI() *CLI {
+	return cli.New(&cli.CLI{
 		Name:        "example",
 		Description: "an example cli application for scripts and full-featured applications",
 		Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
@@ -43,27 +37,31 @@ func main() {
 						},
 					},
 				),
+				Action: func(c *cli.Context) error {
+					return nil
+				},
 			},
 			cli.Command{
-				Name:        "add",
+				Name:        "export",
 				Alias:       "a",
 				Description: "add a task to the list",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
 			},
 		),
-		DefaultAction: func(c *cli.Context) error {
-			c.CLI.Info("Command Path:         ", c.CommandPath)
-			c.CLI.Info("Command Path Length:  ", len(c.CommandPath))
-			c.CLI.Info("Command.Name:         ", c.Command.Name)
-			c.CLI.Info("flags:")
-			for _, flag := range c.Flags {
-				c.CLI.Info("flag.Name :       ", flag.Name)
-				c.CLI.Info("flag.Value:       ", flag.Value)
-			}
-			return nil
-		},
 	})
+}
 
-	// NOTE: Has the ability output context and error, this enables developers to
-	// handle their own routing or actions based on parsed context.
-	cmd.Run(os.Args)
+// Tests //////////////////////////////////////////////////////////////////////
+func TestParse(t *testing.T) {
+	arguments := []string{"list", "add", "test"}
+	cmd := CommandTreeCLI()
+
+	expectedCommandPath = []string{"example", "list"}
+
+	context := cmd.Parse(arguments)
+	if actual != expected {
+		t.Error("Test failed")
+	}
 }

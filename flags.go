@@ -1,14 +1,20 @@
 package cli
 
+const (
+	longFlag       = "--"
+	shortFlag      = "-"
+	valueDelimeter = "=" // TODO: Need to support space too
+)
+
 type Flag struct {
 	//Command       *Command
-	Name          string
-	Alias         string
-	Type          DataType
-	Description   string
-	Hidden        bool
-	FileExtension string // Would help us autogenerate nice autocompletion
-	DefaultValue  interface{}
+	Name        string
+	Alias       string
+	Description string
+	Hidden      bool
+	Type        DataType
+	Value       interface{}
+	//FileExt     string // Would help us autogenerate nice autocompletion
 }
 
 // TODO: Could probably speed up lookup and avoid this by putting flag in a
@@ -17,13 +23,39 @@ func (self Flag) is(name string) bool { return self.Name == name || self.Alias =
 func (self Flag) visible() bool       { return !self.Hidden }
 
 func (self Flag) usage() (output string) {
-	output += "--" + self.Name
+	output += longFlag + self.Name
 	if len(self.Alias) > 0 {
-		output += ", -" + self.Alias
+		output += ", " + shortFlag + self.Alias
 	}
 	return output
 }
 
-// Public Methods ////
+//
+// Flag Input
+///////////////////////////////////////////////////////////////////////////////
+type inputFlag struct {
+	command *inputCommand
+	Type    DataType
+	Name    string
+	Value   string
+}
 
+func newInputFlag() *inputFlag {
+	return &inputFlag{
+		Value: "1",
+	}
+}
+
+// Flags //////////////////////////////////////////////////////////////////////
+type inputFlags []*inputFlag
+
+func newFlagGroup() *inputFlags { return &inputFlags{} }
+
+func (self *inputFlags) add(flag *inputFlag) { *self = append(*self, flag) }
+func (self *inputFlags) reset()              { self = &inputFlags{} }
+func (self *inputFlags) isEmpty() bool       { return IsZero(len(*self)) }
+
+//
+// Public Methods
+///////////////////////////////////////////////////////////////////////////////
 func Flags(flags ...Flag) []Flag { return flags }
