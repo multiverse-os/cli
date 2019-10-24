@@ -9,6 +9,11 @@ import (
 	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
 )
 
+type Action func(context *Context) error
+
+// TODO: Scaffolding code to hasten development.
+// https://golang.org/pkg/go/printer/
+
 // Ontology of a command-line interface
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -39,6 +44,18 @@ type Build struct {
 // the application. It stores the global flags and functions to hold all the
 // global functionality for when commands are not used. This enables us to avoid
 // duplicating logic.
+type Directories struct {
+	Working string
+	Data    string
+	Cache   string
+}
+
+type Localisation struct {
+	Language string
+	Locale   string
+	Text     map[string]string
+}
+
 type CLI struct {
 	Name          string
 	Description   string
@@ -50,11 +67,17 @@ type CLI struct {
 	ParamType     DataType // Filename types should be able to define extension for autcomplete
 	DefaultAction Action
 	Outputs       []Output
-	DebugMode     bool // Controls if Debug output writes are skipped
+	//Printers       - like Debug() that will put function in and maybe .Value()
+	//to chain values
+	Debug bool // Controls if Debug output writes are skipped
+	// At this point almost entirely for API simplicity
+	Commands []Command
+	Flags    []Flag
 	//Errors        []error
 }
 
 func New(cli *CLI) *CLI {
+	defer self.benchmark(time.Now())
 	//if IsBlank(cli.Name) {}
 	//if IsBlank(cli.Locale) {}
 	// TODO: Migrate to a system that just lets us add logger as one of the
@@ -114,7 +137,7 @@ func New(cli *CLI) *CLI {
 // of working with the API, and shaping it with the tests. Then finally internal
 // testing should be done to confirm the innerworkings of the framework work as
 // expected and can be confirmed to continue to work after changes.
-func (self *CLI) Run(arguments []string) (context *Context, err error) {
+func (self *CLI) Run(arguments []string) (*Context, error) {
 	defer self.benchmark(time.Now())
 	context := self.Parse(arguments)
 	//if _, ok := context.Flags["version"]; ok {
@@ -159,13 +182,13 @@ func (self *CLI) Parse(arguments []string) *Context {
 
 	flagGroup := newFlagGroup()
 	for index, argument := range context.Args {
-		self.Debug(debugInfo("CLI.parse()"), "attempting to parse the", varInfo("argument", argument))
-		if argument[0] == shortFlag[0] && IsLessThan(1, len(argument)) {
+		self.Debug(debugInfo("CLI.parse()"), "attempting to parse the", varInfo(argument))
+		if strings.HasPrefix(argument, shortFlag) && IsLessThan(1, len(argument)) {
 			if flag, ok := context.parseFlag(argument); ok {
 				flagGroup.addFlag(flag)
 			}
 		} else {
-			if command, ok := self.command.Route(append(context.CommandPath, argument)); ok {
+			if command, ok := self.command.HasRoute(append(context.CommandPath, argument)); ok {
 				inputCmd := newInputCommand(context.Command, command.Name)
 				inputCmd.addSubcommandTree(command.Subcommands)
 				if !IsZero(len(*flagGroup)) {
@@ -175,7 +198,7 @@ func (self *CLI) Parse(arguments []string) *Context {
 				context.addCommand(inputCmd)
 			} else {
 				for _, param := range arguments[index:] {
-					if param[:1] == shortFlag {
+					if strings.HasPrefix(param, shortFlag) {
 						if flag, ok := context.parseFlag(param); ok {
 							flagGroup.addFlag(flag)
 						}
@@ -214,32 +237,19 @@ func (self *CLI) Parse(arguments []string) *Context {
 // easier to access the basic UTF-8 ones
 // TODO: Fact that color functions CANT receive anything but string is very bad,
 // makes it difficult to use the library effetively
-func (self *CLI) Output(text string) {
+func (self *CLI) Output(text ...interface{}) {
 	for _, output := range self.Outputs {
-		output.Write(text + "\n")
+		output.Write(text, "\n")
 	}
 }
 
 func (self *CLI) Log(level LogLevel, text string) {
 	for _, output := range self.Outputs {
-		output.Log(level, text+"\n")
+		output.Log(level, text, "\n")
 	}
 }
 
-func (self *CLI) Debug(text ...string) {
-	if !self.DebugMode {
-		self.Log(DEBUG, color.Blue(strings.Join(text, " ")))
-	}
-}
-
-func (self *CLI) Warn(text ...string)          { self.Log(WARNING, color.Silver(strings.Join(text, " "))) }
-func (self *CLI) Error(text string, err error) { self.Log(ERROR, color.Silver(text+": "+err.Error())) }
-func (self *CLI) Fatal(text string, err error) {
-	self.Log(FATAL, color.Red(text+": "+err.Error()))
-	os.Exit(1)
-}
-
-func (self *CLI) benchmark(startedAt time.Time) {
+func (self *CLI) benchmark(startedAt time.Time, description string) {
 	elapsed := time.Since(startedAt)
-	self.Debug(color.Green("cli command parse and action execution completed in [ " + fmt.Sprintf("%s", elapsed) + " ]"))
+	self.Debug(brackets(olive("benchmark")), color.Green(description, brackets(white(fmt.Sprintf("%s", elapsed)))))
 }

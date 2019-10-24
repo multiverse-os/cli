@@ -30,13 +30,13 @@ type Context struct {
 }
 
 func (self *Context) addCommand(command *inputCommand) {
-	self.CLI.Debug(debugInfo("Context.addCommand()"), "Add command func() on context with", varInfo("inputCommand.Name", command.Name))
+	self.CLI.Debug(debugInfo("Context.addCommand()"), "Add command func() on context with", varInfo(command.Name))
 	self.CLI.Debug(debugInfo("Context.addCommand()"), varInfo("Context.Command.Name", fmt.Sprintf("%s", self.Command.Name)))
 	self.CLI.Debug(debugInfo("Context.addCommand()"), varInfo("Context.Command.definition.Subcommands", fmt.Sprintf("%s", self.Command.definition.Subcommands)))
 	if !IsZero(len(self.Command.definition.Subcommands)) {
 		self.CLI.Debug(debugInfo("Context.addCommand()"), "Context.Subcommands length is not zero, so looping")
 		for _, subcommand := range self.Command.definition.Subcommands {
-			self.CLI.Debug(debugInfo("Context.addCommand()"), varInfo("subcommand.Name", subcommand.Name), " == ", varInfo("command.Name", command.Name))
+			self.CLI.Debug(debugInfo("Context.addCommand()"), varInfo("subcommand.Name", subcommand.Name), " == ", varInfo(command.Name))
 			if subcommand.Name == command.Name {
 				self.Command = newInputCommand(command, subcommand.Name)
 				self.CommandPath = append(self.CommandPath, self.Command.Name)

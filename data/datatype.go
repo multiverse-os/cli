@@ -42,8 +42,8 @@ const (
 	Zero  = 0
 )
 
-var trueValues = []string{"t", "true", "y", "yes", "1"}
-var falseValues = []string{"f", "false", "n", "no", "0"}
+var TrueStrings = []string{"1", "t", "y", "true", "yes"}
+var FalseStrings = []string{"0", "f", "n", "false", "no"}
 
 //
 // Transform
@@ -53,9 +53,11 @@ var falseValues = []string{"f", "false", "n", "no", "0"}
 // Validate
 ///////////////////////////////////////////////////////////////////////////////
 
-//
 // Encode
 ///////////////////////////////////////////////////////////////////////////////
+// Normally convention is not to use "to" but that is regarding methods, if we
+// migrate this to a more generic flexible data type for holding variable user
+// input. We can migrate
 func toString(value interface{}) string { return value.(string) }
 
 // String Subtypes

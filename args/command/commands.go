@@ -17,6 +17,8 @@ type Command struct {
 	Action      func(c *Context) error
 }
 
+// TODO: Support printing command tree
+
 func (self Command) is(name string) bool { return self.Name == name || self.Alias == name }
 func (self Command) visible() bool       { return !self.Hidden }
 

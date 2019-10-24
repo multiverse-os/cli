@@ -4,8 +4,6 @@ import (
 	"strconv"
 
 	template "github.com/multiverse-os/cli/framework/template"
-	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
-	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
 	table "github.com/multiverse-os/cli/framework/text/table"
 )
 
@@ -20,12 +18,15 @@ func (self *CLI) renderVersion() error {
 		"header":  self.asciiHeader("calvins"),
 		"version": self.Version.String(),
 	})
-	if err != nil {
+	if NotNil(err) {
 		return err
 	}
 	return nil
 }
 
+// TODO: Table should have a generic table object we can use to fill in data
+// when we dont have a struct so we dont have to resort to using anonymous
+// structs like this if we dont want to
 func defaultVersionTemplate() string {
 	return "\n{{.header}}  " + color.White(style.Bold("Version:")) +
 		" {{.version}} \n" + table.Table(struct {
@@ -43,8 +44,8 @@ func (self Version) undefined() bool {
 	return (self.Major == 0 && self.Minor == 0 && self.Patch == 0)
 }
 
-// Public Methods ////
-
+// Public Methods
+///////////////////////////////////////////////////////////////////////////////
 func (self Version) OlderThan(v Version) bool {
 	return (self.Major < v.Major || (self.Major == v.Major && self.Minor < v.Minor) ||
 		(self.Major == v.Major && self.Minor == v.Minor && self.Patch < v.Patch))
@@ -55,23 +56,6 @@ func (self Version) NewerThan(v Version) bool {
 		(self.Major == v.Major && self.Minor == v.Minor && self.Patch > v.Patch))
 }
 
-func (self Version) String() (formattedString string) {
-	if self.Major == 0 {
-		formattedString = style.Thin(strconv.Itoa(self.Major))
-	} else {
-		formattedString = style.Bold(color.SkyBlue(strconv.Itoa(self.Major)))
-	}
-	formattedString += color.White(".")
-	if self.Minor == 0 {
-		formattedString += style.Thin(strconv.Itoa(self.Minor))
-	} else {
-		formattedString += style.Bold(color.SkyBlue(strconv.Itoa(self.Minor)))
-	}
-	formattedString += color.White(".")
-	if self.Patch == 0 {
-		formattedString += style.Thin(strconv.Itoa(self.Patch))
-	} else {
-		formattedString += style.Bold(color.SkyBlue(strconv.Itoa(self.Patch)))
-	}
-	return formattedString
+func (self Version) String() string {
+	return fmt.Sprintf("%v.%v.%v", self.Major, self.Minor, self.Path)
 }
