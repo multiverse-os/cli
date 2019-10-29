@@ -14,10 +14,10 @@ func main() {
 		Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
 		Flags: cli.Flags(
 			cli.Flag{
-				Name:         "lang",
-				Alias:        "l",
-				DefaultValue: "english",
-				Description:  "Locale used when executing the program",
+				Name:        "lang",
+				Alias:       "l",
+				Default:     "english",
+				Description: "Locale used when executing the program",
 			},
 		),
 		Commands: cli.Commands(
@@ -27,10 +27,10 @@ func main() {
 				Description: "complete a task on the list",
 				Flags: cli.Flags(
 					cli.Flag{
-						Name:         "filter",
-						Alias:        "f",
-						DefaultValue: "all",
-						Description:  "filter all the things",
+						Name:        "filter",
+						Alias:       "f",
+						Default:     "all",
+						Description: "filter all the things",
 					},
 				),
 				Subcommands: cli.Commands(
@@ -51,13 +51,13 @@ func main() {
 			},
 		),
 		DefaultAction: func(c *cli.Context) error {
-			c.CLI.Info("Command Path:         ", c.CommandPath)
-			c.CLI.Info("Command Path Length:  ", len(c.CommandPath))
-			c.CLI.Info("Command.Name:         ", c.Command.Name)
-			c.CLI.Info("flags:")
+			//c.CLI.Log(cli.INFO, "Command Path:         ", c.CommandPath)
+			//c.CLI.Log(cli.INFO, "Command Path Length:  ", len(c.CommandPath))
+			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name())
+			c.CLI.Log(cli.INFO, "flags:")
 			for _, flag := range c.Flags {
-				c.CLI.Info("flag.Name :       ", flag.Name)
-				c.CLI.Info("flag.Value:       ", flag.Value)
+				c.CLI.Log(cli.INFO, "flag.Name :       ", flag.Name())
+				c.CLI.Log(cli.INFO, "flag.Value:       ", flag.Value())
 			}
 			return nil
 		},

@@ -3,6 +3,7 @@ package cli
 import (
 	"strings"
 
+	data "github.com/multiverse-os/cli/framework/data"
 	template "github.com/multiverse-os/cli/framework/template"
 	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
 	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
@@ -10,41 +11,17 @@ import (
 	banner "github.com/multiverse-os/cli/framework/text/banner"
 )
 
-type helpType int
-
-const (
-	applicationHelp helpType = iota
-	commandHelp
-)
-
 // TODO: Since this is being generated from a template, to avoid wasting time,
 // and ensuring the documentation is consistent, this should be output to a
 // documentation that can be referrenced from the README.
-func (self *CLI) renderCommandHelp(command Command) error {
-	return self.renderHelpTemplate(commandHelp, command)
-}
-func (self *CLI) renderApplicationHelp() error {
-	return self.renderHelpTemplate(applicationHelp, Command{})
-}
-
-func (self *CLI) renderHelpTemplate(renderType helpType, command Command) (err error) {
+func (self *CLI) RenderHelpTemplate(command Command) (err error) {
 	helpOptions := map[string]string{
 		"header":            self.asciiHeader("big"),
 		"usage":             color.SkyBlue(style.Bold("Usage")),
-		"availableCommands": color.SkyBlue(style.Bold("Available Commands")),
+		"availableCommands": color.SkyBlue(style.Bold("Commands")),
 		"availableFlags":    color.SkyBlue(style.Bold("Flags")),
 	}
-	switch renderType {
-	case applicationHelp:
-		err = template.OutputStdOut(self.help(), helpOptions)
-	case commandHelp:
-		err = template.OutputStdOut(self.commandHelp(command), helpOptions)
-	}
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
+	return template.OutputStdOut(self.helpTemplate(command), helpOptions)
 }
 
 // Available Banners Fonts
@@ -61,17 +38,13 @@ func (self *CLI) simpleHeader() string {
 	return style.Bold(color.SkyBlue(self.Name)) + text.Brackets(self.Version.String()) + "\n"
 }
 
-func commandUsage(cmd Command) string {
-	return "    " + style.Bold(cmd.usage()) + strings.Repeat(" ", (18-len(cmd.usage()))) + style.Dim(cmd.Description) + "\n"
-}
-
 func flagUsage(flag Flag) (output string) {
-	if !IsNil(flag.DefaultValue) {
-		if !IsBlank(flag.DefaultValue.(string)) {
-			output = " [≅ " + flag.DefaultValue.(string) + "]"
+	if data.NotNil(flag.Default) {
+		if data.NotBlank(flag.Default) {
+			output = " [≅ " + flag.Default + "]"
 		}
 	}
-	return "    " + style.Bold(flag.usage()) + strings.Repeat(" ", (18-len(flag.usage()))) + style.Dim(flag.Description) + output + "\n"
+	return "    " + style.Bold(flag.Usage()) + strings.Repeat(" ", (18-len(flag.Usage()))) + style.Dim(flag.Description) + output + "\n"
 }
 
 // TODO: Create the below variant as an option and store these options in their
@@ -81,34 +54,27 @@ func flagUsage(flag Flag) (output string) {
 // TODO: The amount of code duplication sucks. It also doesn't support
 // templating easily. Really need a better way.
 ///////////////////////////////////////////////////////////////////////////////
-func (self *CLI) help() (t string) {
+// TODO: With the new structure where the CLI itself is a command, we can now easily merge these two helps
+// TODO: If default value is provided, should indicate this
+func (self *CLI) helpTemplate(command Command) (t string) {
+	path := command.Path()
 	t += "\n{{.header}}"
 	t += "  {{.usage}}\n"
-	t += "    " + color.Fuchsia(style.Bold(self.Name)) + "  " + style.Dim("[command]") + "\n\n"
+	if len(path) == 0 {
+		t += "    " + style.Bold(color.Fuchsia(self.Name)) + " " + color.Silver(style.Dim("[parameters]")) + "\n\n"
+	} else if len(path) == 1 {
+		t += "    " + style.Bold(color.Fuchsia(self.Name)) + " " + color.SkyBlue(style.Dim("[command]")) + " " + color.Silver(style.Dim("[parameters]")) + "\n\n"
+	} else {
+		t += "    " + style.Bold(color.Fuchsia(self.Name)) + " " + strings.Join(command.Path()[1:], " ") + " " + color.SkyBlue(style.Dim("[subcommand]")) + color.Silver(style.Dim("[parameters]")) + "\n\n"
+	}
 	t += "  {{.availableCommands}}\n"
-	for _, command := range self.Commands {
-		t += commandUsage(command)
+	for index, subcommand := range command.VisibleSubcommands() {
+		t += "    " + style.Bold(subcommand.Usage()) + strings.Repeat(" ", (18-len(subcommand.Usage()))) + style.Dim(subcommand.Description)
+		if index != len(command.VisibleSubcommands())-1 {
+			t += "\n"
+		}
 	}
-	t += "\n"
-	t += "  {{.availableFlags}}\n"
-	for _, flag := range self.Flags {
-		t += flagUsage(flag)
-	}
-	t += "\n"
-
-	return t
-}
-
-// TODO: If default value is provided, should indicate this
-func (self *CLI) commandHelp(command Command) (t string) {
-	t += "{{.header}}"
-	t += "  {{.usage}}\n"
-	t += "    " + style.Bold(color.Fuchsia(self.Name)+" "+color.SkyBlue(command.Name)) + " " + style.Dim("[command]") + "\n\n"
-	t += "  {{.availableCommands}}\n"
-	for _, command := range command.visibleSubcommands() {
-		t += commandUsage(command)
-	}
-	t += "\n"
+	t += "\n\n"
 	t += "  {{.availableFlags}}\n"
 	for _, flag := range self.Flags {
 		t += flagUsage(flag)

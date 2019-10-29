@@ -4,46 +4,15 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
 	"regexp"
-	"runtime"
 	"strings"
+	"time"
 
 	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
 	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
 )
 
-type Outputs []*Output
-
-//
-// Debug
-//
-// TODO: WE can store these Debug() shorthand, and Error(), and Fatal() that
-// writes to all writers in CLI in a generic interface so we can call and add
-// them to the CLI as needed to make the system modular as possible and not call
-// in runtime and reflect when debug is not needed
-
-func (self Outputs) Debug(text ...[]interface{}) {
-	// TODO: get function name and put it in brackets as prefix
-	if self.Debug {
-		// NOTE: Doing the check at this level enables easy overriding without
-		// switching the Debug switch
-		self.Log(DEBUG, Brackets(skyBlue("FunctionName")), color.Blue(fmt.Sprintf("%s", text)))
-	}
-}
-
-// TODO Each of these will be a writer to all outputs that can be assigned to
-// CLI by loading a package
-func (self Outputs) Warn(text ...[]interface{}) {
-	self.Log(WARNING, color.Silver(strings.Join(text, " ")))
-}
-func (self Outputs) Error(err error, text ...[]interface{}) {
-	self.Log(ERROR, color.Silver(text, ": ", err.Error()))
-}
-func (self Outputs) Fatal(text string, err error) {
-	self.Log(FATAL, color.Red(text, ": ", err.Error()))
-	os.Exit(1)
-}
+type Outputs []Output
 
 // TODO: This provide the formatter logic for extending colors ontop of fmt by
 // adding new %X type logic. we can then add %{blue}%{bold} or like css
@@ -61,7 +30,6 @@ func (self Outputs) Fatal(text string, err error) {
 // Text
 //
 // Utility functions to manipulate text with or without ANSI escape sequences. Most of the functions available are used in one or more of the other packages here.
-//
 //     Align text horizontally or vertically
 //         text/align.go and text/valign.go
 //     Colorize text
@@ -135,7 +103,7 @@ func (self LogLevel) String() string {
 	case FATAL:
 		return "FATAL"
 	default:
-		return Blank
+		return ""
 	}
 }
 
@@ -143,32 +111,18 @@ func (self LogLevel) String() string {
 // code for each log level. Maybe regex colors, and primary, secondary,
 // contrast (which will be used when printing values on debug, help text, and
 // version)
-func merge(text []string) string { return strings.Join(text, Blank) }
 
 // TODO: Use to construct themes
 // Replace with below solution that but accept interface{} slice and use sprintf
 // to merge them.
 // return fmt.Sprintf("%s%s%s", BoldString, text, NoboldString)
-func purple(text ...string) string  { return color.Purple(merge(text)) }
-func green(text ...string) string   { return color.Green(merge(text)) }
-func lime(text ...string) string    { return color.Lime(merge(text)) }
-func silver(text ...string) string  { return color.Silver(merge(text)) }
-func blue(text ...string) string    { return color.Blue(merge(text)) }
-func skyBlue(text ...string) string { return color.Blue(merge(text)) }
-func olive(text ...string) string   { return color.Olive(merge(text)) }
-func red(text ...string) string     { return color.Red(merge(text)) }
-func maroon(text ...string) string  { return color.Maroon(merge(text)) }
-func bold(text ...string) string    { return style.Bold(merge(text)) }
-
-func thin(text ...string) string  { return style.Thin(merge(text)) }
-func white(text ...string) string { return color.White(merge(text)) }
-
-func brackets(text ...string) string    { return bold("[") + merge(text) + bold("]") }
-func parenthesis(text ...string) string { return bold("(") + merge(text) + bold(")") }
-
 // helpers
-func VariableInfo(value string) string {
-	return blue(Brackets(bold(fmt.Sprintf("%T", value)) + white("=") + green(value)))
+func VarInfo(value interface{}) string {
+	return style.Bold(color.White("[")) + style.Bold(color.Blue(fmt.Sprintf("%T", value))) + style.Bold(color.White("=")) + color.Green(fmt.Sprintf("%s", value)) + style.Bold(color.White("]"))
+}
+
+func DebugInfo(functionName string) string {
+	return style.Bold(color.White("[")) + color.SkyBlue(functionName) + style.Bold(color.White("]"))
 }
 
 //
@@ -219,28 +173,34 @@ func LogfileOutput(filename string) Output {
 // Writing To Outputs /////////////////////////////////////////////////////////
 // TODO: Improve this by implmenting Fprintf locally, so we can provide similar
 // functionality to Ouput and Write.
-func (self Output) Write(output ...string) {
-	if self.stripANSI {
-		for _, text := range output {
-			text = ansiRegex.ReplaceAllString(text, Blank)
+func (self Outputs) Write(text ...string) {
+	for _, output := range self {
+		if output.stripANSI {
+			fmt.Fprintf(output.file, "%s", output.prefix+ansiRegex.ReplaceAllString(fmt.Sprint(strings.Join(text, " ")), "")+"\n")
+		} else {
+			fmt.Fprint(output.file, output.prefix, strings.Join(text, " "), "\n")
 		}
 	}
-	fmt.Fprintf(self.file, self.prefix+strings.Join(output, Space))
 }
 
-func (self Output) Log(level LogLevel, output ...string) {
-	levelOutput := bold(level.String())
+func (self Outputs) Log(level LogLevel, output ...string) {
+	var levelOutput string
 	switch level {
 	case DEBUG:
-		levelOutput = purple(levelOutput)
+		levelOutput = color.Blue(level.String())
 	case WARNING:
-		levelOutput = olive(levelOutput)
+		levelOutput = color.Olive(level.String())
 	case ERROR:
-		levelOutput = red(levelOutput)
+		levelOutput = color.Red(level.String())
 	case FATAL:
-		levelOutput = maroon(levelOutput)
+		levelOutput = color.Maroon(level.String())
 	default:
-		levelOutput = skyBlue(levelOutput)
+		levelOutput = color.Purple(level.String())
 	}
-	self.Write(white(Brackets(purple(levelOutput)), strings.Join(output, Space)))
+	self.Write(style.Bold(color.White("[")) + levelOutput + style.Bold(color.White("]")) + strings.Join(output, " "))
+}
+
+// TODO: Can make this even better by having it return a function then we only need to pass the desription
+func (self *CLI) benchmark(startedAt time.Time, description string) {
+	self.Outputs.Log(DEBUG, style.Bold(DebugInfo("Benchmark")), color.Green(description), style.Bold(color.White("[")), color.Green(fmt.Sprintf("%v", time.Since(startedAt))), style.Bold(color.White("]")))
 }

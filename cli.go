@@ -1,12 +1,13 @@
 package cli
 
 import (
-	"fmt"
-	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
-	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
+	argument "github.com/multiverse-os/cli/framework/argument"
+	data "github.com/multiverse-os/cli/framework/data"
 )
 
 type Action func(context *Context) error
@@ -17,25 +18,14 @@ type Action func(context *Context) error
 // Ontology of a command-line interface
 ///////////////////////////////////////////////////////////////////////////////
 //
-//            global flag    command flag             parameters
+//            global flag    command flag             parameters (params)
 //              __|___        ____|_____             ____|_____
 //             /      \      /          \           /          \
 //     app-cli --flag=2 open --file=thing template /path/to/file
 //     \_____/          \__/              \______/
 //        |              |                   |
 //   application       command             subcommand
-
-// TODO: It would be great to impelement a middleware like system to
-// make CLI programming similar to web programming. Reusing these conceepts
-// should make it more familiar and easier to transpose code
-// TODO: Provide a way to register an RSS feed that can be used for checking for
-// updates.
-type Build struct {
-	CompiledAt time.Time
-	//Signature  string
-	//Source     string
-}
-
+//
 // TODO: Ability to have multiple errors, for example we can parse and provide
 // all errors at once regarding input so user does not need to trial and
 // error to get the information how to fix issues but can instead fix all at
@@ -62,37 +52,32 @@ type CLI struct {
 	Locale        string
 	Version       Version
 	Build         Build
-	RequiredArgs  int      // For simple scripts, like one that converts a file and requires filename
-	Command       *Command // Base command that represents the CLI itself
-	ParamType     DataType // Filename types should be able to define extension for autcomplete
+	RequiredArgs  int       // For simple scripts, like one that converts a file and requires filename
+	Command       Command   // Base command that represents the CLI itself
+	ParamType     data.Type // Filename types should be able to define extension for autcomplete
 	DefaultAction Action
-	Outputs       []Output
+	Outputs       Outputs
 	//Printers       - like Debug() that will put function in and maybe .Value()
 	//to chain values
 	Debug bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
-	Commands []Command
 	Flags    []Flag
+	Commands []Command
 	//Errors        []error
 }
 
 func New(cli *CLI) *CLI {
-	defer self.benchmark(time.Now())
-	//if IsBlank(cli.Name) {}
-	//if IsBlank(cli.Locale) {}
-	// TODO: Migrate to a system that just lets us add logger as one of the
-	// outputs, enabling outputing to x number of locations which can easily be a
-	// logfile in addition to stdout
-	//if len(cli.Logger.Name) == 0 {
-	//	cli.Logger = log.DefaultLogger(cli.Name, true, true)
-	//}
+	if data.IsBlank(cli.Name) {
+		cli.Name = "example"
+	}
+	//if data.IsBlank(cli.Locale) {}
 	if cli.Version.undefined() {
 		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
-	if IsZero(len(cli.Outputs)) {
+	if data.IsZero(len(cli.Outputs)) {
 		cli.Outputs = append(cli.Outputs, TerminalOutput())
 	}
-	cli.Command = &Command{
+	cli.Command = Command{
 		Name:        cli.Name,
 		Subcommands: cli.Commands,
 		Flags:       cli.Flags,
@@ -138,7 +123,7 @@ func New(cli *CLI) *CLI {
 // testing should be done to confirm the innerworkings of the framework work as
 // expected and can be confirmed to continue to work after changes.
 func (self *CLI) Run(arguments []string) (*Context, error) {
-	defer self.benchmark(time.Now())
+	defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
 	context := self.Parse(arguments)
 	//if _, ok := context.Flags["version"]; ok {
 	//	self.renderVersion()
@@ -160,7 +145,10 @@ func (self *CLI) Run(arguments []string) (*Context, error) {
 	//if err != nil {
 	//	self.Logger.Error(err)
 	//}
-	return context, err
+	if command, ok := self.Command.Route(context.Command.Path()); ok {
+		self.RenderHelpTemplate(command)
+	}
+	return context, nil
 }
 
 //
@@ -172,49 +160,50 @@ func (self *CLI) Parse(arguments []string) *Context {
 		CLI:        self,
 		CWD:        cwd,
 		Executable: executable,
-		Command: &inputCommand{
-			Name: self.Name,
+		Command: &argument.Command{
+			Arg: self.Name,
 		},
-		CommandPath: []string{self.Name},
-		Flags:       map[string]*inputFlag{},
-		Args:        arguments[1:],
+		Flags:         map[string]*argument.Flag{},
+		ArgumentChain: argument.ParseChain(arguments[1:]),
+		Args:          arguments[1:],
 	}
 
-	flagGroup := newFlagGroup()
-	for index, argument := range context.Args {
-		self.Debug(debugInfo("CLI.parse()"), "attempting to parse the", varInfo(argument))
-		if strings.HasPrefix(argument, shortFlag) && IsLessThan(1, len(argument)) {
-			if flag, ok := context.parseFlag(argument); ok {
-				flagGroup.addFlag(flag)
-			}
-		} else {
-			if command, ok := self.command.HasRoute(append(context.CommandPath, argument)); ok {
-				inputCmd := newInputCommand(context.Command, command.Name)
-				inputCmd.addSubcommandTree(command.Subcommands)
-				if !IsZero(len(*flagGroup)) {
-					inputCmd.addFlags(flagGroup)
-					flagGroup.reset()
-				}
-				context.addCommand(inputCmd)
-			} else {
-				for _, param := range arguments[index:] {
-					if strings.HasPrefix(param, shortFlag) {
-						if flag, ok := context.parseFlag(param); ok {
-							flagGroup.addFlag(flag)
-						}
-					} else {
-						// TODO: Need parameter init datatype declaration to do more with
-						// parameter otherwise its going to be simple string slice
-						context.Params = append(context.Params, param)
-					}
-				}
-				if !flagGroup.isEmpty() {
-					context.Command.addFlags(flagGroup)
-					flagGroup.reset()
-				}
-				break
-			}
-		}
+	//flagGroup := argument.Flags{}
+	for index, arg := range context.Args {
+		self.Log(DEBUG, DebugInfo("CLI.parse()"), "attempting to parse the", VarInfo(arg), "at position [", strconv.Itoa(index), "] in the argument chain")
+
+		//if strings.HasPrefix(arg, shortFlag) && data.IsLessThan(1, len(arg)) {
+		//	if flag, ok := context.parseFlag(arg); ok {
+		//		flagGroup.addFlag(flag)
+		//	}
+		//} else {
+		//	if command, ok := self.command.HasRoute(append(context.CommandPath, arg)); ok {
+		//		inputCommand := context.AddCommand(command)
+		//		inputCommand.addSubcommandTree(command.Subcommands)
+		//		if !data.IsZero(len(*flagGroup)) {
+		//			inputCommand.addFlags(flagGroup)
+		//			flagGroup.reset()
+		//		}
+		//		context.addCommand(inputCommand)
+		//	} else {
+		//		for _, param := range arguments[index:] {
+		//			if strings.HasPrefix(param, shortFlag) {
+		//				if flag, ok := context.parseFlag(param); ok {
+		//					flagGroup.addFlag(flag)
+		//				}
+		//			} else {
+		//				// TODO: Need parameter init datatype declaration to do more with
+		//				// parameter otherwise its going to be simple string slice
+		//				context.Params = append(context.Params, param)
+		//			}
+		//		}
+		//		if !flagGroup.isEmpty() {
+		//			context.Command.addFlags(flagGroup)
+		//			flagGroup.reset()
+		//		}
+		//		break
+		//	}
+		//}
 	}
 	return context
 }
@@ -228,28 +217,10 @@ func (self *CLI) Parse(arguments []string) *Context {
 // Have your own logger? No problem, just append it's io.Writer to CLI.Output.
 // Want logging to Terminal & Logfile? No problem, append both to CLI.Output.
 // Want both and output to a website? No problem.
-//
-// TODO: implement a Fprintf style Output for better and more coonsistent Output
-// usage. Right now its a bit tedious too use but if it takes interface{} and
-// covnerts them automatically, it would become more natural. Eventually, should
-// also define a theme, then all softwware in a collection can use a consistent
-// theme. And finally icon set package would be great, even if just making it
-// easier to access the basic UTF-8 ones
-// TODO: Fact that color functions CANT receive anything but string is very bad,
-// makes it difficult to use the library effetively
-func (self *CLI) Output(text ...interface{}) {
-	for _, output := range self.Outputs {
-		output.Write(text, "\n")
-	}
+func (self *CLI) Output(text ...string) {
+	self.Outputs.Write(strings.Join(text, " "))
 }
 
-func (self *CLI) Log(level LogLevel, text string) {
-	for _, output := range self.Outputs {
-		output.Log(level, text, "\n")
-	}
-}
-
-func (self *CLI) benchmark(startedAt time.Time, description string) {
-	elapsed := time.Since(startedAt)
-	self.Debug(brackets(olive("benchmark")), color.Green(description, brackets(white(fmt.Sprintf("%s", elapsed)))))
+func (self *CLI) Log(level LogLevel, text ...string) {
+	self.Outputs.Log(level, strings.Join(text, " "))
 }
