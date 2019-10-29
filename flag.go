@@ -18,10 +18,9 @@ type Flag struct {
 // TODO: Could probably speed up lookup and avoid this by putting flag in a
 // lookup map twice, once with name and once with alias and just use a symbol
 // TODO: Could probably be made private again since we had to move this back into the cli package for a sensible way of initializing and not requiring 5 imports
-func (self Flag) Is(name string) bool { return self.Name == name || self.Alias == name }
-func (self Flag) Visible() bool       { return !self.Hidden }
+func (self Flag) is(name string) bool { return self.Name == name || self.Alias == name }
 
-func (self Flag) Usage() (output string) {
+func (self Flag) usage() (output string) {
 	output += token.Long.String() + self.Name
 	if data.NotBlank(self.Alias) {
 		output += ", " + token.Short.String() + self.Alias

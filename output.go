@@ -16,7 +16,7 @@ type Outputs []Output
 
 // TODO: This provide the formatter logic for extending colors ontop of fmt by
 // adding new %X type logic. we can then add %{blue}%{bold} or like css
-// %{color:blue;weight:bold;}
+// %{color:blue;style:bold;}
 // https://github.com/nhooyr/color
 // This is important because its also the founation for a nice implementaiton of
 // locales without relying on outside depndencies
@@ -56,13 +56,10 @@ type Outputs []Output
 // The same should be with tree structures. Also the tree structure should
 // support horizontal and vertical printing.
 
-// THe concept of wrapping at 80 is great and would simplify our help output
-// code
+// THe concept of wrapping at 80 is great and would simplify our help output code
 // https://github.com/PraserX/afmt
 
-// TODO: Use terminal library to read width and add ability to format to one
-// side
-
+// TODO: Use terminal library to read width and add ability to format to one side
 // Logging that ideally is not too bloated to get in the way, support for
 // overriding by passing your logger's os.Writer but enough complexity to be
 // useful in many use cases.
@@ -78,8 +75,7 @@ type Output struct {
 	file      io.Writer
 }
 
-// TODO: When this goes into its own package, this should be moved to its own
-// file
+// TODO: When this goes into its own package, this should be moved to its own file
 type LogLevel int
 
 const (
@@ -111,12 +107,6 @@ func (self LogLevel) String() string {
 // code for each log level. Maybe regex colors, and primary, secondary,
 // contrast (which will be used when printing values on debug, help text, and
 // version)
-
-// TODO: Use to construct themes
-// Replace with below solution that but accept interface{} slice and use sprintf
-// to merge them.
-// return fmt.Sprintf("%s%s%s", BoldString, text, NoboldString)
-// helpers
 func VarInfo(value interface{}) string {
 	return style.Bold(color.White("[")) + style.Bold(color.Blue(fmt.Sprintf("%T", value))) + style.Bold(color.White("=")) + color.Green(fmt.Sprintf("%s", value)) + style.Bold(color.White("]"))
 }
@@ -125,9 +115,12 @@ func DebugInfo(functionName string) string {
 	return style.Bold(color.White("[")) + color.SkyBlue(functionName) + style.Bold(color.White("]"))
 }
 
-//
-// Public Methods
-///////////////////////////////////////////////////////////////////////////////
+func merge(textParts ...interface{}) (output string) {
+	for _, part := range textParts {
+		output += fmt.Sprint(part, " ")
+	}
+	return output
+}
 
 // Value Assignment Chaining //////////////////////////////////////////////////
 func (self Output) Prefix(prefix string) Output {
@@ -198,6 +191,25 @@ func (self Outputs) Log(level LogLevel, output ...string) {
 		levelOutput = color.Purple(level.String())
 	}
 	self.Write(style.Bold(color.White("[")) + levelOutput + style.Bold(color.White("]")) + strings.Join(output, " "))
+}
+
+//
+// Ultra Minimal Multiple Output Logging System
+///////////////////////////////////////////////////////////////////////////////
+// Basic Levels, Debug Mode, Errors, Warnings, Fatals that exit, and flexible
+// access so it doesn't get in the way.
+//
+// Have your own logger? No problem, just append it's io.Writer to CLI.Output.
+// Want logging to Terminal & Logfile? No problem, append both to CLI.Output.
+// Want both and output to a website? No problem.
+func (self *CLI) Output(text ...interface{}) {
+	self.Outputs.Write(merge(text))
+}
+
+func (self *CLI) Log(level LogLevel, text ...interface{}) {
+	if level != DEBUG || level == DEBUG && self.Debug {
+		self.Outputs.Log(level, merge(text, " "))
+	}
 }
 
 // TODO: Can make this even better by having it return a function then we only need to pass the desription

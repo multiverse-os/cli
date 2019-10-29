@@ -1,73 +1,32 @@
 package argument
 
-import (
-	"fmt"
-)
-
 type Chain struct {
-	Arguments []Argument
+	Commands []*Command
 }
 
-func ParseChain(arguments []string) *Chain {
-	argumentChain := []Argument{}
-	for _, argument := range arguments {
-		argumentChain = append(argumentChain, ParseArgument(argument))
-	}
-	return &Chain{
-		Arguments: argumentChain,
-	}
-}
-
-// Validations ////////////////////////////////////////////////////////////////
-func (self *Chain) IsValidPosition(position int) bool {
-	return (1 < position && position <= len(self.Arguments))
-}
-
-// Routing ////////////////////////////////////////////////////////////////////
-func (self *Chain) CommandPath() (path []string) {
-	for _, argument := range self.Arguments {
-		switch argument.(type) {
-		case Command:
-			path = append(path, argument.(Command).Arg)
+func (self *Chain) Route(path []string) (*Command, bool) {
+	cmd := &Command{}
+	for index, command := range self.Commands {
+		if command.Name == path[index] {
+			if index == len(path) {
+				return command, true
+			} else {
+				cmd = command
+			}
+		} else {
+			return cmd, (len(cmd.Name) == 0)
 		}
+	}
+	return nil, (len(cmd.Name) == 0)
+}
+
+func (self *Chain) AddCommand(command *Command) {
+	self.Commands = append(self.Commands, command)
+}
+
+func (self *Chain) Path() (path []string) {
+	for _, command := range self.Commands {
+		path = append(path, command.Name)
 	}
 	return path
-}
-
-// Argument Selection & Filtering //////////////////////////////////////////////
-func (self *Chain) NextArgument(position int) (Argument, bool) {
-	if self.IsValidPosition(position) {
-		return self.Arguments[position+1], true
-	}
-	return nil, false
-}
-
-func (self *Chain) PreviousCommand(position int) (Command, bool) {
-	if self.IsValidPosition(position) {
-		for i := (len(self.Arguments) - 1); i >= 0; i-- {
-			argument := self.Arguments[i]
-			switch argument.(type) {
-			case Command:
-				if argument.(Command).Position < position {
-					return argument.(Command), true
-				}
-			}
-		}
-	}
-	return Command{}, false
-}
-
-func (self *Chain) TrailingFlags(position int) Flags {
-	flagGroup := Flags{}
-	if self.IsValidPosition(position) {
-		for i := (len(self.Arguments) - 1); i >= position; i-- {
-			element := self.Arguments[i]
-			switch element.(type) {
-			case Flag:
-				fmt.Println("[framework/argument] adding flag to group of trailing flags:", element.(Flag).Value)
-				flagGroup.Add(element.(Flag))
-			}
-		}
-	}
-	return flagGroup
 }

@@ -5,105 +5,78 @@ import (
 
 	argument "github.com/multiverse-os/cli/framework/argument"
 	token "github.com/multiverse-os/cli/framework/argument/token"
-	//data "github.com/multiverse-os/cli/framework/data"
+	data "github.com/multiverse-os/cli/framework/data"
 )
 
-// TODO: Input needs validation should probably move everything but input logic
-// back into CLI or break context off input. then let input mingle with datatype
-// and provide user input validation. we want to validate every input into the
-// software including input from trusted users.
-
-// TODO: Maybe we should just call this process, and also include the PID, and
-// helpers for kill, signal handling, child process spawning, resource
-// information, and on-the-fly daemonization. This would enable the receiver to
-// do a lot with the resulting context including completely manage the process.
-// TODO: Should be able to provide configPath based on CLI.Name, as well as
-// cache folder.
-// TODO: CLI framewwork ABSOLUTELY should be providing service management, daemonziation, generation of systemd/sysv init scripts, managing configurations, data folder and tempory folder.
 type Context struct {
-	PID           int
-	CLI           *CLI
-	CWD           string
-	Executable    string
-	Command       *argument.Command
-	Flags         map[string]*argument.Flag
-	Params        argument.Params
-	ArgumentChain *argument.Chain
-	Args          []string
+	PID          int
+	CLI          *CLI
+	CWD          string
+	Executable   string
+	Command      *argument.Command
+	Flags        map[string]*argument.Flag
+	Params       argument.Params
+	CommandChain *argument.Chain
+	Args         []string
 }
 
-func (self *Context) AddCommand(command *argument.Command) {
-	self.CLI.Log(DEBUG, DebugInfo("Context.addCommand()"), "Add command func() on context with", VarInfo(command.Arg))
-	self.CLI.Log(DEBUG, DebugInfo("Context.addCommand()"), VarInfo(self.Command.Arg))
-	// Since this can't be done for both flag and command due to import looping, rather not do this with command if its possible
-	//self.CLI.Debug(DebugInfo("Context.addCommand()"), VarInfo("Context.Command.definition.Subcommands", fmt.Sprintf("%s", self.Command.Definition.Subcommands)))
-
-	//if !data.IsZero(len(self.Command.Definition.Subcommands)) {
-	//	self.CLI.Log(DEBUG, DebugInfo("Context.addCommand()"), "Context.Subcommands length is not zero, so looping")
-	//	//for _, subcommand := range self.Command.definition.Subcommands {
-	//	//	self.CLI.Log(Debug, DebugInfo("Context.addCommand()"), VarInfo(subcommand.Arg), " == ", VarInfo(command.Arg))
-	//	//	// TODO: What is this? Because it would need to check against alias too if this is a validation. Should just add validation to the model.
-	//	//	//if subcommand.Arg == command.Arg {
-	//	//	//	//self.Command = newInputCommand(command, subcommand.Arg)
-	//	//	//	//self.CommandPath = append(self.CommandPath, self.Command.Arg)
-	//	//	//}
-	//	//}
-	//}
-}
-
-// TODO: Still lacks support for declaring non-bool flags without "=", to
-// acheive this we will need declaration of flags. Should just work this way if
-// not declared, and if the developer declares then we support it
-//func (self *Flag) MatchLongFlag(str string) bool {
-//	flagComponents := strings.Split(str, "=")
-//	switch {
-//	case str[:1] == longFlag:
-//		if []byte(str[1:(len(self.Name)+2)]) == []byte(self.Name) {
-//			fmt.Println("str:", str[(len(self.Name)+2):])
-//			self.Value = str[(len(self.Name) + 3):]
-//		}
-//	case str[0] == shortFlag:
-//		parsedFlag := flagComponents[0][1:]
-//		if 2 <= len(parsedFlag) {
-//			for _, flag := range parsedFlag {
-//
-//			}
-//		}
-//	default:
-//		return false
+//func (self *Context) AddFlag(command *Command, flag *argument.Flag) {
+//	self.CLI.Log(DEBUG, "Looking up command in context.CommandChain with with route:", self.Command.Path())
+//	if command, ok := self.CommandChain.Route(self.Command.Path()); ok {
+//		command.Flags[flag.Name] = flag
+//		self.Flags[flag.Name] = flag
+//		self.CLI.Log(DEBUG, "Attempting to assign flag", VarInfo(flag), "to command: ", VarInfo(command))
+//	} else {
+//		self.CLI.Log(DEBUG, "Failed to find command with route:", self.Command.Path())
 //	}
 //}
-func (self *Context) parseFlag(flag string) (*argument.Flag, bool) {
-	//parsed := argument.Flag{}
-	if strings.HasPrefix(flag, token.Long.String()) {
-		// Long Flag - convention is enforcing '=' on Long val
-		//flagParts := strings.Split(flag[:1], valueDelimeter)
-		//if data.IsGreaterThan(1, len(flagParts)) {
-		//	parsed.Name = flagParts[0]
-		//	parsed.Value = flagParts[1]
-		//} else {
-		//	parsed.Name = flag[2:]
-		//}
-		//if flag, ok := self.CLI.command.Flag(parsed.Arg); ok {
-		//	parsed.Name = flag.Name
-		//	parsed.Type = flag.Type
-		//	return parsed, true
-		//}
+
+func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *argument.Flag) {
+	var flagParts []string
+	flagParts = strings.Split(flag.Name, token.Equal.String())
+	if 1 < len(flagParts) {
+		flag.Value = flagParts[1]
 	} else {
-		// Short Flag (or Alias) (ex. ls -a)
-		//for index, alias := range flag[1:] {
-		//	// Stacked Short Flags (ex. `la -lah`)
-		//	if flag, ok := self.CLI.command.Flag(string(alias)); ok {
-		//		parsed.Arg = flag.Arg
-		//		if data.IsGreaterThan(len(flag[1:]), index) {
-		//			flagParts := strings.Split(string(alias), valueDelimeter)
-		//			if data.IsGreaterThan(1, len(flagParts)) {
-		//				parsed.Value = flagParts[1]
-		//			}
-		//		}
-		//		return parsed, true
-		//	}
-		//}
+		if len(self.Args) > index+1 {
+			flag.Value = self.Args[index+1]
+		} else {
+			flag.Value = "1"
+			flag.Type = data.Bool
+		}
 	}
-	return nil, false
+	if flagType == token.Short {
+		shortName := flagParts[0][1:]
+		// Stacked Flags
+		for index, stackedFlag := range shortName {
+			// Load flag
+			if command, flagDefinition, ok := self.CLI.IsFlag(self.Command.Path(), string(stackedFlag)); ok {
+				self.CLI.Log(DEBUG, "flag.Name:", flag.Name)
+				self.CLI.Log(DEBUG, "flag.Command.Name:", command.Name)
+				flag.Name = flagDefinition.Name
+				if index != (len(flag.Name) - 1) {
+					// NOTE: Stacked flag that is not the last element MUST be bool
+					flag.Value = "1"
+					flag.Type = data.Bool
+				} else {
+					// NOTE: Stacked flag that is last element needs to use value
+
+				}
+				self.ParseFlag(index, flagType, flag)
+			}
+		}
+	} else if flagType == token.Long {
+		flag.Name = flagParts[0][1:]
+	}
+	self.CLI.Log(DEBUG, "Adding flag to context")
+	if 0 < len(flag.Name) {
+		self.CLI.Log(DEBUG, "Looking up flag to determine what level it is in with path:", self.Command.Path())
+		//if command, _, ok := self.CLI.IsFlag(self.Command.Path(), flag.Name); ok {
+		//		self.AddFlag(command, flag)
+		self.Flags[flag.Name] = flag
+		//} else {
+		self.CLI.Log(DEBUG, "Failed to find command with flag")
+		//	}
+	} else {
+		self.CLI.Log(DEBUG, "Not addding flag because flag name is lenth 0")
+	}
 }

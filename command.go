@@ -13,15 +13,19 @@ type Command struct {
 	parent      *Command // TODO: Considier reducing this by replacing this dot.path command.subcommand
 	Subcommands []Command
 	Flags       []Flag
-	//Action      func(c *Context) error
-	Action interface{}
+	Action      Action
 }
+
+// TODO Consider doing murmur has for comparisons, to speed up everything.
+
+// TODO: Be able to walk over the command tree to output all items, for putting into a map, for hashing and creating ids, etc
+// this was already written just look a few commits back
 
 // TODO: Support printing command tree
 // TODO: These may be able to go back to being private, were made public when we experimented with having their own package
-func (self Command) Is(name string) bool { return self.Name == name || self.Alias == name }
+func (self Command) is(name string) bool { return self.Name == name || self.Alias == name }
 
-func (self Command) VisibleSubcommands() (subcommands []Command) {
+func (self Command) visibleSubcommands() (subcommands []Command) {
 	for _, subcommand := range self.Subcommands {
 		if !subcommand.Hidden {
 			subcommands = append(subcommands, subcommand)
@@ -30,14 +34,23 @@ func (self Command) VisibleSubcommands() (subcommands []Command) {
 	return subcommands
 }
 
-func (self Command) Usage() (output string) {
+func (self Command) visibleFlags() (flags []Flag) {
+	for _, flag := range self.Flags {
+		if !flag.Hidden {
+			flags = append(flags, flag)
+		}
+	}
+	return flags
+}
+
+func (self Command) usage() (output string) {
 	if len(self.Alias) != 0 {
 		output += ", " + self.Alias
 	}
 	return self.Name + output
 }
 
-func (self Command) Path() []string {
+func (self Command) path() []string {
 	route := []string{self.Name}
 	for parent := self.parent; parent != nil; parent = parent.parent {
 		route = append(route, parent.Name)
@@ -52,31 +65,24 @@ func Commands(commands ...Command) []Command { return commands }
 
 func (self Command) Subcommand(name string) (Command, bool) {
 	for _, subcommand := range self.Subcommands {
-		if subcommand.Name == name || subcommand.Alias == name {
+		if subcommand.is(name) {
 			return subcommand, true
 		}
 	}
 	return Command{}, false
 }
 
-func (self Command) SubcommandNames() (subcommands []string) {
-	for _, subcommand := range self.Subcommands {
-		subcommands = append(subcommands, subcommand.Name)
-	}
-	return subcommands
-}
-
 // NOTE: Must cascade through parents recursively if the flag is missing. If no
 // commands in the path have the flag defined, then it is ignored.
-func (self Command) Flag(arg string) (*Flag, bool) {
+func (self Command) Flag(arg string) (*Command, *Flag, bool) {
 	arg = strings.ToLower(arg)
 	for _, flag := range self.Flags {
 		if flag.Name == arg || flag.Alias == arg {
-			return &flag, true
+			return &self, &flag, true
 		}
 		//if self.ParentCommand
 	}
-	return nil, false
+	return nil, nil, false
 }
 
 // TODO: We could try a radix tree that is loaded with the commands. Iterating
@@ -87,6 +93,7 @@ func (self Command) Flag(arg string) (*Flag, bool) {
 // search
 // NOTE: Public to allow essentially re-running the application without needing to
 // start a new process
+// TODO: THIS IS THE SLOWEST FUNCTION, THIS IS OUR BOTTLENECK
 func (self Command) Route(path []string) (Command, bool) {
 	if len(path) == 1 && self.Name == path[0] {
 		return self, true

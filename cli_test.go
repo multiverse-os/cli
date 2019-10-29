@@ -8,10 +8,10 @@ func CommandTreeCLI() *CLI {
 		Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
 		Flags: cli.Flags(
 			cli.Flag{
-				Name:         "lang",
-				Alias:        "l",
-				DefaultValue: "english",
-				Description:  "Locale used when executing the program",
+				Name:        "lang",
+				Alias:       "l",
+				Default:     "english",
+				Description: "Locale used when executing the program",
 			},
 		),
 		Commands: cli.Commands(
@@ -21,10 +21,10 @@ func CommandTreeCLI() *CLI {
 				Description: "complete a task on the list",
 				Flags: cli.Flags(
 					cli.Flag{
-						Name:         "filter",
-						Alias:        "f",
-						DefaultValue: "all",
-						Description:  "filter all the things",
+						Name:        "filter",
+						Alias:       "f",
+						Default:     "all",
+						Description: "filter all the things",
 					},
 				),
 				Subcommands: cli.Commands(

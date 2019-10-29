@@ -7,19 +7,21 @@ import (
 	data "github.com/multiverse-os/cli/framework/data"
 )
 
+// TODO: Using Position seems like a bad idea, especially if we want to be able to insert arguments placed in the wrong spot like in the params to be more intuitive
+// we may want to just provide an ID then do a scan throught he chain for the ID
 //
 // Flag Input
 ///////////////////////////////////////////////////////////////////////////////
 type Flag struct {
-	Chain      *Chain
 	Identifier token.Identifier
-	Stacked    bool
-	Position   int
 	Type       data.Type
+	Stacked    bool
+	Name       string
+	Value      string
 	Arg        string
 }
 
-func IsValidFlag(flag string) (token.Identifier, bool) {
+func HasFlagPrefix(flag string) (token.Identifier, bool) {
 	if strings.HasPrefix(flag, token.Long.String()) &&
 		data.IsGreaterThan(len(flag), token.Long.Length()) {
 		return token.Long, true
@@ -31,47 +33,36 @@ func IsValidFlag(flag string) (token.Identifier, bool) {
 	}
 }
 
-func (self Flag) Name() string {
-	flagParts := strings.Split(self.Value(), token.Short.String())
-	return strings.Split(flagParts[len(flagParts)-1], token.Equal.String())[0]
-}
+// TODO: We do this when adding it
+//func (self Flag) Name() string {
+//	flagParts := strings.Split(self.Value(), token.Short.String())
+//	return strings.Split(flagParts[len(flagParts)-1], token.Equal.String())[0]
+//}
+//
+//func (self Flag) Value() string {
+//	if self.Separator(token.Equal) {
+//		return strings.Split(self.Arg, token.Equal.String())[0][1:]
+//	} else {
+//		// NOTE: Since the flag does not declare using an equal sign, we can assume
+//		// the next item is the value (the developer will know, and we will validate
+//		// it for any datatype. BUT if it is a valid flag, we are dealing with a Bool.
+//		nextValue, ok := self.NextArgument()
+//		if ok {
+//			if _, ok := HasFlagPrefix(nextValue.(Flag).Arg); ok {
+//				self.Type = data.Bool
+//				return data.BoolString(true)
+//			} else {
+//				if nextArgument, ok := self.NextArgument(); ok {
+//					return nextArgument.(Flag).Arg
+//				} else {
+//					return ""
+//				}
+//			}
+//		}
+//	}
+//	return data.Blank
+//}
 
-func (self Flag) Value() string {
-	if self.Separator(token.Equal) {
-		return strings.Split(self.Arg, token.Equal.String())[0][1:]
-	} else {
-		// NOTE: Since the flag does not declare using an equal sign, we can assume
-		// the next item is the value (the developer will know, and we will validate
-		// it for any datatype. BUT if it is a valid flag, we are dealing with a Bool.
-		nextValue, ok := self.NextArgument()
-		if ok {
-			if _, ok := IsValidFlag(nextValue.(Flag).Arg); ok {
-				self.Type = data.Bool
-				return data.BoolString(true)
-			} else {
-				if nextArgument, ok := self.NextArgument(); ok {
-					return nextArgument.(Flag).Arg
-				} else {
-					return ""
-				}
-			}
-		}
-	}
-	return data.Blank
-}
-
-func (self Flag) Separator(separatorToken token.Separator) bool {
-	return strings.Contains(self.Arg, separatorToken.String())
-}
-
-///////////////////////////////////////////////////////////////////////////////
-func (self Flag) NextArgument() (Argument, bool) {
-	return self.Chain.NextArgument(self.Position)
-}
-
-// Flags //////////////////////////////////////////////////////////////////////
-type Flags []Flag
-
-func (self Flags) Add(flag Flag) { self = append(self, flag) }
-func (self Flags) Reset()        { self = Flags{} }
-func (self Flags) IsEmpty() bool { return data.IsZero(len(self)) }
+//func (self Flag) Separator(separatorToken token.Separator) bool {
+//	return strings.Contains(self.Arg, separatorToken.String())
+//}

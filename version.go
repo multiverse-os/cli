@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	data "github.com/multiverse-os/cli/framework/data"
 	template "github.com/multiverse-os/cli/framework/template"
 	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
 	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
-	banner "github.com/multiverse-os/cli/framework/text/banner"
-	table "github.com/multiverse-os/cli/framework/text/table"
+	//table "github.com/multiverse-os/cli/framework/text/table"
 )
 
 // Semantic Versioning
@@ -27,7 +25,7 @@ type Version struct {
 	Major int
 	Minor int
 	Patch int
-	Build *Build
+	Build *BuildInformation
 }
 
 func MarshalVersion(version string) Version {
@@ -43,23 +41,11 @@ func MarshalVersion(version string) Version {
 	return Version{Major: 0, Minor: 0, Patch: 0}
 }
 
-//We can sign the build but unfortuatenly we can't sign the checksum because it would alter the checksum
-// TODO: It would be great to impelement a middleware like system to
-// make CLI programming similar to web programming. Reusing these conceepts
-// should make it more familiar and easier to transpose code
-// TODO: Provide a way to register an RSS feed that can be used for checking for
-// updates.
-type Build struct {
-	Authors    []Author
+type BuildInformation struct {
 	Source     string
 	Commit     string
 	Signature  string
-	CompiledAt time.Time
-}
-
-type Author struct {
-	Name  string
-	Email string
+	CompiledAt string
 }
 
 func (self *Build) AddAuthor(name, email string) {
@@ -80,10 +66,28 @@ func (self VersionComponent) String() string {
 	}
 }
 
+func (self Version) ColorString() string {
+	var colorVersion []string
+	for _, versionComponent := range strings.Split(self.String(), ".") {
+		if versionComponent == "0" {
+			colorVersion = append(colorVersion, style.Thin(color.SkyBlue(versionComponent)))
+		} else {
+			colorVersion = append(colorVersion, style.Bold(color.Purple(versionComponent)))
+		}
+	}
+	return style.Thin(color.Blue("[")) + style.Thin(color.Blue("v")) + strings.Join(colorVersion, color.White(".")) + style.Thin(color.Blue("]"))
+}
+
 func (self *CLI) RenderVersionTemplate() error {
 	err := template.OutputStdOut(defaultVersionTemplate(), map[string]string{
-		"header":  banner.New(self.Name).Font("big").String(),
-		"version": self.Version.String(),
+		"header":  style.Bold(color.SkyBlue(self.Name)),
+		"version": self.Version.ColorString(),
+		//"build": table.New(BuildInformation{
+		//	Source:     "n/a",
+		//	Commit:     "n/a",
+		//	Signature:  "n/a",
+		//	CompiledAt: "n/a",
+		//}).String(),
 	})
 	if data.NotNil(err) {
 		return err
@@ -91,20 +95,8 @@ func (self *CLI) RenderVersionTemplate() error {
 	return nil
 }
 
-// TODO: Table should have a generic table object we can use to fill in data
-// when we dont have a struct so we dont have to resort to using anonymous
-// structs like this if we dont want to
 func defaultVersionTemplate() string {
-	return "\n{{.header}}  " + color.White(style.Bold("Version:")) +
-		" {{.version}} \n" + table.Table(struct {
-		CompiledAt string
-		Signature  string
-		Source     string
-	}{
-		"n/a",
-		"n/a",
-		"n/a",
-	}) + "\n"
+	return "{{.header}}" + color.SkyBlue(style.Thin(" version ")) + "{{.version}}\n"
 }
 
 func (self Version) undefined() bool {

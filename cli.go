@@ -3,7 +3,6 @@ package cli
 import (
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	argument "github.com/multiverse-os/cli/framework/argument"
@@ -46,6 +45,20 @@ type Localisation struct {
 	Text     map[string]string
 }
 
+type Build struct {
+	CompiledAt time.Time
+	Source     string
+	Commit     string
+	Signature  string
+	Authors    []Author
+}
+
+type Author struct {
+	PublicKey string
+	Name      string
+	Email     string
+}
+
 type CLI struct {
 	Name          string
 	Description   string
@@ -57,9 +70,8 @@ type CLI struct {
 	ParamType     data.Type // Filename types should be able to define extension for autcomplete
 	DefaultAction Action
 	Outputs       Outputs
-	//Printers       - like Debug() that will put function in and maybe .Value()
-	//to chain values
-	Debug bool // Controls if Debug output writes are skipped
+	Routes        map[string]*Command
+	Debug         bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
 	Flags    []Flag
 	Commands []Command
@@ -77,12 +89,15 @@ func New(cli *CLI) *CLI {
 	if data.IsZero(len(cli.Outputs)) {
 		cli.Outputs = append(cli.Outputs, TerminalOutput())
 	}
+	cli.Routes = map[string]*Command{}
+
 	cli.Command = Command{
 		Name:        cli.Name,
 		Subcommands: cli.Commands,
 		Flags:       cli.Flags,
 		Action:      cli.DefaultAction,
 	}
+	cli.Debug = true
 	cli.Build.CompiledAt = time.Now()
 	return cli
 }
@@ -145,82 +160,72 @@ func (self *CLI) Run(arguments []string) (*Context, error) {
 	//if err != nil {
 	//	self.Logger.Error(err)
 	//}
-	if command, ok := self.Command.Route(context.Command.Path()); ok {
-		self.RenderHelpTemplate(command)
-	}
+
+	//if command, ok := self.Command.Route(context.Command.Path()); ok {
+	//	self.RenderHelpTemplate(command)
+	//	command.Action(context)
+	//}
+	self.RenderVersionTemplate()
+	context.Command.Action.(Action)(context)
 	return context, nil
 }
 
-//
+func (self *CLI) IsFlag(path []string, flagName string) (*Command, *Flag, bool) {
+	if 0 < len(path) {
+		if command, ok := self.Command.Route(path); ok {
+			return command.Flag(flagName)
+		} else {
+			self.IsFlag(path[:(len(path)-1)], flagName)
+		}
+	}
+	return nil, nil, false
+}
+
 // Context Creation, Command Routing, Flag Parsing, and Parameter Parsing
 /////////////////////////////////////////////////////////////////////////////
 func (self *CLI) Parse(arguments []string) *Context {
+	defer self.benchmark(time.Now(), "benmarking parse")
 	cwd, executable := filepath.Split(arguments[0])
 	context := &Context{
 		CLI:        self,
 		CWD:        cwd,
 		Executable: executable,
 		Command: &argument.Command{
-			Arg: self.Name,
+			Name:       self.Name,
+			Action:     self.Command.Action,
+			Definition: self.Command,
 		},
-		Flags:         map[string]*argument.Flag{},
-		ArgumentChain: argument.ParseChain(arguments[1:]),
-		Args:          arguments[1:],
+		Flags:        map[string]*argument.Flag{},
+		CommandChain: &argument.Chain{},
+		Params:       argument.Params{},
+		Args:         arguments[1:],
 	}
 
-	//flagGroup := argument.Flags{}
 	for index, arg := range context.Args {
 		self.Log(DEBUG, DebugInfo("CLI.parse()"), "attempting to parse the", VarInfo(arg), "at position [", strconv.Itoa(index), "] in the argument chain")
-
-		//if strings.HasPrefix(arg, shortFlag) && data.IsLessThan(1, len(arg)) {
-		//	if flag, ok := context.parseFlag(arg); ok {
-		//		flagGroup.addFlag(flag)
-		//	}
-		//} else {
-		//	if command, ok := self.command.HasRoute(append(context.CommandPath, arg)); ok {
-		//		inputCommand := context.AddCommand(command)
-		//		inputCommand.addSubcommandTree(command.Subcommands)
-		//		if !data.IsZero(len(*flagGroup)) {
-		//			inputCommand.addFlags(flagGroup)
-		//			flagGroup.reset()
-		//		}
-		//		context.addCommand(inputCommand)
-		//	} else {
-		//		for _, param := range arguments[index:] {
-		//			if strings.HasPrefix(param, shortFlag) {
-		//				if flag, ok := context.parseFlag(param); ok {
-		//					flagGroup.addFlag(flag)
-		//				}
-		//			} else {
-		//				// TODO: Need parameter init datatype declaration to do more with
-		//				// parameter otherwise its going to be simple string slice
-		//				context.Params = append(context.Params, param)
-		//			}
-		//		}
-		//		if !flagGroup.isEmpty() {
-		//			context.Command.addFlags(flagGroup)
-		//			flagGroup.reset()
-		//		}
-		//		break
-		//	}
-		//}
+		if flagType, ok := argument.HasFlagPrefix(arg); ok {
+			context.ParseFlag(index, flagType, &argument.Flag{Name: arg})
+		} else {
+			// TODO: If we had the ability to route from the last command, we could reduce repeated logic, the thing that is preventing this is that calling in the Command from argument.Command would be a cyclic import
+			// to avoid that we could maintain a chain of definitions then pull them out using index. It may be worth migrating the chain code into the main program for this purpose
+			if command, ok := context.Command.Definition.(Command).Route(append(context.Command.Path(), arg)); ok {
+				context.CommandChain.AddCommand(context.Command)
+				context.Command = &argument.Command{
+					Name:       command.Name,
+					Action:     command.Action,
+					Definition: command,
+				}
+			} else {
+				for _, param := range context.Args[index:] {
+					if flagType, ok := argument.HasFlagPrefix(param); ok {
+						context.ParseFlag(index, flagType, &argument.Flag{Name: arg})
+					} else {
+						context.Params.Value = append(context.Params.Value, param)
+					}
+				}
+				break
+			}
+		}
 	}
 	return context
-}
-
-//
-// Ultra Minimal Multiple Output Logging System
-///////////////////////////////////////////////////////////////////////////////
-// Basic Levels, Debug Mode, Errors, Warnings, Fatals that exit, and flexible
-// access so it doesn't get in the way.
-//
-// Have your own logger? No problem, just append it's io.Writer to CLI.Output.
-// Want logging to Terminal & Logfile? No problem, append both to CLI.Output.
-// Want both and output to a website? No problem.
-func (self *CLI) Output(text ...string) {
-	self.Outputs.Write(strings.Join(text, " "))
-}
-
-func (self *CLI) Log(level LogLevel, text ...string) {
-	self.Outputs.Log(level, strings.Join(text, " "))
 }

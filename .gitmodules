@@ -7,3 +7,6 @@
 [submodule "text"]
 	path = text
 	url = git://github.com/multiverse-os/text
+[submodule "framework/muid"]
+	path = framework/muid
+	url = git://github.com/multiverse-os/muid

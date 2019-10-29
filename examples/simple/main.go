@@ -53,11 +53,11 @@ func main() {
 		DefaultAction: func(c *cli.Context) error {
 			//c.CLI.Log(cli.INFO, "Command Path:         ", c.CommandPath)
 			//c.CLI.Log(cli.INFO, "Command Path Length:  ", len(c.CommandPath))
-			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name())
-			c.CLI.Log(cli.INFO, "flags:")
+			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
+			c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
 			for _, flag := range c.Flags {
-				c.CLI.Log(cli.INFO, "flag.Name :       ", flag.Name())
-				c.CLI.Log(cli.INFO, "flag.Value:       ", flag.Value())
+				c.CLI.Log(cli.INFO, "flag.Name :       ", flag.Name)
+				c.CLI.Log(cli.INFO, "flag.Value:       ", flag.Value)
 			}
 			return nil
 		},
