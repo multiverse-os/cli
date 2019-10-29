@@ -9,7 +9,7 @@ import (
 	banner "github.com/multiverse-os/cli/framework/text/banner"
 )
 
-func (self *CLI) RenderHelpTemplate(command Command) (err error) {
+func (self *CLI) RenderHelpTemplate(command *Command) (err error) {
 	helpOptions := map[string]string{
 		"header":            self.asciiHeader("big"),
 		"usage":             color.SkyBlue(style.Bold("Usage")),
@@ -33,7 +33,8 @@ func (self *CLI) simpleHeader() string {
 	return style.Bold(color.SkyBlue(self.Name)) + "[v" + self.Version.ColorString() + "]\n"
 }
 
-func (self *CLI) helpTemplate(command Command) (t string) {
+// TODO: This is pretty slow think about how this can be sped up
+func (self *CLI) helpTemplate(command *Command) (t string) {
 	path := command.path()
 	t += "\n{{.header}}"
 	t += "  {{.usage}}\n"

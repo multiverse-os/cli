@@ -8,7 +8,6 @@ type Command struct {
 	Parent     *Command
 	Name       string
 	Flags      map[string]*Flag
-	Action     interface{}
 }
 
 func (self Command) Path() []string {

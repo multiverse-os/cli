@@ -20,16 +20,14 @@ type Context struct {
 	Args         []string
 }
 
-//func (self *Context) AddFlag(command *Command, flag *argument.Flag) {
-//	self.CLI.Log(DEBUG, "Looking up command in context.CommandChain with with route:", self.Command.Path())
-//	if command, ok := self.CommandChain.Route(self.Command.Path()); ok {
-//		command.Flags[flag.Name] = flag
-//		self.Flags[flag.Name] = flag
-//		self.CLI.Log(DEBUG, "Attempting to assign flag", VarInfo(flag), "to command: ", VarInfo(command))
-//	} else {
-//		self.CLI.Log(DEBUG, "Failed to find command with route:", self.Command.Path())
-//	}
-//}
+func (self *Context) HasFlag(name string) bool {
+	_, ok := self.Flags[name]
+	return ok
+}
+
+func (self *Context) CommandDefinition() *Command {
+	return self.Command.Definition.(*Command)
+}
 
 func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *argument.Flag) {
 	var flagParts []string

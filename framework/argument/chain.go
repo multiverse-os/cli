@@ -20,6 +20,10 @@ func (self *Chain) Route(path []string) (*Command, bool) {
 	return nil, (len(cmd.Name) == 0)
 }
 
+func (self *Chain) Last() *Command {
+	return self.Commands[len(self.Commands)-1]
+}
+
 func (self *Chain) AddCommand(command *Command) {
 	self.Commands = append(self.Commands, command)
 }

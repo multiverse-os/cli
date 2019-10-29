@@ -102,71 +102,22 @@ func New(cli *CLI) *CLI {
 	return cli
 }
 
-// TODO: Originally only Run() was supported requiring ALL logic to be declared
-// in the Run() command. But overtime we decided it would be better to provide
-// more flexibility to empower developers to organize their structure and simply
-// provide a variety of useful generally useful tools regardless of size or
-// structure (and pushing anything too specific into a subpackage).
-//
-// The start of this is returning the context, so it can be used in the case the
-// application continues.
-//
-// I would prefer if we break up each of the three major configuration loading
-// steps so they can be optional or overriden. Environmental Load, Configuration
-// Load and finally Argument parsing.
-// Then once the developer has the desired state loaded, they can proceed to
-// execution based on whatever conditions in the configuration or state of data
-// folder.
+// TODO:
 // Another important thing would be migrating to an approach which better
 // supports managing a service. It makes sense for a CLI tool to support
 // daemonization (even if by subpackage), pid creation, service/process
 // management.
-//
-// TODO: Antoher key concept of the new design is to re-imagine the
-// initializaiton process and make building the tree more like declaring a web
-// API via a router. Attach flags to commands using the function name to declare
-// their datatype.
-
-// TODO: Run COULD provide ability to stack all basic functionality into one
-// function to simplify execution, but keep above in mind when moving forward.
-//
-// TODO: Also the API is getting close enough to being designed it is now worth
-// starting to test the framework as we get closer to freezing the API.
-//
-// Testing should start with external library testing for the specific purpose
-// of working with the API, and shaping it with the tests. Then finally internal
-// testing should be done to confirm the innerworkings of the framework work as
-// expected and can be confirmed to continue to work after changes.
 func (self *CLI) Run(arguments []string) (*Context, error) {
 	defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
 	context := self.Parse(arguments)
-	//if _, ok := context.Flags["version"]; ok {
-	//	self.renderVersion()
-	//} else if _, ok = context.Flags["help"]; ok {
-	//	//if context.hasNoCommands() {
-	//	//	// TODO: If the command is help remember that it will need to render
-	//	//	// command.Parent
-	//	//	//self.RenderCommandHelp(context.Command())
-	//	//} else {
-	//	//	self.renderApplicationHelp()
-	//	//}
-	//} else if true == false { //!context.hasNoCommands() {
-	//	//err = context.Command().Action(context)
-	//} else {
-	//	self.renderApplicationHelp()
-	//	err = self.DefaultAction(context)
-	//}
-	// Use outputs writer and make a method on CLI to do that
-	//if err != nil {
-	//	self.Logger.Error(err)
-	//}
-
-	//if command, ok := self.Command.Route(context.Command.Path()); ok {
-	//	self.RenderHelpTemplate(command)
-	//	command.Action(context)
-	//}
-	self.RenderVersionTemplate()
-	context.Command.Action.(Action)(context)
+	//self.Debug = context.HasFlag("debug")
+	if context.HasFlag("version") || context.Command.Name == "version" {
+		self.RenderVersionTemplate()
+	} else if context.HasFlag("help") || context.Command.Name == "help" || context.Command.Parent == nil || context.CommandDefinition().Action == nil {
+		self.RenderHelpTemplate(context.CommandDefinition())
+	} else {
+		context.CommandDefinition().Action(context)
+	}
 	return context, nil
 }
 
@@ -192,8 +143,7 @@ func (self *CLI) Parse(arguments []string) *Context {
 		Executable: executable,
 		Command: &argument.Command{
 			Name:       self.Name,
-			Action:     self.Command.Action,
-			Definition: self.Command,
+			Definition: &self.Command,
 		},
 		Flags:        map[string]*argument.Flag{},
 		CommandChain: &argument.Chain{},
@@ -206,20 +156,24 @@ func (self *CLI) Parse(arguments []string) *Context {
 		if flagType, ok := argument.HasFlagPrefix(arg); ok {
 			context.ParseFlag(index, flagType, &argument.Flag{Name: arg})
 		} else {
-			// TODO: If we had the ability to route from the last command, we could reduce repeated logic, the thing that is preventing this is that calling in the Command from argument.Command would be a cyclic import
-			// to avoid that we could maintain a chain of definitions then pull them out using index. It may be worth migrating the chain code into the main program for this purpose
-			if command, ok := context.Command.Definition.(Command).Route(append(context.Command.Path(), arg)); ok {
+			self.Log(DEBUG, "parsing either a command or parameters")
+			if command, ok := context.CommandDefinition().Route(append(context.Command.Path(), arg)); ok {
+				self.Log(DEBUG, "parsing command:", command.Name)
 				context.CommandChain.AddCommand(context.Command)
 				context.Command = &argument.Command{
+					Parent:     context.CommandChain.Last(),
 					Name:       command.Name,
-					Action:     command.Action,
-					Definition: command,
+					Definition: &command,
 				}
+				self.Log(DEBUG, "new command name is:", context.Command.Name)
 			} else {
+				self.Log(DEBUG, "parsing params")
 				for _, param := range context.Args[index:] {
 					if flagType, ok := argument.HasFlagPrefix(param); ok {
+						self.Log(DEBUG, "parsing params, but it is a flag... loading on last command")
 						context.ParseFlag(index, flagType, &argument.Flag{Name: arg})
 					} else {
+						self.Log(DEBUG, "parsing params, adding to context")
 						context.Params.Value = append(context.Params.Value, param)
 					}
 				}
