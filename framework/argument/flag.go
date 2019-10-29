@@ -1,6 +1,9 @@
 package argument
 
 import (
+	"errors"
+	"os"
+	"strconv"
 	"strings"
 
 	token "github.com/multiverse-os/cli/framework/argument/token"
@@ -33,36 +36,49 @@ func HasFlagPrefix(flag string) (token.Identifier, bool) {
 	}
 }
 
-// TODO: We do this when adding it
-//func (self Flag) Name() string {
-//	flagParts := strings.Split(self.Value(), token.Short.String())
-//	return strings.Split(flagParts[len(flagParts)-1], token.Equal.String())[0]
-//}
-//
-//func (self Flag) Value() string {
-//	if self.Separator(token.Equal) {
-//		return strings.Split(self.Arg, token.Equal.String())[0][1:]
-//	} else {
-//		// NOTE: Since the flag does not declare using an equal sign, we can assume
-//		// the next item is the value (the developer will know, and we will validate
-//		// it for any datatype. BUT if it is a valid flag, we are dealing with a Bool.
-//		nextValue, ok := self.NextArgument()
-//		if ok {
-//			if _, ok := HasFlagPrefix(nextValue.(Flag).Arg); ok {
-//				self.Type = data.Bool
-//				return data.BoolString(true)
-//			} else {
-//				if nextArgument, ok := self.NextArgument(); ok {
-//					return nextArgument.(Flag).Arg
-//				} else {
-//					return ""
-//				}
-//			}
-//		}
-//	}
-//	return data.Blank
-//}
+func (self Flag) Valid(dataType data.Type) (bool, error) {
+	switch dataType {
+	case data.Bool:
+		boolStrings := append(data.TrueStrings, data.FalseStrings...)
+		for _, boolValue := range boolStrings {
+			if boolValue == self.Value {
+				return true, nil
+			}
+		}
+		return false, errors.New("[error] could not parse valid boolean value")
+	//case Int:
+	case data.String:
+		return true, nil
+	//case Directory:
+	case data.Filename:
+		_, err := os.Stat(self.Value)
+		return (err == nil), nil
+	//case Filenames:
+	//case URL:
+	//case IPv4:
+	//case IPv6:
+	//case Port:
+	default:
+		return false, errors.New("[error] failed to parse data type")
+	}
+}
 
-//func (self Flag) Separator(separatorToken token.Separator) bool {
-//	return strings.Contains(self.Arg, separatorToken.String())
-//}
+func (self Flag) String() string { return self.Value }
+
+func (self Flag) Int() int {
+	intValue, err := strconv.Atoi(self.Value)
+	if err != nil {
+		return 0
+	} else {
+		return intValue
+	}
+}
+
+func (self Flag) Bool() bool {
+	for _, trueString := range data.TrueStrings {
+		if trueString == self.Value {
+			return true
+		}
+	}
+	return false
+}
