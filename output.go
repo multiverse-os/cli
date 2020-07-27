@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
-	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
+	color "./framework/terminal/ansi/color"
+	style "./framework/terminal/ansi/style"
 )
 
 type Outputs []Output

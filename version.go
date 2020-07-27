@@ -7,8 +7,9 @@ import (
 
 	data "github.com/multiverse-os/cli/framework/data"
 	template "github.com/multiverse-os/cli/framework/template"
-	color "github.com/multiverse-os/cli/framework/terminal/ansi/color"
-	style "github.com/multiverse-os/cli/framework/terminal/ansi/style"
+
+	color "./framework/terminal/ansi/color"
+	style "./framework/terminal/ansi/style"
 	//table "github.com/multiverse-os/cli/framework/text/table"
 )
 
