@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
-	color "./framework/terminal/ansi/color"
-	style "./framework/terminal/ansi/style"
+	ansi "github.com/multiverse-os/ansi"
 )
 
 type Outputs []Output
@@ -64,10 +62,6 @@ type Outputs []Output
 // overriding by passing your logger's os.Writer but enough complexity to be
 // useful in many use cases.
 
-const ansi = "\x1b[@-_][0-?]*[ -/]*[@-~]"
-
-var ansiRegex = regexp.MustCompile(ansi)
-
 type Output struct {
 	//Timestamp string
 	prefix    string
@@ -108,11 +102,11 @@ func (self LogLevel) String() string {
 // contrast (which will be used when printing values on debug, help text, and
 // version)
 func VarInfo(value interface{}) string {
-	return style.Bold(color.White("[")) + style.Bold(color.Blue(fmt.Sprintf("%T", value))) + style.Bold(color.White("=")) + color.Green(fmt.Sprintf("%s", value)) + style.Bold(color.White("]"))
+	return ansi.Bold(ansi.White("[")) + ansi.Bold(ansi.Blue(fmt.Sprintf("%T", value))) + ansi.Bold(ansi.White("=")) + ansi.Green(fmt.Sprintf("%s", value)) + ansi.Bold(ansi.White("]"))
 }
 
 func DebugInfo(functionName string) string {
-	return style.Bold(color.White("[")) + color.SkyBlue(functionName) + style.Bold(color.White("]"))
+	return ansi.Bold(ansi.White("[")) + ansi.SkyBlue(functionName) + ansi.Bold(ansi.White("]"))
 }
 
 func merge(textParts ...interface{}) (output string) {
@@ -180,17 +174,17 @@ func (self Outputs) Log(level LogLevel, output ...string) {
 	var levelOutput string
 	switch level {
 	case DEBUG:
-		levelOutput = color.Blue(level.String())
+		levelOutput = ansi.Blue(level.String())
 	case WARNING:
-		levelOutput = color.Olive(level.String())
+		levelOutput = ansi.Olive(level.String())
 	case ERROR:
-		levelOutput = color.Red(level.String())
+		levelOutput = ansi.Red(level.String())
 	case FATAL:
-		levelOutput = color.Maroon(level.String())
+		levelOutput = ansi.Maroon(level.String())
 	default:
-		levelOutput = color.Purple(level.String())
+		levelOutput = ansi.Purple(level.String())
 	}
-	self.Write(style.Bold(color.White("[")) + levelOutput + style.Bold(color.White("]")) + strings.Join(output, " "))
+	self.Write(ansi.Bold(ansi.White("[")) + levelOutput + ansi.Bold(ansi.White("]")) + strings.Join(output, " "))
 }
 
 //
@@ -214,5 +208,5 @@ func (self *CLI) Log(level LogLevel, text ...interface{}) {
 
 // TODO: Can make this even better by having it return a function then we only need to pass the desription
 func (self *CLI) benchmark(startedAt time.Time, description string) {
-	self.Outputs.Log(DEBUG, style.Bold(DebugInfo("Benchmark")), color.Green(description), style.Bold(color.White("[")), color.Green(fmt.Sprintf("%v", time.Since(startedAt))), style.Bold(color.White("]")))
+	self.Outputs.Log(DEBUG, ansi.Bold(DebugInfo("Benchmark")), ansi.Green(description), ansi.Bold(ansi.White("[")), ansi.Green(fmt.Sprintf("%v", time.Since(startedAt))), ansi.Bold(ansi.White("]")))
 }
