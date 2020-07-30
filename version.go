@@ -65,17 +65,29 @@ func (self VersionComponent) String() string {
 	}
 }
 
+func (self Version) ColorString() string {
+	var colorVersion []string
+	for _, versionComponent := range strings.Split(self.String(), ".") {
+		if versionComponent == "0" {
+			colorVersion = append(colorVersion, ansi.Thin(ansi.SkyBlue(versionComponent)))
+		} else {
+			colorVersion = append(colorVersion, ansi.Bold(ansi.Purple(versionComponent)))
+		}
+	}
+	return ansi.Thin(ansi.Blue("[")) + ansi.Thin(ansi.Blue("v")) + strings.Join(colorVersion, ansi.White(".")) + ansi.Thin(ansi.Blue("]"))
+}
+
 func (self *CLI) RenderVersionTemplate() error {
 	err := template.OutputStdOut(defaultVersionTemplate(), map[string]string{
 		"header":  ansi.Bold(ansi.SkyBlue(self.Name)),
-		"version": self.Version.String(),
-		//"build": table.New(BuildInformation{
-		//	Source:     "n/a",
-		//	Commit:     "n/a",
-		//	Signature:  "n/a",
-		//	CompiledAt: "n/a",
-		//}).String(),
+		"version": self.Version.ColorString(),
 	})
+	//"build": table.New(BuildInformation{
+	//	Source:     "n/a",
+	//	Commit:     "n/a",
+	//	Signature:  "n/a",
+	//	CompiledAt: "n/a",
+	//}).String(),
 	if data.NotNil(err) {
 		return err
 	}
