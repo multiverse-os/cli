@@ -69,12 +69,12 @@ func (self Version) ColorString() string {
 	var colorVersion []string
 	for _, versionComponent := range strings.Split(self.String(), ".") {
 		if versionComponent == "0" {
-			colorVersion = append(colorVersion, ansi.Thin(ansi.SkyBlue(versionComponent)))
+			colorVersion = append(colorVersion, ansi.Light(ansi.SkyBlue(versionComponent)))
 		} else {
 			colorVersion = append(colorVersion, ansi.Bold(ansi.Purple(versionComponent)))
 		}
 	}
-	return ansi.Thin(ansi.Blue("[")) + ansi.Thin(ansi.Blue("v")) + strings.Join(colorVersion, ansi.White(".")) + ansi.Thin(ansi.Blue("]"))
+	return ansi.Light(ansi.Blue("[")) + ansi.Light(ansi.Blue("v")) + strings.Join(colorVersion, ansi.White(".")) + ansi.Light(ansi.Blue("]"))
 }
 
 func (self *CLI) RenderVersionTemplate() error {
