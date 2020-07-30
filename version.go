@@ -5,11 +5,9 @@ import (
 	"strconv"
 	"strings"
 
+	ansi "github.com/multiverse-os/ansi"
 	data "github.com/multiverse-os/cli/framework/data"
 	template "github.com/multiverse-os/cli/framework/template"
-
-	color "./framework/terminal/ansi/color"
-	style "./framework/terminal/ansi/style"
 	//table "github.com/multiverse-os/cli/framework/text/table"
 )
 
@@ -67,22 +65,10 @@ func (self VersionComponent) String() string {
 	}
 }
 
-func (self Version) ColorString() string {
-	var colorVersion []string
-	for _, versionComponent := range strings.Split(self.String(), ".") {
-		if versionComponent == "0" {
-			colorVersion = append(colorVersion, style.Thin(color.SkyBlue(versionComponent)))
-		} else {
-			colorVersion = append(colorVersion, style.Bold(color.Purple(versionComponent)))
-		}
-	}
-	return style.Thin(color.Blue("[")) + style.Thin(color.Blue("v")) + strings.Join(colorVersion, color.White(".")) + style.Thin(color.Blue("]"))
-}
-
 func (self *CLI) RenderVersionTemplate() error {
 	err := template.OutputStdOut(defaultVersionTemplate(), map[string]string{
-		"header":  style.Bold(color.SkyBlue(self.Name)),
-		"version": self.Version.ColorString(),
+		"header":  ansi.Bold(ansi.SkyBlue(self.Name)),
+		"version": self.Version.String(),
 		//"build": table.New(BuildInformation{
 		//	Source:     "n/a",
 		//	Commit:     "n/a",
@@ -97,7 +83,7 @@ func (self *CLI) RenderVersionTemplate() error {
 }
 
 func defaultVersionTemplate() string {
-	return "{{.header}}" + color.SkyBlue(style.Thin(" version ")) + "{{.version}}\n"
+	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}\n"
 }
 
 func (self Version) undefined() bool {
