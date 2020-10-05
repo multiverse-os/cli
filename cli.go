@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	argument "./framework/argument"
-	data "./framework/argument/data"
+	argument "github.com/multiverse-os/cli/argument"
+	data "github.com/multiverse-os/cli/argument/data"
 )
 
 type Action func(context *Context) error

@@ -3,8 +3,9 @@ package cli
 import (
 	"strings"
 
-	template "./framework/template"
-	banner "./framework/template/banner"
+	template "github.com/multiverse-os/cli/template"
+
+	banner "github.com/multiverse-os/banner"
 )
 
 func (self *CLI) RenderHelpTemplate(command *Command) (err error) {

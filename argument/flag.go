@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	data "./data"
-	token "./token"
+	data "github.com/multiverse-os/cli/argument/data"
+	token "github.com/multiverse-os/cli/argument/token"
 )
 
 // TODO: Using Position seems like a bad idea, especially if we want to be able to insert arguments placed in the wrong spot like in the params to be more intuitive

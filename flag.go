@@ -1,8 +1,8 @@
 package cli
 
 import (
-	data "./framework/argument/data"
-	token "./framework/argument/token"
+	data "github.com/multiverse-os/cli/argument/data"
+	token "github.com/multiverse-os/cli/argument/token"
 )
 
 // TODO: Be able to define the file extension that would be selected for when generating an autocomplete file

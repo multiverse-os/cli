@@ -1,7 +1,7 @@
 package argument
 
 import (
-	data "./data"
+	data "github.com/multiverse-os/cli/argument/data"
 )
 
 type Params struct {

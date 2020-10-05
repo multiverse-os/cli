@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	cli "../.."
+	cli "github.com/multiverse-os/cli"
 )
 
 func main() {
