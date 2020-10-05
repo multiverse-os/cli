@@ -3,9 +3,9 @@ package cli
 import (
 	"strings"
 
-	argument "github.com/multiverse-os/cli/framework/argument"
-	token "github.com/multiverse-os/cli/framework/argument/token"
-	data "github.com/multiverse-os/cli/framework/data"
+	argument "./framework/argument"
+	data "./framework/argument/data"
+	token "./framework/argument/token"
 )
 
 type Context struct {

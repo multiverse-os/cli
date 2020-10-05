@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	ansi "github.com/multiverse-os/ansi"
-	data "github.com/multiverse-os/cli/framework/data"
-	template "github.com/multiverse-os/cli/framework/template"
+	data "./framework/argument/data"
+	template "./framework/template"
+	ansi "./framework/terminal/ansi"
+	// TODO: Maybe table should just be inside template
 	//table "github.com/multiverse-os/cli/framework/text/table"
 )
 

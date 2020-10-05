@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	cli "../../../cli"
+	cli "../.."
 )
 
 func main() {

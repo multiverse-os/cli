@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	template "./framework/template"
-
-	banner "github.com/multiverse-os/banner"
+	banner "./framework/template/banner"
 )
 
 func (self *CLI) RenderHelpTemplate(command *Command) (err error) {
