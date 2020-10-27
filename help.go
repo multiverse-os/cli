@@ -40,7 +40,7 @@ func (self *CLI) helpTemplate(command *Command) (t string) {
 	if len(path) == 0 {
 		t += "    " + self.Name + " " + "[parameters]" + "\n\n"
 	} else if len(path) == 1 {
-		t += "    " + self.Name + " " + "[command]" + " " + "[parameters]" + "\n\n"
+		t += "    " + self.Name + " " + command.Name + " " + "[command]" + " " + "[parameters]" + "\n\n"
 	} else {
 		t += "    " + self.Name + " " + strings.Join(command.path()[1:], " ") + " " + "[subcommand]" + "[parameters]" + "\n\n"
 	}
