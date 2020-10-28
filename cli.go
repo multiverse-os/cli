@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"fmt"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	data "github.com/multiverse-os/cli/data"
@@ -172,7 +174,22 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		}
 	}
 
-	self.Log(DEBUG, "what is the command name?", context.CommandChain.Last().Name)
+	self.Log(DEBUG, "what is the LAST command name?", context.CommandChain.Last().Name)
+	self.Log(DEBUG, "what is the FIRST command name?", context.CommandChain.First().Name)
+
+	for _, cmd := range context.CommandChain.Commands {
+		for _, flag := range cmd.Flags {
+			fmt.Println("flag:", flag.Name)
+			flag.Name = strings.Split(flag.Name, ",")[0]
+			fmt.Println("flag.value:", flag.Value)
+			fmt.Println("flag.default:", flag.Default)
+			if flag.Value == "" {
+				fmt.Println("setting default value for flag")
+				flag.Value = flag.Default
+			}
+			context.Flags[flag.Name] = &flag
+		}
+	}
 
 	self.Debug = context.HasFlag("debug")
 	if context.HasFlag("version") || context.Command.Name == "version" {
