@@ -65,5 +65,5 @@ func main() {
 
 	// NOTE: Has the ability output context and error, this enables developers to
 	// handle their own routing or actions based on parsed context.
-	cmd.Run(os.Args)
+	cmd.Parse(os.Args)
 }

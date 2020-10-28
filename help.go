@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
 	template "github.com/multiverse-os/cli/template"
@@ -35,12 +36,13 @@ func (self *CLI) simpleHeader() string {
 // TODO: This is pretty slow think about how this can be sped up
 func (self *CLI) helpTemplate(command *Command) (t string) {
 	path := command.path()
+	fmt.Println("path:", path)
 	t += "\n{{.header}}"
 	t += "  {{.usage}}\n"
 	if len(path) == 0 {
 		t += "    " + self.Name + " " + "[parameters]" + "\n\n"
 	} else if len(path) == 1 {
-		t += "    " + self.Name + " " + command.Name + " " + "[command]" + " " + "[parameters]" + "\n\n"
+		t += "    " + command.Name + " " + "[command]" + " " + "[parameters]" + "\n\n"
 	} else {
 		t += "    " + self.Name + " " + strings.Join(command.path()[1:], " ") + " " + "[subcommand]" + "[parameters]" + "\n\n"
 	}

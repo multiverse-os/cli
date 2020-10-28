@@ -3,9 +3,8 @@ package cli
 import (
 	"strings"
 
-	argument "github.com/multiverse-os/cli/argument"
-	data "github.com/multiverse-os/cli/argument/data"
-	token "github.com/multiverse-os/cli/argument/token"
+	data "github.com/multiverse-os/cli/data"
+	token "github.com/multiverse-os/cli/token"
 )
 
 type Context struct {
@@ -13,10 +12,10 @@ type Context struct {
 	CLI          *CLI
 	CWD          string
 	Executable   string
-	Command      *argument.Command
-	Flags        map[string]*argument.Flag
-	Params       argument.Params
-	CommandChain *argument.Chain
+	Command      *Command
+	Flags        map[string]*Flag
+	Params       Params
+	CommandChain *Chain
 	Args         []string
 }
 
@@ -25,11 +24,7 @@ func (self *Context) HasFlag(name string) bool {
 	return ok
 }
 
-func (self *Context) CommandDefinition() *Command {
-	return self.Command.Definition.(*Command)
-}
-
-func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *argument.Flag) {
+func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag) {
 	var flagParts []string
 	flagParts = strings.Split(flag.Name, token.Equal.String())
 	if 1 < len(flagParts) {

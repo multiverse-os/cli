@@ -1,8 +1,10 @@
 package cli
 
 import (
-	data "github.com/multiverse-os/cli/argument/data"
-	token "github.com/multiverse-os/cli/argument/token"
+	"strings"
+
+	data "github.com/multiverse-os/cli/data"
+	token "github.com/multiverse-os/cli/token"
 )
 
 // TODO: Be able to define the file extension that would be selected for when generating an autocomplete file
@@ -12,7 +14,20 @@ type Flag struct {
 	Description string
 	Hidden      bool
 	Default     string
+	Value       string
 	Type        data.Type
+}
+
+func HasFlagPrefix(flag string) (token.Identifier, bool) {
+	if strings.HasPrefix(flag, token.Long.String()) &&
+		data.IsGreaterThan(len(flag), token.Long.Length()) {
+		return token.Long, true
+	} else if strings.HasPrefix(flag, token.Short.String()) &&
+		data.IsGreaterThan(len(flag), token.Short.Length()) {
+		return token.Short, true
+	} else {
+		return token.NotAvailable, false
+	}
 }
 
 // TODO: Could probably speed up lookup and avoid this by putting flag in a

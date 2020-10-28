@@ -1,4 +1,8 @@
-package argument
+package cli
+
+import (
+	"fmt"
+)
 
 type Chain struct {
 	Commands []*Command
@@ -25,6 +29,7 @@ func (self *Chain) Last() *Command {
 }
 
 func (self *Chain) AddCommand(command *Command) {
+	fmt.Println("adding command to chain")
 	self.Commands = append(self.Commands, command)
 }
 

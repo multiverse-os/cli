@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -10,7 +11,7 @@ type Command struct {
 	Alias       string
 	Description string
 	Hidden      bool
-	parent      *Command // TODO: Considier reducing this by replacing this dot.path command.subcommand
+	Parent      *Command // TODO: Considier reducing this by replacing this dot.path command.subcommand
 	Subcommands []Command
 	Flags       []Flag
 	Action      Action
@@ -52,7 +53,7 @@ func (self Command) usage() (output string) {
 
 func (self Command) path() []string {
 	route := []string{self.Name}
-	for parent := self.parent; parent != nil; parent = parent.parent {
+	for parent := self.Parent; parent != nil; parent = parent.Parent {
 		route = append(route, parent.Name)
 	}
 	return route
@@ -85,6 +86,14 @@ func (self Command) Flag(arg string) (*Command, *Flag, bool) {
 	return nil, nil, false
 }
 
+func (self Command) Path() []string {
+	route := []string{self.Name}
+	for parent := self.Parent; parent != nil; parent = parent.Parent {
+		route = append(route, parent.Name)
+	}
+	return route
+}
+
 // TODO: We could try a radix tree that is loaded with the commands. Iterating
 // through each row edge first, and assigning values using
 // command1.command2.command3. Then we take our path and join with . and do a
@@ -95,6 +104,10 @@ func (self Command) Flag(arg string) (*Command, *Flag, bool) {
 // start a new process
 // TODO: THIS IS THE SLOWEST FUNCTION, THIS IS OUR BOTTLENECK
 func (self Command) Route(path []string) (Command, bool) {
+	fmt.Println("path has to include it? that makes no sense.", path)
+	fmt.Println("subcommands:", self.Subcommands)
+	fmt.Println("subcommands:", len(self.Subcommands))
+
 	if len(path) == 1 && self.Name == path[0] {
 		return self, true
 	} else {

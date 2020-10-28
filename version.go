@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	ansi "github.com/multiverse-os/cli/ansi"
-	data "github.com/multiverse-os/cli/argument/data"
+	data "github.com/multiverse-os/cli/data"
 	template "github.com/multiverse-os/cli/template"
 	// TODO: Maybe table should just be inside template
 	//table "github.com/multiverse-os/cli/framework/text/table"

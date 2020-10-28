@@ -1,12 +1,12 @@
 package cli
 
 import (
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	argument "github.com/multiverse-os/cli/argument"
-	data "github.com/multiverse-os/cli/argument/data"
+	data "github.com/multiverse-os/cli/data"
 )
 
 type Action func(context *Context) error
@@ -70,7 +70,6 @@ type CLI struct {
 	ParamType     data.Type // Filename types should be able to define extension for autcomplete
 	DefaultAction Action
 	Outputs       Outputs
-	Routes        map[string]*Command
 	Debug         bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
 	Flags    []Flag
@@ -89,7 +88,6 @@ func New(cli *CLI) *CLI {
 	if data.IsZero(len(cli.Outputs)) {
 		cli.Outputs = append(cli.Outputs, TerminalOutput())
 	}
-	cli.Routes = map[string]*Command{}
 
 	cli.Command = Command{
 		Name:        cli.Name,
@@ -102,26 +100,8 @@ func New(cli *CLI) *CLI {
 	return cli
 }
 
-// TODO:
-// Another important thing would be migrating to an approach which better
-// supports managing a service. It makes sense for a CLI tool to support
-// daemonization (even if by subpackage), pid creation, service/process
-// management.
-func (self *CLI) Run(arguments []string) (*Context, error) {
-	defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
-	context := self.Parse(arguments)
-	//self.Debug = context.HasFlag("debug")
-	if context.HasFlag("version") || context.Command.Name == "version" {
-		self.RenderVersionTemplate()
-	} else if context.HasFlag("help") || context.Command.Name == "help" || context.Command.Parent == nil || context.CommandDefinition().Action == nil {
-		self.RenderHelpTemplate(context.CommandDefinition())
-	} else {
-		context.CommandDefinition().Action(context)
-	}
-	return context, nil
-}
-
 func (self *CLI) IsFlag(path []string, flagName string) (*Command, *Flag, bool) {
+
 	if 0 < len(path) {
 		if command, ok := self.Command.Route(path); ok {
 			return command.Flag(flagName)
@@ -132,46 +112,56 @@ func (self *CLI) IsFlag(path []string, flagName string) (*Command, *Flag, bool) 
 	return nil, nil, false
 }
 
-// Context Creation, Command Routing, Flag Parsing, and Parameter Parsing
-/////////////////////////////////////////////////////////////////////////////
-func (self *CLI) Parse(arguments []string) *Context {
-	defer self.benchmark(time.Now(), "benmarking parse")
+///////////////////////////////////////////////////////////////////////////////
+// TODO:                                                                     //
+//   Another important thing would be migrating to an approach which better  //
+//   supports managing a service. It makes sense for a CLI tool to support   //
+//   daemonization (even if by subpackage), pid creation, service/process    //
+//   management.                                                             //
+///////////////////////////////////////////////////////////////////////////////
+func (self *CLI) Parse(arguments []string) (*Context, error) {
+	defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
+
 	cwd, executable := filepath.Split(arguments[0])
+
 	context := &Context{
-		CLI:        self,
-		CWD:        cwd,
-		Executable: executable,
-		Command: &argument.Command{
-			Name:       self.Name,
-			Definition: &self.Command,
-		},
-		Flags:        map[string]*argument.Flag{},
-		CommandChain: &argument.Chain{},
-		Params:       argument.Params{},
+		CLI:          self,
+		CWD:          cwd,
+		Command:      &self.Command,
+		Executable:   executable,
+		Flags:        map[string]*Flag{},
+		CommandChain: &Chain{},
+		Params:       Params{},
 		Args:         arguments[1:],
 	}
 
+	context.CommandChain.AddCommand(&self.Command)
+
 	for index, arg := range context.Args {
 		self.Log(DEBUG, DebugInfo("CLI.parse()"), "attempting to parse the", VarInfo(arg), "at position [", strconv.Itoa(index), "] in the argument chain")
-		if flagType, ok := argument.HasFlagPrefix(arg); ok {
-			context.ParseFlag(index, flagType, &argument.Flag{Name: arg})
+		if flagType, ok := HasFlagPrefix(arg); ok {
+			context.ParseFlag(index, flagType, &Flag{Name: arg})
 		} else {
+
+			path := append(context.Command.Path(), arg)
+
 			self.Log(DEBUG, "parsing either a command or parameters")
-			if command, ok := context.CommandDefinition().Route(append(context.Command.Path(), arg)); ok {
+
+			if command, ok := context.Command.Route(path); ok {
+
 				self.Log(DEBUG, "parsing command:", command.Name)
-				context.CommandChain.AddCommand(context.Command)
-				context.Command = &argument.Command{
-					Parent:     context.CommandChain.Last(),
-					Name:       command.Name,
-					Definition: &command,
-				}
+				command.Parent = context.Command
+
+				context.Command = &command
+
+				//context.CommandChain.AddCommand(context.Command)
 				self.Log(DEBUG, "new command name is:", context.Command.Name)
 			} else {
 				self.Log(DEBUG, "parsing params")
 				for _, param := range context.Args[index:] {
-					if flagType, ok := argument.HasFlagPrefix(param); ok {
+					if flagType, ok := HasFlagPrefix(param); ok {
 						self.Log(DEBUG, "parsing params, but it is a flag... loading on last command")
-						context.ParseFlag(index, flagType, &argument.Flag{Name: arg})
+						context.ParseFlag(index, flagType, &Flag{Name: arg})
 					} else {
 						self.Log(DEBUG, "parsing params, adding to context")
 						context.Params.Value = append(context.Params.Value, param)
@@ -181,5 +171,19 @@ func (self *CLI) Parse(arguments []string) *Context {
 			}
 		}
 	}
-	return context
+
+	fmt.Println("test:", context.CommandChain)
+	fmt.Println("command is:", context.Command)
+	fmt.Println("command params:", context.Params)
+
+	self.Debug = context.HasFlag("debug")
+	if context.HasFlag("version") || context.Command.Name == "version" {
+		self.RenderVersionTemplate()
+	} else if context.HasFlag("help") || context.Command.Name == "help" || context.Command.Parent == nil || context.Command.Action == nil {
+		self.RenderHelpTemplate(context.Command)
+	} else {
+		context.Command.Action(context)
+	}
+	return context, nil
+
 }
