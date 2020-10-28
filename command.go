@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -104,10 +103,6 @@ func (self Command) Path() []string {
 // start a new process
 // TODO: THIS IS THE SLOWEST FUNCTION, THIS IS OUR BOTTLENECK
 func (self Command) Route(path []string) (Command, bool) {
-	fmt.Println("path has to include it? that makes no sense.", path)
-	fmt.Println("subcommands:", self.Subcommands)
-	fmt.Println("subcommands:", len(self.Subcommands))
-
 	if len(path) == 1 && self.Name == path[0] {
 		return self, true
 	} else {

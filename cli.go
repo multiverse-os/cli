@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -171,10 +170,6 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 			}
 		}
 	}
-
-	fmt.Println("test:", context.CommandChain)
-	fmt.Println("command is:", context.Command)
-	fmt.Println("command params:", context.Params)
 
 	self.Debug = context.HasFlag("debug")
 	if context.HasFlag("version") || context.Command.Name == "version" {

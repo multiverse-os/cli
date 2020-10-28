@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"strconv"
 	"strings"
 
 	data "github.com/multiverse-os/cli/data"
@@ -44,3 +45,23 @@ func (self Flag) usage() (output string) {
 }
 
 func Flags(flags ...Flag) []Flag { return flags }
+
+func (self Flag) String() string { return self.Value }
+
+func (self Flag) Int() int {
+	intValue, err := strconv.Atoi(self.Value)
+	if err != nil {
+		return 0
+	} else {
+		return intValue
+	}
+}
+
+func (self Flag) Bool() bool {
+	for _, trueString := range data.TrueStrings {
+		if trueString == self.Value {
+			return true
+		}
+	}
+	return false
+}
