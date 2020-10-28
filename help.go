@@ -44,7 +44,7 @@ func (self *CLI) helpTemplate(command *Command) (t string) {
 	} else if len(path) == 1 {
 		t += "    " + command.Name + " " + "[command]" + " " + "[parameters]" + "\n\n"
 	} else {
-		t += "    " + self.Name + " " + strings.Join(command.path()[1:], " ") + " " + "[subcommand]" + "[parameters]" + "\n\n"
+		t += "    " + self.Name + " " + strings.Join(command.path()[:1], " ") + " " + "[subcommand]" + "[parameters]" + "\n\n"
 	}
 	t += "  {{.availableCommands}}\n"
 	for index, subcommand := range command.visibleSubcommands() {
