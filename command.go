@@ -92,29 +92,3 @@ func (self Command) Path() []string {
 	}
 	return route
 }
-
-// TODO: We could try a radix tree that is loaded with the commands. Iterating
-// through each row edge first, and assigning values using
-// command1.command2.command3. Then we take our path and join with . and do a
-// prefix search. We can try that later and see if the preformance gain is worth
-// the extra overhead but this is not terrible, its technically a bread-first
-// search
-// NOTE: Public to allow essentially re-running the application without needing to
-// start a new process
-// TODO: THIS IS THE SLOWEST FUNCTION, THIS IS OUR BOTTLENECK
-func (self Command) Route(path []string) (Command, bool) {
-	if len(path) == 1 && self.Name == path[0] {
-		return self, true
-	} else {
-		command := self
-		for _, name := range path[1:] {
-			if subcommand, ok := command.Subcommand(name); ok {
-				command = subcommand
-			} else {
-				return Command{}, false
-			}
-		}
-		return command, true
-	}
-	return Command{}, false
-}

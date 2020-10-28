@@ -102,7 +102,7 @@ func New(cli *CLI) *CLI {
 func (self *CLI) IsFlag(path []string, flagName string) (*Command, *Flag, bool) {
 
 	if 0 < len(path) {
-		if command, ok := self.Command.Route(path); ok {
+		if command, ok := self.Command.Subcommand(path[0]); ok {
 			return command.Flag(flagName)
 		} else {
 			self.IsFlag(path[:(len(path)-1)], flagName)
@@ -142,16 +142,17 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 			context.ParseFlag(index, flagType, &Flag{Name: arg})
 		} else {
 
-			path := append(context.Command.Path(), arg)
-
 			self.Log(DEBUG, "parsing either a command or parameters")
 
-			if command, ok := context.Command.Route(path); ok {
+			if command, ok := context.Command.Subcommand(arg); ok {
 
 				self.Log(DEBUG, "parsing command:", command.Name)
 				command.Parent = context.Command
 
 				context.Command = &command
+
+				self.Log(DEBUG, "new command name is:", context.Command.Name)
+				context.CommandChain.AddCommand(context.Command)
 
 				//context.CommandChain.AddCommand(context.Command)
 				self.Log(DEBUG, "new command name is:", context.Command.Name)
@@ -170,6 +171,8 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 			}
 		}
 	}
+
+	self.Log(DEBUG, "what is the command name?", context.CommandChain.Last().Name)
 
 	self.Debug = context.HasFlag("debug")
 	if context.HasFlag("version") || context.Command.Name == "version" {
