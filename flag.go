@@ -8,8 +8,17 @@ import (
 	token "github.com/multiverse-os/cli/token"
 )
 
+type FlagLevel uint8
+
+const (
+	GlobalFlag FlagLevel = iota
+	CommandFlag
+)
+
 // TODO: Be able to define the file extension that would be selected for when generating an autocomplete file
 type Flag struct {
+	Command     *Command
+	Level       FlagLevel
 	Name        string
 	Alias       string
 	Description string

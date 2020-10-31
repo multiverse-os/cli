@@ -91,6 +91,7 @@ func New(cli *CLI) *CLI {
 	}
 
 	cli.Command = Command{
+		Global:      true,
 		Name:        cli.Name,
 		Subcommands: cli.Commands,
 		Flags:       cli.Flags,
@@ -130,12 +131,12 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		CWD:          cwd,
 		Command:      &self.Command,
 		Executable:   executable,
-		Flags:        map[string]*Flag{},
+		GlobalFlags:  map[string]*Flag{},
+		CommandFlags: map[string]map[string]*Flag{},
 		CommandChain: &Chain{},
 		Params:       Params{},
 		Args:         arguments[1:],
 	}
-
 	context.CommandChain.AddCommand(&self.Command)
 
 	for index, arg := range context.Args {
@@ -176,26 +177,36 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 
 	self.Log(DEBUG, "what is the LAST command name?", context.CommandChain.Last().Name)
 	self.Log(DEBUG, "what is the FIRST command name?", context.CommandChain.First().Name)
+	self.Log(DEBUG, "what is the CHAIN PATH:", context.CommandChain.Path())
 
-	for _, cmd := range context.CommandChain.Commands {
-		for _, flag := range cmd.Flags {
+	for _, command := range context.CommandChain.Commands {
+		for _, flag := range context.CommandFlags[command.Name] {
 			fmt.Println("flag:", flag.Name)
+			// TODO: Each name and alias shoudl be added to the map so it can be
+			// used by the developer using the library
 			flag.Name = strings.Split(flag.Name, ",")[0]
 			fmt.Println("flag.value:", flag.Value)
 			fmt.Println("flag.default:", flag.Default)
-			if flag.Value == "" {
+			if len(flag.Value) == 0 {
 				fmt.Println("setting default value for flag")
 				flag.Value = flag.Default
 			}
-			context.Flags[flag.Name] = &flag
+			context.CommandFlags[command.Name][flag.Name] = flag
+		}
+	}
+
+	if context.CommandChain.Unselected() {
+		context.Command = &Command{
+			Parent: context.Command,
+			Name:   "help",
 		}
 	}
 
 	self.Debug = context.HasFlag("debug")
 	if context.HasFlag("version") || context.Command.Name == "version" {
 		self.RenderVersionTemplate()
-	} else if context.HasFlag("help") || context.Command.Name == "help" || context.Command.Parent == nil || context.Command.Action == nil {
-		self.RenderHelpTemplate(context.Command)
+	} else if context.HasFlag("help") || context.Command.Name == "help" {
+		context.RenderHelpTemplate()
 	} else {
 		context.Command.Action(context)
 	}

@@ -55,9 +55,11 @@ func main() {
 			//c.CLI.Log(cli.INFO, "Command Path Length:  ", len(c.CommandPath))
 			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
 			c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
-			for _, flag := range c.Flags {
-				c.CLI.Log(cli.INFO, "flag.Name :       ", flag.Name)
-				c.CLI.Log(cli.INFO, "flag.Value:       ", flag.Value)
+			for _, flags := range c.CommandFlags {
+				for _, flag := range flags {
+					c.CLI.Log(cli.INFO, "flag.Name :       ", flag.Name)
+					c.CLI.Log(cli.INFO, "flag.Value:       ", flag.Value)
+				}
 			}
 			return nil
 		},

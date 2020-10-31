@@ -5,6 +5,7 @@ import (
 )
 
 type Command struct {
+	Global      bool
 	Category    int
 	Name        string
 	Alias       string

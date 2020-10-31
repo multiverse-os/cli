@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Chain struct {
@@ -41,9 +42,21 @@ func (self *Chain) AddCommand(command *Command) {
 	self.Commands = append(self.Commands, command)
 }
 
+func (self *Chain) ZeroCommands() bool {
+	return len(self.Commands) == 1
+}
+
+func (self *Chain) Unselected() bool {
+	return (0 < len(self.Last().Subcommands))
+}
+
 func (self *Chain) Path() (path []string) {
 	for _, command := range self.Commands {
 		path = append(path, command.Name)
 	}
 	return path
+}
+
+func (self *Chain) PathExample() (path string) {
+	return strings.Join(self.Path(), " ")
 }

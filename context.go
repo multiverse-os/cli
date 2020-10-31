@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
 	data "github.com/multiverse-os/cli/data"
@@ -13,15 +14,31 @@ type Context struct {
 	CWD          string
 	Executable   string
 	Command      *Command
-	Flags        map[string]*Flag
+	GlobalFlags  map[string]*Flag
+	CommandFlags map[string]map[string]*Flag
 	Params       Params
 	CommandChain *Chain
 	Args         []string
 }
 
 func (self *Context) HasFlag(name string) bool {
-	_, ok := self.Flags[name]
+	return (self.HasGlobalFlag(name) || self.HasCommandFlag(name))
+}
+
+func (self *Context) HasGlobalFlag(name string) bool {
+	_, ok := self.GlobalFlags[name]
 	return ok
+}
+
+func (self *Context) HasCommandFlag(name string) bool {
+	for _, command := range self.CommandChain.Commands {
+		for _, flag := range self.CommandFlags[command.Name] {
+			if name == flag.Name {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag) {
@@ -58,14 +75,26 @@ func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag)
 			}
 		}
 	} else if flagType == token.Long {
-		flag.Name = flagParts[0][1:]
+		flag.Name = flagParts[0][2:]
 	}
 	self.CLI.Log(DEBUG, "Adding flag to context")
 	if 0 < len(flag.Name) {
+		self.CLI.Log(DEBUG, "flag.Name:", flag.Name)
+		self.CLI.Log(DEBUG, "flag.Value:", flag.Value)
 		self.CLI.Log(DEBUG, "Looking up flag to determine what level it is in with path:", self.Command.Path())
 		//if command, _, ok := self.CLI.IsFlag(self.Command.Path(), flag.Name); ok {
 		//		self.AddFlag(command, flag)
-		self.Flags[flag.Name] = flag
+
+		fmt.Println("self.Command.Name:", self.Command.Name)
+		fmt.Println("flag.Name:", flag.Name)
+		fmt.Println("len(self.CommandFlags):", len(self.CommandFlags))
+		if len(self.CommandFlags[self.Command.Name]) == 0 {
+			self.CommandFlags[self.Command.Name] = make(map[string]*Flag)
+		}
+
+		fmt.Println("len(self.Command.Name][flag.Name]):", len(self.CommandFlags[self.Command.Name]))
+
+		self.CommandFlags[self.Command.Name][flag.Name] = flag
 		//} else {
 		self.CLI.Log(DEBUG, "Failed to find command with flag")
 		//	}

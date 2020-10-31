@@ -8,14 +8,14 @@ import (
 	banner "github.com/multiverse-os/banner"
 )
 
-func (self *CLI) RenderHelpTemplate(command *Command) (err error) {
+func (self *Context) RenderHelpTemplate() (err error) {
 	helpOptions := map[string]string{
-		"header":            self.asciiHeader("big"),
+		"header":            self.CLI.asciiHeader("big"),
 		"usage":             "Usage",
 		"availableCommands": "Commands",
 		"availableFlags":    "Flags",
 	}
-	return template.OutputStdOut(self.helpTemplate(command), helpOptions)
+	return template.OutputStdOut(self.helpTemplate(self.Command.Parent), helpOptions)
 }
 
 // Available Banners Fonts
@@ -32,18 +32,13 @@ func (self *CLI) simpleHeader() string {
 	return self.Name + "[v" + self.Version.String() + "]\n"
 }
 
+// TODO: REALLY want to migrate this to being an actual template for very simple
+//       drop in replacements
 // TODO: This is pretty slow think about how this can be sped up
-func (self *CLI) helpTemplate(command *Command) (t string) {
-	path := command.path()
+func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
 	t += "  {{.usage}}\n"
-	if len(path) == 0 {
-		t += "    " + self.Name + " " + "[parameters]" + "\n\n"
-	} else if len(path) == 1 {
-		t += "    " + command.Name + " " + "[command]" + " " + "[parameters]" + "\n\n"
-	} else {
-		t += "    " + self.Name + " " + strings.Join(command.path()[:1], " ") + " " + "[subcommand]" + "[parameters]" + "\n\n"
-	}
+	t += "    " + self.CommandChain.PathExample() + " " + "[parameters]" + "\n\n"
 	t += "  {{.availableCommands}}\n"
 	for index, subcommand := range command.visibleSubcommands() {
 		t += "    " + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
@@ -53,7 +48,7 @@ func (self *CLI) helpTemplate(command *Command) (t string) {
 	}
 	t += "\n\n"
 	t += "  {{.availableFlags}}\n"
-	for index, flag := range self.Flags {
+	for index, flag := range self.CLI.Flags {
 		var output string
 		if len(flag.Default) != 0 {
 			output = " [≅ " + flag.Default + "]"
