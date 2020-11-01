@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	errInvalidActionType    = errors.New("[cli] invalid default action")
-	errIndexOutOfRange      = errors.New("[cli] index out of range")
-	errFailedNameAssignment = errors.New("[cli] failed to assign 'Name' attribute")
+	errInvalidActionType    = errors.New("invalid default action")
+	errIndexOutOfRange      = errors.New("index out of range")
+	errFailedNameAssignment = errors.New("failed to assign 'Name' attribute")
 )

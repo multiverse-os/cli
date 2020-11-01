@@ -5,25 +5,17 @@ import (
 )
 
 type Command struct {
-	Global      bool
 	Category    int
 	Name        string
 	Alias       string
 	Description string
 	Hidden      bool
-	Parent      *Command // TODO: Considier reducing this by replacing this dot.path command.subcommand
+	Parent      *Command
 	Subcommands []Command
 	Flags       []Flag
 	Action      Action
 }
 
-// TODO Consider doing murmur has for comparisons, to speed up everything.
-
-// TODO: Be able to walk over the command tree to output all items, for putting into a map, for hashing and creating ids, etc
-// this was already written just look a few commits back
-
-// TODO: Support printing command tree
-// TODO: These may be able to go back to being private, were made public when we experimented with having their own package
 func (self Command) is(name string) bool { return self.Name == name || self.Alias == name }
 
 func (self Command) visibleSubcommands() (subcommands []Command) {
@@ -62,6 +54,12 @@ func (self Command) path() []string {
 //
 // Public Methods
 ///////////////////////////////////////////////////////////////////////////////
+func (self Command) Base() bool { return self.Parent == nil }
+
+func (self Command) HasFlags() bool {
+	return 0 < len(self.visibleFlags())
+}
+
 func Commands(commands ...Command) []Command { return commands }
 
 func (self Command) Subcommand(name string) (Command, bool) {
@@ -73,17 +71,14 @@ func (self Command) Subcommand(name string) (Command, bool) {
 	return Command{}, false
 }
 
-// NOTE: Must cascade through parents recursively if the flag is missing. If no
-// commands in the path have the flag defined, then it is ignored.
-func (self Command) Flag(arg string) (*Command, *Flag, bool) {
+func (self Command) Flag(arg string) (*Flag, bool) {
 	arg = strings.ToLower(arg)
 	for _, flag := range self.Flags {
 		if flag.Name == arg || flag.Alias == arg {
-			return &self, &flag, true
+			return &flag, true
 		}
-		//if self.ParentCommand
 	}
-	return nil, nil, false
+	return nil, false
 }
 
 func (self Command) Path() []string {

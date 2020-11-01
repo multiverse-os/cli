@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -25,6 +24,10 @@ func (self *Chain) Route(path []string) (*Command, bool) {
 	return nil, (len(cmd.Name) == 0)
 }
 
+func (self *Chain) IsRoot() bool {
+	return len(self.Commands) == 1
+}
+
 func (self *Chain) First() *Command {
 	if 0 < len(self.Commands) {
 		return self.Commands[0]
@@ -38,21 +41,54 @@ func (self *Chain) Last() *Command {
 }
 
 func (self *Chain) AddCommand(command *Command) {
-	fmt.Println("adding command to chain")
 	self.Commands = append(self.Commands, command)
 }
 
-func (self *Chain) ZeroCommands() bool {
-	return len(self.Commands) == 1
+func (self *Chain) NoCommands() bool {
+	return (len(self.Commands) == 1 && len(self.First().Subcommands) == 0)
 }
 
-func (self *Chain) Unselected() bool {
+func (self *Chain) HasCommands() bool {
+	return len(self.Commands) == 1 && (0 < len(self.First().Subcommands))
+}
+
+func (self *Chain) HasSubcommands() bool {
+	return len(self.Commands) >= 1 && (0 < len(self.Last().Subcommands))
+}
+
+func (self *Chain) UnselectedCommand() bool {
 	return (0 < len(self.Last().Subcommands))
+}
+
+func (self *Chain) Flags() (flags map[string]map[string]*Flag) {
+	for _, command := range self.Commands {
+		for _, flag := range command.Flags {
+			if len(flags[command.Name]) == 0 {
+				flags[command.Name] = make(map[string]*Flag)
+			}
+			flags[command.Name][flag.Name] = &flag
+		}
+	}
+	return flags
 }
 
 func (self *Chain) Path() (path []string) {
 	for _, command := range self.Commands {
 		path = append(path, command.Name)
+	}
+	return path
+}
+
+func (self *Chain) Reversed() (chain *Chain) {
+	for i := len(self.Commands) - 1; i >= 0; i-- {
+		chain.Commands = append(chain.Commands, self.Commands[i])
+	}
+	return chain
+}
+
+func (self *Chain) ReversedPath() (path []string) {
+	for i := len(self.Commands) - 1; i >= 0; i-- {
+		path = append(path, self.Commands[i].Name)
 	}
 	return path
 }

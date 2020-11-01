@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -12,8 +11,6 @@ import (
 )
 
 type Outputs []Output
-
-var ansiRegex = regexp.MustCompile("\x1b[@-_][0-?]*[ -/]*[@-~]")
 
 // TODO: This provide the formatter logic for extending colors ontop of fmt by
 // adding new %X type logic. we can then add %{blue}%{bold} or like css
@@ -166,13 +163,17 @@ func LogfileOutput(filename string) Output {
 func (self Outputs) Write(text ...string) {
 	for _, output := range self {
 		if output.stripANSI {
-			fmt.Fprintf(output.file, "%s", output.prefix+ansiRegex.ReplaceAllString(fmt.Sprint(strings.Join(text, " ")), "")+"\n")
+			fmt.Fprintf(output.file, "%s", output.prefix+ansi.Regex.ReplaceAllString(fmt.Sprint(strings.Join(text, " ")), "")+"\n")
 		} else {
 			fmt.Fprint(output.file, output.prefix, strings.Join(text, " "), "\n")
 		}
 	}
 }
 
+// TODO: Would be much better to just allow providing a closure, or a
+// surrounding fucntion, whatever that function does. And in our case it will be
+// coloring. That way its more flexible, needs less color specific code, and
+// allows developers to pick colors.
 func (self Outputs) Log(level LogLevel, output ...string) {
 	var levelOutput string
 	switch level {

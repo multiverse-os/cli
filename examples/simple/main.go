@@ -12,7 +12,7 @@ func main() {
 		Name:        "example",
 		Description: "an example cli application for scripts and full-featured applications",
 		Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
-		Flags: cli.Flags(
+		GlobalFlags: cli.Flags(
 			cli.Flag{
 				Name:        "lang",
 				Alias:       "l",
@@ -55,7 +55,7 @@ func main() {
 			//c.CLI.Log(cli.INFO, "Command Path Length:  ", len(c.CommandPath))
 			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
 			c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
-			for _, flags := range c.CommandFlags {
+			for _, flags := range c.Flags {
 				for _, flag := range flags {
 					c.CLI.Log(cli.INFO, "flag.Name :       ", flag.Name)
 					c.CLI.Log(cli.INFO, "flag.Value:       ", flag.Value)

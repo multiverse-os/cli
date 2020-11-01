@@ -1,9 +1,7 @@
 package cli
 
 import (
-	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -26,14 +24,14 @@ type Action func(context *Context) error
 //        |              |                   |
 //   application       command             subcommand
 //
-// TODO: Ability to have multiple errors, for example we can parse and provide
-// all errors at once regarding input so user does not need to trial and
-// error to get the information how to fix issues but can instead fix all at
-// once and rerun the command.
-// NOTE: command is the root command of the command tree which is the name of
-// the application. It stores the global flags and functions to hold all the
-// global functionality for when commands are not used. This enables us to avoid
-// duplicating logic.
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// TODO: Ability to have multiple errors, for example we can parse and       //
+// provide all errors at once regarding input so user does not need to trial //
+// and error to get the information how to fix issues but can instead fix    //
+// all at once and rerun the command.                                        //
+///////////////////////////////////////////////////////////////////////////////
 type Directories struct {
 	Working string
 	Data    string
@@ -73,8 +71,8 @@ type CLI struct {
 	Outputs       Outputs
 	Debug         bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
-	Flags    []Flag
-	Commands []Command
+	GlobalFlags []Flag
+	Commands    []Command
 	//Errors        []error
 }
 
@@ -91,27 +89,14 @@ func New(cli *CLI) *CLI {
 	}
 
 	cli.Command = Command{
-		Global:      true,
 		Name:        cli.Name,
 		Subcommands: cli.Commands,
-		Flags:       cli.Flags,
+		Flags:       cli.GlobalFlags,
 		Action:      cli.DefaultAction,
 	}
 	cli.Debug = true
 	cli.Build.CompiledAt = time.Now()
 	return cli
-}
-
-func (self *CLI) IsFlag(path []string, flagName string) (*Command, *Flag, bool) {
-
-	if 0 < len(path) {
-		if command, ok := self.Command.Subcommand(path[0]); ok {
-			return command.Flag(flagName)
-		} else {
-			self.IsFlag(path[:(len(path)-1)], flagName)
-		}
-	}
-	return nil, nil, false
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,8 +116,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		CWD:          cwd,
 		Command:      &self.Command,
 		Executable:   executable,
-		GlobalFlags:  map[string]*Flag{},
-		CommandFlags: map[string]map[string]*Flag{},
+		Flags:        map[string]map[string]*Flag{},
 		CommandChain: &Chain{},
 		Params:       Params{},
 		Args:         arguments[1:],
@@ -140,33 +124,18 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 	context.CommandChain.AddCommand(&self.Command)
 
 	for index, arg := range context.Args {
-		self.Log(DEBUG, DebugInfo("CLI.parse()"), "attempting to parse the", VarInfo(arg), "at position [", strconv.Itoa(index), "] in the argument chain")
 		if flagType, ok := HasFlagPrefix(arg); ok {
 			context.ParseFlag(index, flagType, &Flag{Name: arg})
 		} else {
-
-			self.Log(DEBUG, "parsing either a command or parameters")
-
 			if command, ok := context.Command.Subcommand(arg); ok {
-
-				self.Log(DEBUG, "parsing command:", command.Name)
 				command.Parent = context.Command
-
 				context.Command = &command
-
-				self.Log(DEBUG, "new command name is:", context.Command.Name)
 				context.CommandChain.AddCommand(context.Command)
-
-				//context.CommandChain.AddCommand(context.Command)
-				self.Log(DEBUG, "new command name is:", context.Command.Name)
 			} else {
-				self.Log(DEBUG, "parsing params")
 				for _, param := range context.Args[index:] {
 					if flagType, ok := HasFlagPrefix(param); ok {
-						self.Log(DEBUG, "parsing params, but it is a flag... loading on last command")
 						context.ParseFlag(index, flagType, &Flag{Name: arg})
 					} else {
-						self.Log(DEBUG, "parsing params, adding to context")
 						context.Params.Value = append(context.Params.Value, param)
 					}
 				}
@@ -175,27 +144,17 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		}
 	}
 
-	self.Log(DEBUG, "what is the LAST command name?", context.CommandChain.Last().Name)
-	self.Log(DEBUG, "what is the FIRST command name?", context.CommandChain.First().Name)
-	self.Log(DEBUG, "what is the CHAIN PATH:", context.CommandChain.Path())
-
 	for _, command := range context.CommandChain.Commands {
-		for _, flag := range context.CommandFlags[command.Name] {
-			fmt.Println("flag:", flag.Name)
-			// TODO: Each name and alias shoudl be added to the map so it can be
-			// used by the developer using the library
+		for _, flag := range context.Flags[command.Name] {
 			flag.Name = strings.Split(flag.Name, ",")[0]
-			fmt.Println("flag.value:", flag.Value)
-			fmt.Println("flag.default:", flag.Default)
 			if len(flag.Value) == 0 {
-				fmt.Println("setting default value for flag")
 				flag.Value = flag.Default
 			}
-			context.CommandFlags[command.Name][flag.Name] = flag
+			context.Flags[command.Name][flag.Name] = flag
 		}
 	}
 
-	if context.CommandChain.Unselected() {
+	if context.CommandChain.UnselectedCommand() {
 		context.Command = &Command{
 			Parent: context.Command,
 			Name:   "help",
@@ -203,12 +162,16 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 	}
 
 	self.Debug = context.HasFlag("debug")
-	if context.HasFlag("version") || context.Command.Name == "version" {
+
+	if context.IsCommand("version") || context.HasGlobalFlag("version") {
 		self.RenderVersionTemplate()
-	} else if context.HasFlag("help") || context.Command.Name == "help" {
+
+	} else if context.IsCommand("help") || context.HasFlag("help") {
 		context.RenderHelpTemplate()
+
 	} else {
 		context.Command.Action(context)
+
 	}
 	return context, nil
 

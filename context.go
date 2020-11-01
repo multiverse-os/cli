@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	data "github.com/multiverse-os/cli/data"
@@ -14,31 +13,90 @@ type Context struct {
 	CWD          string
 	Executable   string
 	Command      *Command
-	GlobalFlags  map[string]*Flag
-	CommandFlags map[string]map[string]*Flag
+	Flags        map[string]map[string]*Flag
 	Params       Params
 	CommandChain *Chain
 	Args         []string
 }
 
 func (self *Context) HasFlag(name string) bool {
-	return (self.HasGlobalFlag(name) || self.HasCommandFlag(name))
+	_, hasFlag := self.Flag(name)
+	return hasFlag
 }
 
 func (self *Context) HasGlobalFlag(name string) bool {
-	_, ok := self.GlobalFlags[name]
-	return ok
+	_, hasFlag := self.GlobalFlag(name)
+	return hasFlag
 }
 
-func (self *Context) HasCommandFlag(name string) bool {
-	for _, command := range self.CommandChain.Commands {
-		for _, flag := range self.CommandFlags[command.Name] {
-			if name == flag.Name {
-				return true
+func (self *Context) HasCommands() bool {
+	return self.CommandChain.IsRoot() && self.HasSubcommands()
+}
+
+func (self *Context) HasSubcommands() bool {
+	return 0 < len(self.Command.Subcommands)
+}
+
+func (self *Context) IsCommand(name string) bool {
+	return self.Command.is(name)
+}
+
+func (self *Context) HasSubcommand(name string) bool {
+	_, hasSubcommand := self.Subcommand(name)
+	return hasSubcommand
+}
+
+func (self *Context) Subcommand(name string) (*Command, bool) {
+	for _, subcommand := range self.Command.Subcommands {
+		if subcommand.is(name) {
+			return &subcommand, true
+		}
+	}
+	return nil, false
+}
+
+func (self *Context) HasGlobalFlags() bool {
+	return 0 < len(self.GlobalFlags())
+}
+
+func (self *Context) GlobalFlag(name string) (flag *Flag, ok bool) {
+	for _, flag := range self.GlobalFlags() {
+		if flag.is(name) {
+			return flag, true
+		}
+	}
+	return nil, false
+}
+
+func (self *Context) CommandFlag(name string) (command *Command, flag *Flag, ok bool) {
+	if 1 < len(self.CommandChain.Commands) {
+		for _, command := range self.CommandChain.Commands[1:] {
+			flag, ok = command.Flag(name)
+			if ok {
+				return command, flag, ok
 			}
 		}
 	}
-	return false
+	return command, flag, false
+}
+
+func (self *Context) GlobalFlags() map[string]*Flag {
+	flags := make(map[string]*Flag)
+	for _, flag := range self.CommandChain.First().Flags {
+		flags[flag.Name] = &flag
+	}
+	return flags
+}
+
+func (self *Context) Flag(name string) (*Flag, bool) {
+	for _, command := range self.CommandChain.Commands {
+		for _, flag := range self.Flags[command.Name] {
+			if name == flag.Name {
+				return flag, true
+			}
+		}
+	}
+	return nil, false
 }
 
 func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag) {
@@ -57,11 +115,11 @@ func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag)
 	if flagType == token.Short {
 		shortName := flagParts[0][1:]
 		// Stacked Flags
+		// TODO: Needs to work from specific to global so may need a for loop
+		// with minus index i--
 		for index, stackedFlag := range shortName {
 			// Load flag
-			if command, flagDefinition, ok := self.CLI.IsFlag(self.Command.Path(), string(stackedFlag)); ok {
-				self.CLI.Log(DEBUG, "flag.Name:", flag.Name)
-				self.CLI.Log(DEBUG, "flag.Command.Name:", command.Name)
+			if flagDefinition, ok := self.Flag(string(stackedFlag)); ok {
 				flag.Name = flagDefinition.Name
 				if index != (len(flag.Name) - 1) {
 					// NOTE: Stacked flag that is not the last element MUST be bool
@@ -77,24 +135,13 @@ func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag)
 	} else if flagType == token.Long {
 		flag.Name = flagParts[0][2:]
 	}
-	self.CLI.Log(DEBUG, "Adding flag to context")
 	if 0 < len(flag.Name) {
-		self.CLI.Log(DEBUG, "flag.Name:", flag.Name)
-		self.CLI.Log(DEBUG, "flag.Value:", flag.Value)
-		self.CLI.Log(DEBUG, "Looking up flag to determine what level it is in with path:", self.Command.Path())
-		//if command, _, ok := self.CLI.IsFlag(self.Command.Path(), flag.Name); ok {
-		//		self.AddFlag(command, flag)
 
-		fmt.Println("self.Command.Name:", self.Command.Name)
-		fmt.Println("flag.Name:", flag.Name)
-		fmt.Println("len(self.CommandFlags):", len(self.CommandFlags))
-		if len(self.CommandFlags[self.Command.Name]) == 0 {
-			self.CommandFlags[self.Command.Name] = make(map[string]*Flag)
+		if len(self.Flags[self.Command.Name]) == 0 {
+			self.Flags[self.Command.Name] = make(map[string]*Flag)
 		}
 
-		fmt.Println("len(self.Command.Name][flag.Name]):", len(self.CommandFlags[self.Command.Name]))
-
-		self.CommandFlags[self.Command.Name][flag.Name] = flag
+		self.Flags[self.Command.Name][flag.Name] = flag
 		//} else {
 		self.CLI.Log(DEBUG, "Failed to find command with flag")
 		//	}

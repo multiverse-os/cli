@@ -8,11 +8,8 @@ import (
 	ansi "github.com/multiverse-os/cli/ansi"
 	data "github.com/multiverse-os/cli/data"
 	template "github.com/multiverse-os/cli/template"
-	// TODO: Maybe table should just be inside template
-	//table "github.com/multiverse-os/cli/framework/text/table"
 )
 
-// Semantic Versioning
 type VersionComponent int
 
 const (
@@ -140,10 +137,6 @@ func (self Version) IsNewerThan(v Version) bool {
 		(self.Major == v.Major && (self.Minor > v.Minor || (self.Minor == v.Minor && self.Patch > v.Patch)))
 }
 
-// TODO: Color should be done by splitting by '.' and joining with a newly
-// colored. This is where coloring just based on regex would be nice. Just color
-// all semantic versions. Color all IPs, etc. Or a specialized printer for
-// various different types.
 func (self Version) String() string {
 	return fmt.Sprintf("%v.%v.%v", self.Major, self.Minor, self.Patch)
 }

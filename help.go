@@ -32,13 +32,20 @@ func (self *CLI) simpleHeader() string {
 	return self.Name + "[v" + self.Version.String() + "]\n"
 }
 
-// TODO: REALLY want to migrate this to being an actual template for very simple
-//       drop in replacements
-// TODO: This is pretty slow think about how this can be sped up
+func (self *Context) expectingCommandsOrSubcommand() string {
+	if self.HasCommands() {
+		return " [command]"
+	} else if !self.Command.Base() {
+		return " [subcommand]"
+	} else {
+		return ""
+	}
+}
+
 func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
 	t += "  {{.usage}}\n"
-	t += "    " + self.CommandChain.PathExample() + " " + "[parameters]" + "\n\n"
+	t += "    " + self.CommandChain.PathExample() + self.expectingCommandsOrSubcommand() + " [parameters]" + "\n\n"
 	t += "  {{.availableCommands}}\n"
 	for index, subcommand := range command.visibleSubcommands() {
 		t += "    " + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
@@ -47,18 +54,24 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 		}
 	}
 	t += "\n\n"
-	t += "  {{.availableFlags}}\n"
-	for index, flag := range self.CLI.Flags {
-		var output string
-		if len(flag.Default) != 0 {
-			output = " [≅ " + flag.Default + "]"
+	for index, command := range self.CommandChain.Commands {
+		if index == 0 {
+			if self.CommandChain.IsRoot() {
+				t += "  {{.availableFlags}}\n"
+			} else {
+				t += "  Global {{.availableFlags}}\n"
+			}
+		} else {
+			t += "  " + command.Name + " {{.availableFlags}}\n"
 		}
-		t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
-		if index != len(command.visibleFlags())-1 {
-			t += "\n"
+		for _, flag := range self.GlobalFlags() {
+			var output string
+			if len(flag.Default) != 0 {
+				output = " [≅ " + flag.Default + "]"
+			}
+			t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
 		}
+		t += "\n"
 	}
-	t += "\n"
-
 	return t
 }
