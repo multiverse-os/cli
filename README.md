@@ -103,7 +103,9 @@ func main() {
 			},
 		})
 		
-		cmd.Run(os.Args)
+		cmd.Parse(os.Args)
+    // context := cmd.Parse(os.Args)
+    // Can also obtain the context and do things with it 
 }
 ```
 
@@ -162,7 +164,7 @@ func main() {
     },
   })
 
-  cmd.Run(os.Args)
+  cmd.Parse(os.Args)
 }
 ```
 
@@ -202,7 +204,7 @@ func main() {
     return nil
   })
 
-  cmd.Run(os.Args)
+  cmd.Parse(os.Args)
 }
 ```
 
@@ -258,7 +260,7 @@ func main() {
 		},
 	})
 
-	cmd.Run(os.Args)
+	cmd.Parse(os.Args)
 }
 ```
 
