@@ -10,3 +10,8 @@ Before any real release the input side needs to be completed. There needs to be
 a standard way to allow users to input data, like selections from a list,
 validations and so on. This will be required to use this to make the Multiverse
 OS CLI installer
+
+Lastly shell functionality. 
+
+Daemonization/service, PID and other things like this will likely remain
+separate. 
