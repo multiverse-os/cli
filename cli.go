@@ -163,10 +163,10 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 
 	self.Debug = context.HasFlag("debug")
 
-	if context.IsCommand("version") || context.HasGlobalFlag("version") {
+	if context.Command.is("version") || context.HasGlobalFlag("version") {
 		self.RenderVersionTemplate()
 
-	} else if context.IsCommand("help") || context.HasFlag("help") {
+	} else if context.Command.is("help") || context.HasFlag("help") {
 		context.RenderHelpTemplate()
 
 	} else {

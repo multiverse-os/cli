@@ -27,10 +27,10 @@ func (self Command) visibleSubcommands() (subcommands []Command) {
 	return subcommands
 }
 
-func (self Command) visibleFlags() (flags []Flag) {
+func (self Command) visibleFlags() (flags []*Flag) {
 	for _, flag := range self.Flags {
 		if !flag.Hidden {
-			flags = append(flags, flag)
+			flags = append(flags, &flag)
 		}
 	}
 	return flags

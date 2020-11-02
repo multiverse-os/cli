@@ -19,14 +19,16 @@ type Context struct {
 	Args         []string
 }
 
+func (self *Context) HasCommandFlag(name string) bool {
+	return self.CommandFlag(self.Command.Name, name) != nil
+}
+
 func (self *Context) HasFlag(name string) bool {
-	_, hasFlag := self.Flag(name)
-	return hasFlag
+	return self.Flag(name) != nil
 }
 
 func (self *Context) HasGlobalFlag(name string) bool {
-	_, hasFlag := self.GlobalFlag(name)
-	return hasFlag
+	return self.GlobalFlag(name) != nil
 }
 
 func (self *Context) HasCommands() bool {
@@ -35,10 +37,6 @@ func (self *Context) HasCommands() bool {
 
 func (self *Context) HasSubcommands() bool {
 	return 0 < len(self.Command.Subcommands)
-}
-
-func (self *Context) IsCommand(name string) bool {
-	return self.Command.is(name)
 }
 
 func (self *Context) HasSubcommand(name string) bool {
@@ -59,25 +57,35 @@ func (self *Context) HasGlobalFlags() bool {
 	return 0 < len(self.GlobalFlags())
 }
 
-func (self *Context) GlobalFlag(name string) (flag *Flag, ok bool) {
+func (self *Context) GlobalFlag(name string) (flag *Flag) {
 	for _, flag := range self.GlobalFlags() {
 		if flag.is(name) {
-			return flag, true
+			return flag
 		}
 	}
-	return nil, false
+	return flag
 }
 
-func (self *Context) CommandFlag(name string) (command *Command, flag *Flag, ok bool) {
-	if 1 < len(self.CommandChain.Commands) {
-		for _, command := range self.CommandChain.Commands[1:] {
-			flag, ok = command.Flag(name)
-			if ok {
-				return command, flag, ok
+func (self *Context) Flag(name string) (flag *Flag) {
+	if self.HasCommands() {
+		for _, command := range self.CommandChain.Reversed().Commands {
+			for _, flag := range self.Flags[command.Name] {
+				if flag.is(name) {
+					return flag
+				}
 			}
 		}
 	}
-	return command, flag, false
+	return flag
+}
+
+func (self *Context) CommandFlag(command, name string) (flag *Flag) {
+	for _, flag := range self.Flags[command] {
+		if flag.is(name) {
+			return flag
+		}
+	}
+	return flag
 }
 
 func (self *Context) GlobalFlags() map[string]*Flag {
@@ -86,17 +94,6 @@ func (self *Context) GlobalFlags() map[string]*Flag {
 		flags[flag.Name] = &flag
 	}
 	return flags
-}
-
-func (self *Context) Flag(name string) (*Flag, bool) {
-	for _, command := range self.CommandChain.Commands {
-		for _, flag := range self.Flags[command.Name] {
-			if name == flag.Name {
-				return flag, true
-			}
-		}
-	}
-	return nil, false
 }
 
 func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag) {
@@ -119,7 +116,7 @@ func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag)
 		// with minus index i--
 		for index, stackedFlag := range shortName {
 			// Load flag
-			if flagDefinition, ok := self.Flag(string(stackedFlag)); ok {
+			if flagDefinition := self.Flag(string(stackedFlag)); flagDefinition != nil {
 				flag.Name = flagDefinition.Name
 				if index != (len(flag.Name) - 1) {
 					// NOTE: Stacked flag that is not the last element MUST be bool
@@ -136,16 +133,9 @@ func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag)
 		flag.Name = flagParts[0][2:]
 	}
 	if 0 < len(flag.Name) {
-
 		if len(self.Flags[self.Command.Name]) == 0 {
 			self.Flags[self.Command.Name] = make(map[string]*Flag)
 		}
-
 		self.Flags[self.Command.Name][flag.Name] = flag
-		//} else {
-		self.CLI.Log(DEBUG, "Failed to find command with flag")
-		//	}
-	} else {
-		self.CLI.Log(DEBUG, "Not addding flag because flag name is lenth 0")
 	}
 }
