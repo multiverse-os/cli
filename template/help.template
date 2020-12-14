@@ -1,0 +1,11 @@
+{{ .name }} {{ .version }}
+  Usage
+    {{ .usage }}
+
+  Commands
+    {{ .Range }}
+      {{ .command }} {{ .commandDescription }}
+
+  Flags 
+    {{ .Range }}
+      {{ .flag }} {{ .flagDescription }}
