@@ -56,25 +56,16 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 		}
 	}
 	t += "\n\n"
-	for index, command := range self.CommandChain.Commands {
-		if index == 0 {
-			if self.CommandChain.IsRoot() {
-				t += "  {{.availableFlags}}\n"
-			} else {
-				t += "  Global {{.availableFlags}}\n"
-			}
-		} else {
-			t += "  " + command.Name + " {{.availableFlags}}\n"
-		}
 
-		for _, flag := range self.CLI.GlobalFlags {
-			var output string
-			if len(flag.Default) != 0 {
-				output = " [≅ " + flag.Default + "]"
-			}
-			t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
+	// TODO: Should the command flags be printed with global flags too?
+	t += "  {{.availableFlags}}\n"
+	for _, flag := range self.CommandChain.Last().Flags {
+		var output string
+		if len(flag.Default) != 0 {
+			output = " [≅ " + flag.Default + "]"
 		}
-		t += "\n"
+		t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
 	}
+	t += "\n"
 	return t
 }
