@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	data "github.com/multiverse-os/cli/data"
-	token "github.com/multiverse-os/cli/token"
 )
 
 type Context struct {
@@ -96,9 +95,9 @@ func (self *Context) GlobalFlags() map[string]*Flag {
 	return flags
 }
 
-func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag) {
+func (self *Context) ParseFlag(index int, flagType FlagType, flag *Flag) {
 	var flagParts []string
-	flagParts = strings.Split(flag.Name, token.Equal.String())
+	flagParts = strings.Split(flag.Name, Equal.String())
 	if 1 < len(flagParts) {
 		flag.Value = flagParts[1]
 	} else {
@@ -109,7 +108,7 @@ func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag)
 			flag.Type = data.Bool
 		}
 	}
-	if flagType == token.Short {
+	if flagType == Short {
 		shortName := flagParts[0][1:]
 		// Stacked Flags
 		// TODO: Needs to work from specific to global so may need a for loop
@@ -129,7 +128,7 @@ func (self *Context) ParseFlag(index int, flagType token.Identifier, flag *Flag)
 				self.ParseFlag(index, flagType, flag)
 			}
 		}
-	} else if flagType == token.Long {
+	} else if flagType == Long {
 		flag.Name = flagParts[0][2:]
 	}
 	if 0 < len(flag.Name) {

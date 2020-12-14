@@ -5,8 +5,36 @@ import (
 	"strings"
 
 	data "github.com/multiverse-os/cli/data"
-	token "github.com/multiverse-os/cli/token"
 )
+
+type FlagType int
+
+const (
+	Short FlagType = iota + 1
+	Long
+	NotAvailable
+)
+
+func (self FlagType) Is(flagType FlagType) bool { return self == flagType }
+func (self FlagType) Length() int               { return int(self) }
+func (self FlagType) String() string            { return strings.Repeat("-", self.Length()) }
+
+type FlagSeparator int
+
+const (
+	Whitespace FlagSeparator = iota
+	Equal
+)
+
+func (self FlagSeparator) Is(flagSeparator FlagSeparator) bool { return self == flagSeparator }
+
+func (self FlagSeparator) String() string {
+	if self.Is(Equal) {
+		return "="
+	} else {
+		return " "
+	}
+}
 
 type FlagLevel uint8
 
@@ -28,24 +56,24 @@ type Flag struct {
 	Type        data.Type
 }
 
-func HasFlagPrefix(flag string) (token.Identifier, bool) {
-	if strings.HasPrefix(flag, token.Long.String()) &&
-		data.IsGreaterThan(len(flag), token.Long.Length()) {
-		return token.Long, true
-	} else if strings.HasPrefix(flag, token.Short.String()) &&
-		data.IsGreaterThan(len(flag), token.Short.Length()) {
-		return token.Short, true
+func HasFlagPrefix(flag string) (FlagType, bool) {
+	if strings.HasPrefix(flag, Long.String()) &&
+		data.IsGreaterThan(len(flag), Long.Length()) {
+		return Long, true
+	} else if strings.HasPrefix(flag, Short.String()) &&
+		data.IsGreaterThan(len(flag), Short.Length()) {
+		return Short, true
 	} else {
-		return token.NotAvailable, false
+		return NotAvailable, false
 	}
 }
 
 func (self Flag) is(name string) bool { return self.Name == name || self.Alias == name }
 
 func (self Flag) usage() (output string) {
-	output += token.Long.String() + self.Name
+	output += Long.String() + self.Name
 	if data.NotBlank(self.Alias) {
-		output += ", " + token.Short.String() + self.Alias
+		output += ", " + Short.String() + self.Alias
 	}
 	return output
 }
