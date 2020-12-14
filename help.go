@@ -58,14 +58,33 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n\n"
 
 	// TODO: Should the command flags be printed with global flags too?
-	t += "  {{.availableFlags}}\n"
-	for _, flag := range self.CommandChain.Last().Flags {
-		var output string
-		if len(flag.Default) != 0 {
-			output = " [≅ " + flag.Default + "]"
+	if len(self.CommandChain.Last().Flags) != 0 && !self.CommandChain.IsRoot() {
+		t += "  {{.availableFlags}}\n"
+		for _, flag := range self.CommandChain.Last().Flags {
+			var output string
+			if len(flag.Default) != 0 {
+				output = " [≅ " + flag.Default + "]"
+			}
+			t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
 		}
-		t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
+		t += "\n"
 	}
-	t += "\n"
+
+	if len(self.CommandChain.First().Flags) != 0 {
+		if self.CommandChain.IsRoot() {
+			t += "  {{.availableFlags}}\n"
+		} else {
+			t += "  Global {{.availableFlags}}\n"
+		}
+		for _, flag := range self.CommandChain.First().Flags {
+			var output string
+			if len(flag.Default) != 0 {
+				output = " [≅ " + flag.Default + "]"
+			}
+			t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
+		}
+		t += "\n"
+	}
+
 	return t
 }
