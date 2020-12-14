@@ -9,7 +9,10 @@ The `cli-framework` aims to provide a consistent, security focused, framework fo
 
 The framework is specifically designed to have an incredibly light code footprint, with each of the features divded into subpackages enabling developers to select just the components they need; so the framework can be suited for simple scripts to full applications. 
 
-The framework design is inspired by web application frameworks like Ruby `rails`; specifically this implies we support internationalization (in development), a 'routing tree'-like approach where we assign actions to paths defined by a command tree, middleware support, tools to generate consistent output, simple templating system, basic input validation, and autocompletion (in development). 
+The framework design and how developers interact wtih it is inspired by web application frameworks. 
+
+Defining commands should be familiar as possible, using design pattern's established in Golang web application frameworks. Providing similar features: middleware, templating, and importantly security related functionality like user input validation. By prioritizing security related functionality, we establish a minimum baseline for applications so less people roll their own, and more people collaborate on important features relevant to all applications. 
+
 
 
 #### Multiverse OS Core Framework
@@ -61,6 +64,28 @@ the flag defined, it recursively checks the command's parent commands to provide
 intuitive design over outputing and error and requiring the user to move the
 command which can be tedious for novice users.
 
+
+#### Flags & Type
+Many other CLI frameworks have a bloated codebase, and overly complex
+declaration because they have a special flag type for each datatype. For example
+a `StringFlag` or `IntFlag`. 
+
+A simple `Flag` object is used, and the type of data it takes in is not
+declared. Instead when the developer is locating the flag data, it is done using
+the typical function chain found in a lot of Multiverse OS libraries, and closed
+with the type. 
+
+So if the developer wants a `string` flag, the data is validated and the type is
+guarnateed when pulling it out of the context. 
+
+```
+  langaugeFlag := context.Flag("langauge").String()
+```
+
+This simple change allows our delcarations to be simplified, consistent, and
+importantly allowed us to reduce the codebase possibly more than 20%, while
+maintaining similar or possibly more functionality than the more popular
+implementation.
 
 #### Multiverse OS Core Framework
 `cli-framework` is designed to meet the requirements of Multiverse OS system applications; since this powers the low-level interface of each core application, Multiverse developers understand the importance of opting for simplicity, while still trying to provide a complete and intuitive user experience. *This is not production ready, it just reached v0.1.0, it currently does not provide validation or have adequate sanitization for both input, but also output printed to Terminal.*
@@ -184,8 +209,8 @@ import (
 func main() {
   cmd := cli.New(&cli.CLI{
   Flags: []cli.Flag {
-    cli.StringFlag{
-      Name:    "lang",
+    cli.Flag{
+      Name:    "language",
       Aliases: []string{"l"},
       Value:   "english",
       Usage:   "language for the greeting",
@@ -196,7 +221,7 @@ func main() {
     if c.NArg() > 0 {
       name = c.Args().Get(0)
     }
-    if c.Flags["lang"] == "spanish" {
+    if c.Flag("language").String() == "spanish" {
       fmt.Println("Hola", name)
     } else {
       fmt.Println("Hello", name)

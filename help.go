@@ -47,7 +47,7 @@ func (self *Context) expectingCommandsOrSubcommand() string {
 func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
 	t += "  {{.usage}}\n"
-	t += "    " + self.CommandChain.PathExample() + self.expectingCommandsOrSubcommand() + " [parameters]" + "\n\n"
+	t += "    " + strings.ToLower(self.CommandChain.PathExample()) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
 	t += "  {{.availableCommands}}\n"
 	for index, subcommand := range command.visibleSubcommands() {
 		t += "    " + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
