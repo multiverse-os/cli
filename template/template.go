@@ -17,7 +17,7 @@ func LoadFile(path string) (string, error) {
 	return string(content), nil
 }
 
-func OutputStdOut(content string, data interface{}) error {
+func StdOut(content string, data interface{}) error {
 	uiTemplate := template.Must(template.New("ui").Parse(content))
 	err := uiTemplate.Execute(os.Stdout, data)
 	if err != nil {

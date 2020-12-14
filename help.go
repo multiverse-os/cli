@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
 	template "github.com/multiverse-os/cli/template"
@@ -15,7 +16,7 @@ func (self *Context) RenderHelpTemplate() (err error) {
 		"availableCommands": "Commands",
 		"availableFlags":    "Flags",
 	}
-	return template.OutputStdOut(self.helpTemplate(self.Command.Parent), helpOptions)
+	return template.StdOut(self.helpTemplate(self.Command.Parent), helpOptions)
 }
 
 // Available Banners Fonts
@@ -64,6 +65,7 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 		} else {
 			t += "  " + command.Name + " {{.availableFlags}}\n"
 		}
+		fmt.Println("global flags:", len(self.GlobalFlags()))
 		for _, flag := range self.GlobalFlags() {
 			var output string
 			if len(flag.Default) != 0 {
