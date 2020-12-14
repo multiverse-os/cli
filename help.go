@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	template "github.com/multiverse-os/cli/template"
@@ -43,6 +42,8 @@ func (self *Context) expectingCommandsOrSubcommand() string {
 	}
 }
 
+// TODO: Would be preferable to define a template and use it than have a static
+//       template like this. This could be the default fallback.
 func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
 	t += "  {{.usage}}\n"
@@ -65,8 +66,8 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 		} else {
 			t += "  " + command.Name + " {{.availableFlags}}\n"
 		}
-		fmt.Println("global flags:", len(self.GlobalFlags()))
-		for _, flag := range self.GlobalFlags() {
+
+		for _, flag := range self.CLI.GlobalFlags {
 			var output string
 			if len(flag.Default) != 0 {
 				output = " [≅ " + flag.Default + "]"

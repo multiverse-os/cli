@@ -76,11 +76,12 @@ type CLI struct {
 	//Errors        []error
 }
 
+// NOTE: Define CLI program, importantly catch required values that are
+//       undefined, and set sensible default values.
 func New(cli *CLI) *CLI {
 	if data.IsBlank(cli.Name) {
 		cli.Name = "example"
 	}
-	//if data.IsBlank(cli.Locale) {}
 	if cli.Version.undefined() {
 		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
 	}
