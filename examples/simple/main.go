@@ -19,6 +19,12 @@ func main() {
 				Default:     "english",
 				Description: "Locale used when executing the program",
 			},
+			cli.Flag{
+				Name:        "daemon",
+				Alias:       "d",
+				Default:     "false",
+				Description: "Daemonize the program when launching",
+			},
 		),
 		Commands: cli.Commands(
 			cli.Command{
