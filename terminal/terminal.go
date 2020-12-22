@@ -3,9 +3,22 @@ package terminal
 import (
 	"syscall"
 	"unsafe"
+
+	"github.com/multiverse-os/cli/os"
 )
 
 type Terminal struct {
+	Title  string
+	Cursor cursor.Cursor // TODO: Really want to support multiseat
+
+	// TODO: At least an active buffer, and shaddow buffer, but possibly several
+	//       so one can be an overlay, etc.
+
+	// TODO: Require, Ticks, Subscribers, information about the logged in user
+	//       etc
+	User             os.User
+	WorkingDirectory os.Path
+
 	Dimensions terminalDimensions
 }
 

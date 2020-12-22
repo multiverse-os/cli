@@ -70,12 +70,20 @@ func HasFlagPrefix(flag string) (FlagType, bool) {
 
 func (self Flag) is(name string) bool { return self.Name == name || self.Alias == name }
 
-func (self Flag) usage() (output string) {
-	output += Long.String() + self.Name
-	if data.NotBlank(self.Alias) {
-		output += ", " + Short.String() + self.Alias
-	}
+func (self Flag) flagNames() (output string) {
 	return output
+}
+
+func (self Flag) help() string {
+	usage := Long.String() + self.Name
+	if data.NotBlank(self.Alias) {
+		usage += ", " + Short.String() + self.Alias
+	}
+	var defaultValue string
+	if len(self.Default) != 0 {
+		defaultValue = " [≅ " + self.Default + "]"
+	}
+	return strings.Repeat(" ", 4) + usage + strings.Repeat(" ", 18-len(usage)) + self.Description + defaultValue + "\n"
 }
 
 func Flags(flags ...Flag) []Flag { return flags }
@@ -91,11 +99,4 @@ func (self Flag) Int() int {
 	}
 }
 
-func (self Flag) Bool() bool {
-	for _, trueString := range data.TrueStrings {
-		if trueString == self.Value {
-			return true
-		}
-	}
-	return false
-}
+func (self Flag) Bool() bool { return data.IsTrue(self.Value) }

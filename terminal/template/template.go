@@ -9,6 +9,11 @@ import (
 	"text/template"
 )
 
+// TODO: This may help as example code on how to use stdlibrary text/template to
+// implemate templates instead of using hardcoded functions for output of the
+// command help.
+// https://github.com/wade-welles/sigil
+
 func LoadFile(path string) (string, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {

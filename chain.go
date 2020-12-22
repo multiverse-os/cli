@@ -8,6 +8,17 @@ type Chain struct {
 	Commands []*Command
 }
 
+func (self *Chain) IsRoot() bool    { return len(self.Commands) == 1 }
+func (self *Chain) IsNotRoot() bool { return 1 < len(self.Commands) }
+
+func (self *Chain) VisibleHelpFlags() []*Command {
+	if self.IsRoot() {
+		return []*Command{self.First()}
+	} else {
+		return []*Command{self.First(), self.Last()}
+	}
+}
+
 func (self *Chain) Route(path []string) (*Command, bool) {
 	cmd := &Command{}
 	for index, command := range self.Commands {
@@ -22,10 +33,6 @@ func (self *Chain) Route(path []string) (*Command, bool) {
 		}
 	}
 	return nil, (len(cmd.Name) == 0)
-}
-
-func (self *Chain) IsRoot() bool {
-	return len(self.Commands) == 1
 }
 
 func (self *Chain) First() *Command {
@@ -45,15 +52,15 @@ func (self *Chain) AddCommand(command *Command) {
 }
 
 func (self *Chain) NoCommands() bool {
-	return (len(self.Commands) == 1 && len(self.First().Subcommands) == 0)
+	return (self.IsRoot() && len(self.First().Subcommands) == 0)
 }
 
 func (self *Chain) HasCommands() bool {
-	return len(self.Commands) == 1 && (0 < len(self.First().Subcommands))
+	return self.IsRoot() && (0 < len(self.First().Subcommands))
 }
 
 func (self *Chain) HasSubcommands() bool {
-	return len(self.Commands) >= 1 && (0 < len(self.Last().Subcommands))
+	return self.IsNotRoot() && (0 < len(self.Last().Subcommands))
 }
 
 func (self *Chain) UnselectedCommand() bool {

@@ -1,12 +1,3 @@
 [submodule "text/ansi"]
-	path = text/ansi
+	path = ansi
 	url = git://github.com/multiverse-os/ansi
-[submodule "radix"]
-	path = radix
-	url = git://github.com/multiverse-os/radix
-[submodule "text"]
-	path = text
-	url = git://github.com/multiverse-os/text
-[submodule "framework/muid"]
-	path = framework/muid
-	url = git://github.com/multiverse-os/muid

@@ -74,10 +74,14 @@ type CLI struct {
 	GlobalFlags []Flag
 	Commands    []Command
 	//Errors        []error
+	Examples []Chain
 }
 
 // NOTE: Define CLI program, importantly catch required values that are
 //       undefined, and set sensible default values.
+// TODO: Rebuild, don't just pass over CLI, otherwise, we don't preform the
+//       equivilent a whitelist; leaving us open to a lot of potential
+//       bugs and possibly even exploits.
 func New(cli *CLI) *CLI {
 	if data.IsBlank(cli.Name) {
 		cli.Name = "example"
@@ -89,15 +93,21 @@ func New(cli *CLI) *CLI {
 		cli.Outputs = append(cli.Outputs, TerminalOutput())
 	}
 
-	cli.Command = Command{
-		Name:        cli.Name,
-		Subcommands: cli.Commands,
-		Flags:       cli.GlobalFlags,
-		Action:      cli.DefaultAction,
+	return &CLI{
+		Name:    cli.Name,
+		Version: cli.Version,
+		Outputs: cli.Outputs,
+		Debug:   true,
+		Build: Build{
+			CompiledAt: time.Now(),
+		},
+		Command: Command{
+			Name:        cli.Name,
+			Subcommands: cli.Commands,
+			Flags:       cli.GlobalFlags,
+			Action:      cli.DefaultAction,
+		},
 	}
-	cli.Debug = true
-	cli.Build.CompiledAt = time.Now()
-	return cli
 }
 
 ///////////////////////////////////////////////////////////////////////////////

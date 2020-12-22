@@ -1,0 +1,26 @@
+
+{{.header}}
+  {{.usage}}
+
+    {{ (strings.ToLower(self.CommandChain.PathExample()) + strings.ToLower(self.expectingCommandsOrSubcommand())) }} [parameters]
+
+
+  {{ .availableCommands }}
+
+	for index, subcommand := range command.visibleSubcommands() {
+		t += Tab() + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
+		if index != len(command.visibleSubcommands())-1 {
+			t += "\n"
+
+
+	for _, flag := range self.CommandChain.VisibleHelpFlags() {
+		if len(flag.Flags) != 0 {
+			if flag.Base() {
+  {{.availableFlags}}
+			} else {
+	Global {{.availableFlags}}
+			}
+			for _, flag := range self.CommandChain.First().Flags {
+				t += flag.help()
+			}
+			t += "\n"

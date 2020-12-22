@@ -1,11 +1,11 @@
 package cli
 
 import (
-	"errors"
+	"fmt"
 )
 
 var (
-	errInvalidActionType    = errors.New("invalid default action")
-	errIndexOutOfRange      = errors.New("index out of range")
-	errFailedNameAssignment = errors.New("failed to assign 'Name' attribute")
+	errInvalidActionType    = fmt.Errorf("invalid default action")
+	errIndexOutOfRange      = fmt.Errorf("index out of range")
+	errFailedNameAssignment = fmt.Errorf("failed to assign 'Name' attribute")
 )

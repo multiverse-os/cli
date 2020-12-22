@@ -1,18 +1,6 @@
 package data
 
-type Data interface{}
-
-//Type  DataType
-//Value interface{}
-//}
-
-//func Load(dataType DataType, value interface{}) *Data {
-
-//Type:  dataType,
-//		Value: value,
-//	}
-//}
-
+// TODO: Perhaps have built-in
 type Type int
 
 // We doon't want too offer too many options, because that goes out of scope,
@@ -42,24 +30,17 @@ const (
 // epxressiveness of default ruby
 // These may seem pointless but they will also simplify validation of values and
 // provide helpers for developers to simplify validation
-var TrueStrings = []string{"1", "t", "y", "true", "yes"}
-var FalseStrings = []string{"0", "f", "n", "false", "no"}
-
-func BoolString(b bool) string {
-	if b {
-		return TrueStrings[0]
-	} else {
-		return FalseStrings[0]
-	}
-}
 
 //
 // Alias (For more expressive code)
 ///////////////////////////////////////////////////////////////////////////////
-var Blank = ""
-var Whitespace = " "
-var True = 1
-var False = 0
+//var Blank = ""
+//var Whitespace = " "
+//var Tab = "\t"
+//var NewLine = "\n"
+
+//var True = true
+//var False = false
 
 //
 // Transform

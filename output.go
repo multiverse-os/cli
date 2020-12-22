@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	ansi "github.com/multiverse-os/cli/ansi"
+	ansi "github.com/multiverse-os/cli/terminal/ansi"
 )
 
 type Outputs []Output

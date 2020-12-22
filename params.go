@@ -14,8 +14,11 @@ type Params struct {
 }
 
 // TODO: Add ability to output URL, and Path types, since these would be very
-// common and the ability to validate them would be nice. For example, being
-// able to check if a file exists easily.
+//       common and the ability to validate them would be nice. For example,
+//       being able to check if a file exists easily.
+
+// TODO: Once the params have been loaded, begin loading flags again; then
+//       apply
 
 func (self Params) Strings() []string { return self.Value }
 
@@ -31,7 +34,7 @@ func (self Params) Int() int {
 }
 
 func (self Params) Bool() bool {
-	for _, trueString := range data.TrueStrings {
+	for _, trueString := range data.True.Strings() {
 		if trueString == self.Value[0] {
 			return true
 		}

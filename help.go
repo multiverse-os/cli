@@ -3,9 +3,8 @@ package cli
 import (
 	"strings"
 
-	template "github.com/multiverse-os/cli/template"
-
 	banner "github.com/multiverse-os/banner"
+	template "github.com/multiverse-os/cli/terminal/template"
 )
 
 func (self *Context) RenderHelpTemplate() (err error) {
@@ -46,11 +45,11 @@ func (self *Context) expectingCommandsOrSubcommand() string {
 //       template like this. This could be the default fallback.
 func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
-	t += "  {{.usage}}\n"
-	t += "    " + strings.ToLower(self.CommandChain.PathExample()) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
-	t += "  {{.availableCommands}}\n"
+	t += Prefix() + "{{.usage}}\n"
+	t += Tab() + strings.ToLower(self.CommandChain.PathExample()) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
+	t += Prefix() + "{{.availableCommands}}\n"
 	for index, subcommand := range command.visibleSubcommands() {
-		t += "    " + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
+		t += Tab() + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
 		if index != len(command.visibleSubcommands())-1 {
 			t += "\n"
 		}
@@ -58,32 +57,18 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n\n"
 
 	// TODO: Should the command flags be printed with global flags too?
-	if len(self.CommandChain.Last().Flags) != 0 && !self.CommandChain.IsRoot() {
-		t += "  {{.availableFlags}}\n"
-		for _, flag := range self.CommandChain.Last().Flags {
-			var output string
-			if len(flag.Default) != 0 {
-				output = " [≅ " + flag.Default + "]"
+	for _, flag := range self.CommandChain.VisibleHelpFlags() {
+		if len(flag.Flags) != 0 {
+			if flag.Base() {
+				t += Prefix() + "{{.availableFlags}}\n"
+			} else {
+				t += Prefix() + "Global {{.availableFlags}}\n"
 			}
-			t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
-		}
-		t += "\n"
-	}
-
-	if len(self.CommandChain.First().Flags) != 0 {
-		if self.CommandChain.IsRoot() {
-			t += "  {{.availableFlags}}\n"
-		} else {
-			t += "  Global {{.availableFlags}}\n"
-		}
-		for _, flag := range self.CommandChain.First().Flags {
-			var output string
-			if len(flag.Default) != 0 {
-				output = " [≅ " + flag.Default + "]"
+			for _, flag := range self.CommandChain.First().Flags {
+				t += flag.help()
 			}
-			t += "    " + flag.usage() + strings.Repeat(" ", (18-len(flag.usage()))) + flag.Description + output + "\n"
+			t += "\n"
 		}
-		t += "\n"
 	}
 
 	return t
