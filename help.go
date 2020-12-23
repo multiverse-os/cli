@@ -7,7 +7,7 @@ import (
 	template "github.com/multiverse-os/cli/terminal/template"
 )
 
-func (self *Context) RenderHelpTemplate() (err error) {
+func (self *Context) RenderHelpTemplate() error {
 	helpOptions := map[string]string{
 		"header":            self.CLI.asciiHeader("big"),
 		"usage":             "Usage",

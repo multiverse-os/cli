@@ -15,20 +15,20 @@ import (
 // https://github.com/wade-welles/sigil
 
 func LoadFile(path string) (string, error) {
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
+	if content, err := ioutil.ReadFile(path); err != nil {
 		return "", fmt.Errorf("[cli/template] failed to load template file:", err.Error)
+	} else {
+		return string(content), nil
 	}
-	return string(content), nil
 }
 
 func StdOut(content string, data interface{}) error {
 	uiTemplate := template.Must(template.New("ui").Parse(content))
-	err := uiTemplate.Execute(os.Stdout, data)
-	if err != nil {
+	if err := uiTemplate.Execute(os.Stdout, data); err != nil {
 		return fmt.Errorf("[cli/template] failed to render template:", err)
+	} else {
+		return nil
 	}
-	return nil
 }
 
 func OutputStream(content string, data interface{}) (output io.Writer, err error) {
