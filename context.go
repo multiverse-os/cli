@@ -1,5 +1,7 @@
 package cli
 
+import "fmt"
+
 type Context struct {
 	PID          int
 	CLI          *CLI
@@ -30,21 +32,20 @@ func (self *Context) HasCommandFlag(name string) bool {
 }
 
 func (self *Context) Flag(name string) *Flag {
-	if self.HasCommands() {
-		for _, command := range self.CommandChain.Reversed() {
-			for _, flag := range command.Flags {
-				if flag.is(name) {
-					if len(flag.Value) == 0 {
-						flag.Value = flag.Default
-					}
-					return &flag
+	for _, command := range self.CommandChain.Reversed() {
+		fmt.Println("command flags:", len(command.Flags))
+		for _, flag := range command.Flags {
+			if flag.is(name) {
+				if len(flag.Value) == 0 {
+					flag.Value = flag.Default
 				}
+				return &flag
 			}
 		}
 	}
 	return &Flag{
 		Name:  name,
-		Value: "",
+		Value: "0",
 	}
 }
 
