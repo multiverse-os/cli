@@ -59,7 +59,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 
 	fmt.Println("Attempting to run CLI action...")
 	self.Debug = context.HasFlag("debug")
-	if context.Command.is("version") || context.HasGlobalFlag("version") {
+	if context.Command.is("version") || context.HasFlag("version") {
 		self.RenderVersionTemplate()
 	} else if context.Command.is("help") || context.HasFlag("help") {
 		context.RenderHelpTemplate()

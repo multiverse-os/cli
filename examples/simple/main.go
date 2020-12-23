@@ -44,19 +44,22 @@ func main() {
 						Name:        "add",
 						Description: "lists all of something",
 						Action: func(c *cli.Context) error {
+							fmt.Println("=====================================================")
 							fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 							fmt.Println("add a thing to the list")
-							fmt.Println("=====================================================")
 							for _, command := range c.CommandChain.Commands {
+								fmt.Println("=====================================================")
 								fmt.Println("[COMMAND:" + command.Name + "]")
 								for _, flag := range command.Flags {
 									fmt.Println("       `'==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.Value + "][DEFAULT:" + flag.Default + "]")
 								}
 							}
 							for flagName, flagValue := range c.Flags {
+								fmt.Println("=====================================================")
 								c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
 								c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
 							}
+							fmt.Println("=====================================================")
 
 							return nil
 						},
@@ -70,14 +73,17 @@ func main() {
 			},
 		),
 		DefaultAction: func(c *cli.Context) error {
-			//c.CLI.Log(cli.INFO, "Command Path:         ", c.CommandPath)
-			//c.CLI.Log(cli.INFO, "Command Path Length:  ", len(c.CommandPath))
+
+			fmt.Println("=====================================================")
+			fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 
 			fmt.Println("=====================================================")
 			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
 			c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
+			fmt.Println("=====================================================")
 
 			for _, command := range c.CommandChain.Commands {
+				fmt.Println("=====================================================")
 				fmt.Println("command:", command.Name)
 				for _, flag := range command.Flags {
 					fmt.Println("command:flag= [", command.Name, "][", flag.Name, "][", flag.Value, "]")
@@ -85,9 +91,11 @@ func main() {
 			}
 
 			for flagName, flagValue := range c.Flags {
+				fmt.Println("=====================================================")
 				c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
 				c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
 			}
+			fmt.Println("=====================================================")
 
 			return nil
 		},
