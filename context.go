@@ -48,7 +48,7 @@ func (self *Context) GlobalFlag(name string) (flag *Flag) {
 	return flag
 }
 
-func (self *Context) Flag(name string) (flag *Flag) {
+func (self *Context) Flag(name string) *Flag {
 	if self.HasCommands() {
 		for _, command := range self.CommandChain.Reversed() {
 			for _, flag := range command.Flags {
@@ -61,7 +61,10 @@ func (self *Context) Flag(name string) (flag *Flag) {
 			}
 		}
 	}
-	return flag
+	return &Flag{
+		Name:  name,
+		Value: "",
+	}
 }
 
 func (self *Context) CommandFlag(commandName, flagName string) (flag *Flag) {
@@ -78,7 +81,6 @@ func (self *Context) CommandFlag(commandName, flagName string) (flag *Flag) {
 		}
 	}
 	return flag
-
 }
 
 func (self *Context) GlobalFlags() map[string]*Flag {

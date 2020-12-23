@@ -8,6 +8,8 @@ type Chain struct {
 	Commands []*Command
 }
 
+func (self *Chain) Length() int { return len(self.Commands) }
+
 func (self *Chain) Route(path []string) (*Command, bool) {
 	cmd := &Command{}
 	for index, command := range self.Commands {

@@ -57,14 +57,25 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		}
 	}
 
+	fmt.Println("Attempting to run CLI action...")
 	self.Debug = context.HasFlag("debug")
 	if context.Command.is("version") || context.HasGlobalFlag("version") {
 		self.RenderVersionTemplate()
 	} else if context.Command.is("help") || context.HasFlag("help") {
 		context.RenderHelpTemplate()
+	}
+
+	fmt.Println("command.Action:", context.Command.Action)
+	fmt.Println("command.Action == nil:", context.Command.Action == nil)
+
+	if context.CommandChain.IsRoot() ||
+		context.Command.Action == nil {
+		context.CLI.DefaultAction(context)
 	} else {
+		fmt.Println("command is [", context.Command.Name, "] executing action")
 		context.Command.Action(context)
 	}
+
 	return context, nil
 }
 
@@ -104,8 +115,8 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 	flagFound := false
 	for _, command := range self.CommandChain.Reversed() {
 		fmt.Println("checking command       in command chain:", command)
-		fmt.Println(" '''-----command.Name  in command chain:", command.Name)
-		fmt.Println("  ''-----command.Alias in command chain:", command.Alias)
+		fmt.Println(" ' 3' '-----command.Name  in command chain:", command.Name)
+		fmt.Println("   ' '-----command.Alias in command chain:", command.Alias)
 		if len(nextArgument) != 0 && command.is(nextArgument) {
 			fmt.Println("command.is(nextArgument) is true?", command.is(nextArgument))
 			fmt.Println("command matched to next argument!")

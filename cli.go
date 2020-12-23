@@ -93,6 +93,11 @@ func New(cli *CLI) *CLI {
 		cli.Outputs = append(cli.Outputs, TerminalOutput())
 	}
 
+	// Reader:      os.Stdin,
+	// Writer:      os.Stdout,
+	// 		fmt.Println(a.Writer, "thing")
+	// ErrWriter:   os.Stderr,
+
 	return &CLI{
 		Name:    cli.Name,
 		Version: cli.Version,
@@ -105,7 +110,7 @@ func New(cli *CLI) *CLI {
 			Name:        cli.Name,
 			Subcommands: cli.Commands,
 			Flags:       cli.GlobalFlags,
-			Action:      cli.DefaultAction,
 		},
+		DefaultAction: cli.DefaultAction,
 	}
 }

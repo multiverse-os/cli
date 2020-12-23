@@ -44,6 +44,7 @@ func main() {
 						Name:        "add",
 						Description: "lists all of something",
 						Action: func(c *cli.Context) error {
+							fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 							fmt.Println("add a thing to the list")
 							fmt.Println("=====================================================")
 							for _, command := range c.CommandChain.Commands {
@@ -87,11 +88,13 @@ func main() {
 				c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
 				c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
 			}
+
 			return nil
 		},
 	})
 
 	// NOTE: Has the ability output context and error, this enables developers to
 	// handle their own routing or actions based on parsed context.
+	// context, _ := cmd.Parse(os.Args)
 	cmd.Parse(os.Args)
 }

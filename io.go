@@ -1,6 +1,8 @@
 package cli
 
-import "io"
+import (
+	"io"
+)
 
 // Stdio is the standard input/output the terminal reads/writes with.
 type Stdio struct {
