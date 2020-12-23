@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -14,6 +15,18 @@ const (
 	Long
 	NotAvailable
 )
+
+// NOTE: DEV Function
+func (self FlagType) Name() string {
+	switch self {
+	case Short:
+		return "short"
+	case Long:
+		return "long"
+	default: // NotAvailable
+		return "n/a"
+	}
+}
 
 func (self FlagType) Is(flagType FlagType) bool { return self == flagType }
 func (self FlagType) Length() int               { return int(self) }
@@ -44,12 +57,15 @@ const (
 )
 
 // TODO: Be able to define the file extension that would be selected for when generating an autocomplete file
+//        -
+//       Could eventually build out more functionality to support autocomplete
 type Flag struct {
 	Command     *Command
 	Level       FlagLevel
 	Name        string
 	Alias       string
 	Description string
+	Options     []string
 	Hidden      bool
 	Default     string
 	Value       string
@@ -59,20 +75,21 @@ type Flag struct {
 func HasFlagPrefix(flag string) (FlagType, bool) {
 	if strings.HasPrefix(flag, Long.String()) &&
 		data.IsGreaterThan(len(flag), Long.Length()) {
+		fmt.Printf("is a long flag type \n")
 		return Long, true
 	} else if strings.HasPrefix(flag, Short.String()) &&
 		data.IsGreaterThan(len(flag), Short.Length()) {
+		fmt.Printf("is a short flag type \n")
 		return Short, true
 	} else {
+		fmt.Printf("else on has flag prefix \n")
 		return NotAvailable, false
 	}
 }
 
 func (self Flag) is(name string) bool { return self.Name == name || self.Alias == name }
 
-func (self Flag) flagNames() (output string) {
-	return output
-}
+func (self Flag) flagNames() (output string) { return output }
 
 func (self Flag) help() string {
 	usage := Long.String() + self.Name

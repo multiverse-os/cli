@@ -45,6 +45,18 @@ func main() {
 						Description: "lists all of something",
 						Action: func(c *cli.Context) error {
 							fmt.Println("add a thing to the list")
+							fmt.Println("=====================================================")
+							for _, command := range c.CommandChain.Commands {
+								fmt.Println("[COMMAND:" + command.Name + "]")
+								for _, flag := range command.Flags {
+									fmt.Println("       `'==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.Value + "][DEFAULT:" + flag.Default + "]")
+								}
+							}
+							for flagName, flagValue := range c.Flags {
+								c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
+								c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
+							}
+
 							return nil
 						},
 					},
@@ -59,13 +71,21 @@ func main() {
 		DefaultAction: func(c *cli.Context) error {
 			//c.CLI.Log(cli.INFO, "Command Path:         ", c.CommandPath)
 			//c.CLI.Log(cli.INFO, "Command Path Length:  ", len(c.CommandPath))
+
+			fmt.Println("=====================================================")
 			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
 			c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
-			for _, flags := range c.Flags {
-				for _, flag := range flags {
-					c.CLI.Log(cli.INFO, "flag.Name :       ", flag.Name)
-					c.CLI.Log(cli.INFO, "flag.Value:       ", flag.Value)
+
+			for _, command := range c.CommandChain.Commands {
+				fmt.Println("command:", command.Name)
+				for _, flag := range command.Flags {
+					fmt.Println("command:flag= [", command.Name, "][", flag.Name, "][", flag.Value, "]")
 				}
+			}
+
+			for flagName, flagValue := range c.Flags {
+				c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
+				c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
 			}
 			return nil
 		},

@@ -27,7 +27,7 @@ func (self Command) visibleSubcommands() (subcommands []Command) {
 	return subcommands
 }
 
-func (self Command) visibleFlags() (flags []*Flag) {
+func (self Command) VisibleFlags() (flags []*Flag) {
 	for _, flag := range self.Flags {
 		if !flag.Hidden {
 			flags = append(flags, &flag)
@@ -57,7 +57,7 @@ func (self Command) path() []string {
 func (self Command) Base() bool { return self.Parent == nil }
 
 func (self Command) HasFlags() bool {
-	return 0 < len(self.visibleFlags())
+	return 0 < len(self.VisibleFlags())
 }
 
 func Commands(commands ...Command) []Command { return commands }

@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"path/filepath"
-	"strings"
 	"time"
 
 	data "github.com/multiverse-os/cli/data"
@@ -74,14 +72,16 @@ type CLI struct {
 	GlobalFlags []Flag
 	Commands    []Command
 	//Errors        []error
-	Examples []Chain
+	//Examples []Chain
 }
 
-// NOTE: Define CLI program, importantly catch required values that are
-//       undefined, and set sensible default values.
-// TODO: Rebuild, don't just pass over CLI, otherwise, we don't preform the
-//       equivilent a whitelist; leaving us open to a lot of potential
-//       bugs and possibly even exploits.
+func (self *CLI) Flags() (flags []*Flag) {
+	for _, flag := range self.GlobalFlags {
+		flags = append(flags, &flag)
+	}
+	return flags
+}
+
 func New(cli *CLI) *CLI {
 	if data.IsBlank(cli.Name) {
 		cli.Name = "example"
@@ -108,80 +108,4 @@ func New(cli *CLI) *CLI {
 			Action:      cli.DefaultAction,
 		},
 	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// TODO:                                                                     //
-//   Another important thing would be migrating to an approach which better  //
-//   supports managing a service. It makes sense for a CLI tool to support   //
-//   daemonization (even if by subpackage), pid creation, service/process    //
-//   management.                                                             //
-///////////////////////////////////////////////////////////////////////////////
-func (self *CLI) Parse(arguments []string) (*Context, error) {
-	defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
-
-	cwd, executable := filepath.Split(arguments[0])
-
-	context := &Context{
-		CLI:          self,
-		CWD:          cwd,
-		Command:      &self.Command,
-		Executable:   executable,
-		Flags:        map[string]map[string]*Flag{},
-		CommandChain: &Chain{},
-		Params:       Params{},
-		Args:         arguments[1:],
-	}
-	context.CommandChain.AddCommand(&self.Command)
-
-	for index, arg := range context.Args {
-		if flagType, ok := HasFlagPrefix(arg); ok {
-			context.ParseFlag(index, flagType, &Flag{Name: arg})
-		} else {
-			if command, ok := context.Command.Subcommand(arg); ok {
-				command.Parent = context.Command
-				context.Command = &command
-				context.CommandChain.AddCommand(context.Command)
-			} else {
-				for _, param := range context.Args[index:] {
-					if flagType, ok := HasFlagPrefix(param); ok {
-						context.ParseFlag(index, flagType, &Flag{Name: arg})
-					} else {
-						context.Params.Value = append(context.Params.Value, param)
-					}
-				}
-				break
-			}
-		}
-	}
-
-	for _, command := range context.CommandChain.Commands {
-		for _, flag := range context.Flags[command.Name] {
-			flag.Name = strings.Split(flag.Name, ",")[0]
-			if len(flag.Value) == 0 {
-				flag.Value = flag.Default
-			}
-			context.Flags[command.Name][flag.Name] = flag
-		}
-	}
-
-	if context.CommandChain.UnselectedCommand() {
-		context.Command = &Command{
-			Parent: context.Command,
-			Name:   "help",
-		}
-	}
-
-	self.Debug = context.HasFlag("debug")
-
-	if context.Command.is("version") || context.HasGlobalFlag("version") {
-		self.RenderVersionTemplate()
-	} else if context.Command.is("help") || context.HasFlag("help") {
-		context.RenderHelpTemplate()
-	} else {
-		context.Command.Action(context)
-
-	}
-	return context, nil
-
 }
