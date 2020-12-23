@@ -23,13 +23,14 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 	}
 	context.CommandChain.AddCommand(&self.Command)
 
+	parsedFlags := []Flag{}
 	for index, argument := range context.Args {
 		if flagType, ok := HasFlagPrefix(argument); ok {
 			fmt.Println("index: [%v] \n", index)
 			fmt.Println("argument:", argument)
 
 			// TODO: Need to handle skipping next argument when next argument is used
-			context.ParseFlag(flagType, argument, context.NextArgument(index))
+			parsedFlags = append(parsedFlags, context.ParseFlag(flagType, argument, context.NextArgument(index)))
 
 			//context.ParseFlag(index, flagType, &Flag{Name: argument})
 		} else {
@@ -39,16 +40,15 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 				context.CommandChain.AddCommand(context.Command)
 			} else {
 				for _, param := range context.Args[index:] {
-					if flagType, ok := HasFlagPrefix(param); ok {
-						context.ParseFlag(flagType, argument, context.NextArgument(index))
-					} else {
-						context.Params.Value = append(context.Params.Value, param)
-					}
+					context.Params.Value = append(context.Params.Value, param)
 				}
 				break
 			}
 		}
 	}
+
+	// NOTE: Updating them in a batch as such will serve to avoid wasting resources.
+	context.UpdateFlags(parsedFlags)
 
 	if context.CommandChain.UnselectedCommand() {
 		context.Command = &Command{
@@ -68,85 +68,84 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 	return context, nil
 }
 
-//func (self *Context) ParseFlag(index int, flagType FlagType, flag *Flag) {
-//	var flagParts []string
-//	flagParts = strings.Split(flag.Name, Equal.String())
-//	if 1 < len(flagParts) {
-//		fmt.Println("there is more than 1 flagpart")
-//		flag.Value = flagParts[1]
-//	} else {
-//		if len(self.Args) > index+1 {
-//			fmt.Println("there is more than 1 flagpart")
-//			flag.Value = self.Args[index+1]
-//		} else {
-//			fmt.Println("no flag part, assuming a value of 1")
-//			flag.Value = "1"
-//			flag.Type = data.Bool
-//		}
-//	}
-//
-//	fmt.Println("index is:", index)
-//	fmt.Println("flagType:", flagType.String())
-//	fmt.Println("flag:", flag)
-//
-//	if flagType == Short {
-//		fmt.Println("flagType == Short:")
-//
-//		shortName := flagParts[0][1:]
-//		// Stacked Flags
-//		// TODO: Needs to work from specific to global so may need a for loop
-//		// with minus index i--
-//		for index, stackedFlag := range shortName {
-//			// Load flag
-//			if flagDefinition := self.Flag(string(stackedFlag)); flagDefinition != nil {
-//				flag.Name = flagDefinition.Name
-//				if index != len(flag.Name)-1 {
-//					// NOTE: Stacked flag that is not the last element MUST be bool
-//					flag.Value = "1"
-//					flag.Type = data.Bool
-//				} else {
-//					// NOTE: Stacked flag that is last element needs to use value
-//
-//				}
-//				self.ParseFlag(index, flagType, flag)
-//			}
-//		}
-//	} else if flagType == Long {
-//		flag.Name = flagParts[0][2:]
-//	}
-//}
+// TODO: MISSING ABILITY TO PARSE FLAGS THAT ARE USING "QUOTES TO SPACE TEXT".
+// TODO: MISSING Flags of slice types can be passed multiple times (-f one -f two -f three)
+// TODO: MISSING Collect ALL arguments trailing `--`
+// TODO: MISSING ability to stack flag names of any size (right now assumes only
+//       1 character size is allowed for short command names).
+func (self *Context) ParseFlagNameAndValue(argument, nextArgument string) (string, string) {
+	flagParts := strings.Split(StripFlagPrefix(argument), "=")
+
+	if len(flagParts) == 2 {
+		return strings.ToLower(flagParts[0]), flagParts[1]
+	} else {
+		// NOTE: Check if nextArgument is flag, flag is a boolean if nextArgument is
+		//       either a flag or is a known command.
+		if _, ok := HasFlagPrefix(nextArgument); ok {
+			return strings.ToLower(flagParts[0]), "1"
+		} else {
+			for _, subcommand := range self.CommandChain.Reversed() {
+				if subcommand.is(nextArgument) {
+					return strings.ToLower(flagParts[0]), "1"
+				}
+			}
+		}
+	}
+	return strings.ToLower(flagParts[0]), nextArgument
+}
 
 func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string) (parsedFlag Flag) {
 	argument = strings.ToLower(argument)
 	// NOTE: Next argument may be value for flag so it may not be lowercased by
 	//       default.
-	//nextArgument = strings.ToLower(argument) -
 
-	var flagParts []string
+	flagParts := strings.Split(StripFlagPrefix(argument), "=")
+	fmt.Println("flagParts[0]:", flagParts[0])
+	fmt.Println("len(flagParts[0]):", len(flagParts[0]))
+	fmt.Println("1 <= len(flagParts[0]):", 1 <= len(flagParts[0]))
+
+	//  TODO: We ONLY check for short to see if we have stacked flags.
 	if flagType == Short {
-		// NOTE: Subtract dashes
-		flagParts = strings.Split(argument[1:len(argument)], "=")
+	}
+	// NOTE: Before attempting to parse as stacked short flags, attempt to parse
+	//       as typo of a long flag.
 
-		// TODO: Handle stacking short flag
-		if 1 <= len(flagParts[0]) {
-			// NOTE: If a short tag is longer than 1 character
-			for index, stackedFlag := range flagParts[0] {
-				fmt.Println("stackedFlag:", stackedFlag)
-				if index == len(flagParts[0]) {
+	for _, command := range self.CommandChain.Reversed() {
+		for _, flag := range command.Flags {
+			// NOTE: With A_FLAG and NAME, and VALUE, drop out flag with
+			if flag.is(flagParts[0]) {
+				if len(flagParts[0]) == 2 {
+					// NOTE: Two means that the value is already included, divided by
+					//       an `=` sign.
+					flag.Value = flagParts[1]
+					return flag
+				} else {
+					//
 
 				}
-			}
-			// TODO: Last item in stacked flags could be not boolean, check next
-			// argumetn to decide
-		}
 
-	} else if flagType == Long {
-		flagParts = strings.Split(argument[2:len(argument)], "=")
+			}
+		}
 	}
-	if len(flagParts) == 2 {
-		parsedFlag.Name = flagParts[0]
+
+	// TODO: Handle stacking short flag
+	if len(flagParts[0]) != 1 {
+		// NOTE: If a short tag is longer than 1 character
+		for index, stackedFlag := range flagParts[0] {
+			fmt.Println("stackedFlag:", stackedFlag)
+			if index == len(flagParts[0]) {
+
+			}
+		}
+		// TODO: Last item in stacked flags could be not boolean, check next
+		// argumetn to decide
+
+		flagParts = strings.Split(argument[2:len(argument)], "=")
+
+		fmt.Println("flagParts:", flagParts)
+		fmt.Println("len(flagParts):", len(flagParts))
+
 		parsedFlag.Value = flagParts[1]
-	} else {
 		parsedFlag.Name = flagParts[0]
 		if _, ok := HasFlagPrefix(nextArgument); ok {
 			// NOTE: Next argument is flag, so flag.Value is 1 (boolean)
@@ -158,28 +157,41 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 				parsedFlag.Value = "1"
 			}
 		}
-	}
-	if len(parsedFlag.Value) == 0 {
-		fmt.Println("assigning nextArgument to parsedFlag.Value:", nextArgument)
-		parsedFlag.Value = nextArgument
-	}
-	// TODO: This fucking sucks, everytime we update a flag we rebuild all the
-	// commands flags.
-	for _, command := range self.CommandChain.Reversed() {
-		var flags []Flag
-		for _, flag := range command.Flags {
-			if flag.is(parsedFlag.Name) {
-				fmt.Println("assinging parsedFlag to flag.Value:", parsedFlag.Value)
-				flag.Value = parsedFlag.Value
-			}
-			flags = append(flags, flag)
 
+		if len(parsedFlag.Value) == 0 {
+			fmt.Println("assigning nextArgument to parsedFlag.Value:", nextArgument)
+			parsedFlag.Value = nextArgument
 		}
-		command.Flags = flags
+
+		fmt.Println("parsedFlag.Name:", parsedFlag.Name)
+		fmt.Println("parsedFlag.Value:", parsedFlag.Value)
 
 	}
 	return parsedFlag
 }
+
+func (self *Context) UpdateFlags(parsedFlags []Flag) {
+	for _, parsedFlag := range parsedFlags {
+		for _, command := range self.CommandChain.Reversed() {
+			var flags []Flag
+			for _, flag := range command.Flags {
+				if flag.is(parsedFlag.Name) {
+					fmt.Println("[ASSINGING PARSED FLAG] flag.is(parsedFlag.Name):", parsedFlag.Value)
+					fmt.Println("assinging parsedFlag to flag.Value:", parsedFlag.Value)
+
+					flag.Value = parsedFlag.Value
+				}
+				flags = append(flags, flag)
+			}
+			command.Flags = flags
+		}
+	}
+
+}
+
+// NOTE: These are here for dev reasons while parsing is being completed; once
+// it is these can be moved into the appropriate files like flag.go
+func StripFlagPrefix(flagName string) string { return strings.Replace(flagName, "-", "", -1) }
 
 func FlagNameForType(flagType FlagType, argument string) (name string) {
 	switch flagType {
