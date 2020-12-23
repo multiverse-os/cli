@@ -45,8 +45,8 @@ type BuildInformation struct {
 	CompiledAt string
 }
 
-func (self *Build) AddAuthor(name, email string) {
-	self.Authors = append(self.Authors, Author{
+func (self *Build) AddDeveloper(name, email string) {
+	self.Developers = append(self.Developers, Developer{
 		Name:  name,
 		Email: email,
 	})
