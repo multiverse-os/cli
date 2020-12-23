@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -26,9 +25,6 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 	parsedFlags := []Flag{}
 	for index, argument := range context.Args {
 		if flagType, ok := HasFlagPrefix(argument); ok {
-			fmt.Println("index: [%v] \n", index)
-			fmt.Println("argument:", argument)
-
 			// TODO: Need to handle skipping next argument when next argument is used
 			parsedFlags = append(parsedFlags, context.ParseFlag(flagType, argument, context.NextArgument(index)))
 
@@ -47,9 +43,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		}
 	}
 
-	// NOTE: Updating them in a batch as such will serve to avoid wasting resources.
 	context.UpdateFlags(parsedFlags)
-
 	if context.CommandChain.UnselectedCommand() {
 		context.Command = &Command{
 			Parent: context.Command,
@@ -57,7 +51,6 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		}
 	}
 
-	fmt.Println("Attempting to run CLI action...")
 	self.Debug = context.HasFlag("debug")
 	if context.Command.is("version") || context.HasFlag("version") {
 		self.RenderVersionTemplate()
@@ -65,14 +58,12 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		context.RenderHelpTemplate()
 	}
 
-	fmt.Println("command.Action:", context.Command.Action)
-	fmt.Println("command.Action == nil:", context.Command.Action == nil)
-
 	if context.CommandChain.IsRoot() ||
 		context.Command.Action == nil {
-		context.CLI.DefaultAction(context)
+		if context.CLI.DefaultAction != nil {
+			context.CLI.DefaultAction(context)
+		}
 	} else {
-		fmt.Println("command is [", context.Command.Name, "] executing action")
 		context.Command.Action(context)
 	}
 
@@ -86,42 +77,25 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 //       1 character size is allowed for short command names).
 // NOTE: Check if nextArgument is flag, flag is a boolean if nextArgument is
 //       either a flag or is a known command.
+// TODO: ==IDEA== Maybe have a expand function that goes over arguments, groups
+// up quoted sections, expand out stacked flags, convert " " separators on flags
+// with "=" separator.
 func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string) (parsedFlag Flag) {
-	fmt.Println("running parse argument on [[flagType]]:", flagType)
-	fmt.Println("                          [[argument]]:", argument)
-	fmt.Println("                          [[nextArgument]]:", nextArgument)
-
 	flagParts := strings.Split(StripFlagPrefix(argument), "=")
-	fmt.Println("                          [[ len(flagParts) ]]:", len(flagParts))
-	fmt.Println("                          [[ flagParts[0] ]]:", argument)
-	if len(flagParts) == 2 {
-		fmt.Println("                          [[ flagParts[1] ]]:", nextArgument)
-	}
-
 	parsedFlag.Name = strings.ToLower(flagParts[0])
 	if len(flagParts) == 2 {
 		parsedFlag.Value = flagParts[1]
 	} else if len(flagParts) == 1 {
 		if _, ok := HasFlagPrefix(nextArgument); ok {
-			fmt.Println("Next argument has a flag prefix, so flag is a boolean flag")
 			parsedFlag.Value = "1"
 		} else {
 			parsedFlag.Value = nextArgument
 		}
 	}
 
-	// TODO: Here we need to discover if our flag is located, if not, then check
-	// aliases for flag stacking
 	flagFound := false
 	for _, command := range self.CommandChain.Reversed() {
-		fmt.Println("checking command       in command chain:", command)
-		fmt.Println(" ' 3' '-----command.Name  in command chain:", command.Name)
-		fmt.Println("   ' '-----command.Alias in command chain:", command.Alias)
 		if len(nextArgument) != 0 && command.is(nextArgument) {
-			fmt.Println("command.is(nextArgument) is true?", command.is(nextArgument))
-			fmt.Println("command matched to next argument!")
-			fmt.Println("nextArgument [", nextArgument, "]")
-			fmt.Println("Next argument is a command, so the flag is a boolean flag")
 			parsedFlag.Value = "1"
 		}
 		for _, flag := range command.Flags {
@@ -133,8 +107,6 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 	}
 
 	if !flagFound {
-		fmt.Println("flag not found when attempting lookup...")
-		fmt.Println("Checking flag.Name [", parsedFlag.Name, "] for stacked flag...")
 		// TODO: This means the flag was not located; so HERE we check for the FLAG
 		// STACKING. However, the best way to do variable short name length is
 		// likely checking 1 2 3, throwing out 1, then again 1 2 3 etc.
@@ -154,38 +126,26 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 				}
 
 			}
-
 		}
-
 	}
 
 	//	return strings.ToLower(flagParts[0]), "1"
-
 	//return strings.ToLower(flagParts[0]), nextArgument
-
 	// TODO: Check for stacked
-
-	fmt.Println("flagParts[0]:", flagParts[0])
-	fmt.Println("len(flagParts[0]):", len(flagParts[0]))
-	fmt.Println("1 <= len(flagParts[0]):", 1 <= len(flagParts[0]))
-
 	//  TODO: We ONLY check for short to see if we have stacked flags.
 	if flagType == Short {
 		// TODO: Handle stacking short flag
 		if len(flagParts[0]) != 1 {
 			// NOTE: If a short tag is longer than 1 character
 			for index, stackedFlag := range flagParts[0] {
-				fmt.Println("stackedFlag:", stackedFlag)
 				if index == len(flagParts[0]) {
 
 				}
 			}
 		}
-
 	}
 	// NOTE: Before attempting to parse as stacked short flags, attempt to parse
 	//       as typo of a long flag.
-
 	for _, command := range self.CommandChain.Reversed() {
 		for _, flag := range command.Flags {
 			// NOTE: With A_FLAG and NAME, and VALUE, drop out flag with
@@ -195,23 +155,10 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 					//       an `=` sign.
 					flag.Value = flagParts[1]
 					return flag
-				} else {
-					//
-
 				}
-
 			}
 		}
 	}
-
-	// TODO: Last item in stacked flags could be not boolean, check next
-	// argumetn to decide
-	fmt.Println("flagParts:", flagParts)
-	fmt.Println("len(flagParts):", len(flagParts))
-
-	fmt.Println("parsedFlag.Name:", parsedFlag.Name)
-	fmt.Println("parsedFlag.Value:", parsedFlag.Value)
-
 	return parsedFlag
 }
 
@@ -221,9 +168,6 @@ func (self *Context) UpdateFlags(parsedFlags []Flag) {
 			var flags []Flag
 			for _, flag := range command.Flags {
 				if flag.is(parsedFlag.Name) {
-					fmt.Println("[ASSINGING PARSED FLAG] flag.is(parsedFlag.Name):", parsedFlag.Value)
-					fmt.Println("assinging parsedFlag to flag.Value:", parsedFlag.Value)
-
 					flag.Value = parsedFlag.Value
 				}
 				flags = append(flags, flag)
