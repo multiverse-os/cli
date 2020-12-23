@@ -10,6 +10,3 @@
 	path = terminal/text
   url = https://github.com/multiverse-os/text
 
-[submodule "symbols"]
-	path = terminal/text/unicode/symbols
-  url = https://github.com/multiverse-os/symbols
