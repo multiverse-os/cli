@@ -71,10 +71,9 @@ func (self Command) Subcommand(name string) (Command, bool) {
 	return Command{}, false
 }
 
-func (self Command) Flag(arg string) (*Flag, bool) {
-	arg = strings.ToLower(arg)
+func (self Command) Flag(name string) (*Flag, bool) {
 	for _, flag := range self.Flags {
-		if flag.Name == arg || flag.Alias == arg {
+		if flag.is(strings.ToLower(name)) {
 			return &flag, true
 		}
 	}

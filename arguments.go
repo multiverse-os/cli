@@ -156,7 +156,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		context.RenderHelpTemplate()
 	}
 
-	if context.CommandChain.IsRoot() ||
+	if context.CommandChain.IsRoot() &&
 		context.Command.Action == nil {
 		if context.CLI.DefaultAction != nil {
 			context.CLI.DefaultAction(context)

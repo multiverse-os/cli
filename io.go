@@ -10,6 +10,12 @@ import (
 	ansi "github.com/multiverse-os/cli/terminal/ansi"
 )
 
+type Directories struct {
+	Working string
+	Data    string
+	Cache   string
+}
+
 const prefixSize = 2
 const tabSize = 4
 

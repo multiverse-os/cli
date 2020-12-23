@@ -30,11 +30,6 @@ type Action func(context *Context) error
 // and error to get the information how to fix issues but can instead fix    //
 // all at once and rerun the command.                                        //
 ///////////////////////////////////////////////////////////////////////////////
-type Directories struct {
-	Working string
-	Data    string
-	Cache   string
-}
 
 type Localisation struct {
 	Language string

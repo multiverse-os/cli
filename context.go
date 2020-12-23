@@ -1,7 +1,5 @@
 package cli
 
-import "fmt"
-
 type Context struct {
 	PID          int
 	CLI          *CLI
@@ -15,25 +13,25 @@ type Context struct {
 }
 
 func (self *Context) UpdateFlag(name, value string) {
-	if self.HasCommands() {
-		for _, command := range self.CommandChain.Reversed() {
-			for _, flag := range command.Flags {
-				if flag.is(name) {
-					flag.Value = value
-				}
+	for _, command := range self.CommandChain.Reversed() {
+		for _, flag := range command.Flags {
+			if flag.is(name) {
+				flag.Value = value
 			}
 		}
 	}
 }
 
-func (self *Context) HasFlag(name string) bool { return self.Flag(name) != nil }
+func (self *Context) HasFlag(name string) bool {
+	return self.Flag(name).Value != "0"
+}
+
 func (self *Context) HasCommandFlag(name string) bool {
 	return self.CommandFlag(self.Command.Name, name) != nil
 }
 
 func (self *Context) Flag(name string) *Flag {
 	for _, command := range self.CommandChain.Reversed() {
-		fmt.Println("command flags:", len(command.Flags))
 		for _, flag := range command.Flags {
 			if flag.is(name) {
 				if len(flag.Value) == 0 {
@@ -43,6 +41,7 @@ func (self *Context) Flag(name string) *Flag {
 			}
 		}
 	}
+
 	return &Flag{
 		Name:  name,
 		Value: "0",
@@ -65,7 +64,7 @@ func (self *Context) CommandFlag(commandName, flagName string) (flag *Flag) {
 	return flag
 }
 
-func (self *Context) HasCommands() bool    { return self.CommandChain.IsRoot() && self.HasSubcommands() }
+func (self *Context) HasCommands() bool    { return 0 < len(self.CommandChain.First().Subcommands) }
 func (self *Context) HasSubcommands() bool { return 0 < len(self.Command.Subcommands) }
 
 func (self *Context) HasSubcommand(name string) bool {

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -73,16 +72,11 @@ type Flag struct {
 }
 
 func HasFlagPrefix(flag string) (FlagType, bool) {
-	if strings.HasPrefix(flag, Long.String()) &&
-		data.IsGreaterThan(len(flag), Long.Length()) {
-		fmt.Printf("is a long flag type \n")
+	if strings.HasPrefix(flag, Long.String()) {
 		return Long, true
-	} else if strings.HasPrefix(flag, Short.String()) &&
-		data.IsGreaterThan(len(flag), Short.Length()) {
-		fmt.Printf("is a short flag type \n")
+	} else if strings.HasPrefix(flag, Short.String()) {
 		return Short, true
 	} else {
-		fmt.Printf("else on has flag prefix \n")
 		return NotAvailable, false
 	}
 }
