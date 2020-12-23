@@ -1,6 +1,8 @@
 package cli
 
-import "time"
+import (
+	"time"
+)
 
 type Build struct {
 	CompiledAt time.Time
@@ -14,4 +16,17 @@ type Developer struct {
 	PublicKey PublicKey
 	Name      string
 	Email     string
+}
+
+type KeyType int
+
+const (
+	RSA KeyType = iota
+	ECDSA
+	ED25199
+)
+
+type PublicKey struct {
+	Type      KeyType
+	PublicKey string
 }

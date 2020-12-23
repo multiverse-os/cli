@@ -129,36 +129,6 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 		}
 	}
 
-	//	return strings.ToLower(flagParts[0]), "1"
-	//return strings.ToLower(flagParts[0]), nextArgument
-	// TODO: Check for stacked
-	//  TODO: We ONLY check for short to see if we have stacked flags.
-	if flagType == Short {
-		// TODO: Handle stacking short flag
-		if len(flagParts[0]) != 1 {
-			// NOTE: If a short tag is longer than 1 character
-			for index, stackedFlag := range flagParts[0] {
-				if index == len(flagParts[0]) {
-
-				}
-			}
-		}
-	}
-	// NOTE: Before attempting to parse as stacked short flags, attempt to parse
-	//       as typo of a long flag.
-	for _, command := range self.CommandChain.Reversed() {
-		for _, flag := range command.Flags {
-			// NOTE: With A_FLAG and NAME, and VALUE, drop out flag with
-			if flag.is(flagParts[0]) {
-				if len(flagParts[0]) == 2 {
-					// NOTE: Two means that the value is already included, divided by
-					//       an `=` sign.
-					flag.Value = flagParts[1]
-					return flag
-				}
-			}
-		}
-	}
 	return parsedFlag
 }
 
