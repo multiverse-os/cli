@@ -7,7 +7,7 @@ type Build struct {
 	Source     string
 	Commit     string
 	Signature  string
-	Authors    []Author
+	Developers []Developer
 }
 
 type Developer struct {
