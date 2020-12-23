@@ -1,3 +1,15 @@
-[submodule "text/ansi"]
-	path = ansi
-	url = git://github.com/multiverse-os/ansi
+[submodule "ansi"]
+	path = terminal/ansi
+  url = https://github.com/multiverse-os/ansi
+
+[submodule "loading"]
+	path = terminal/loading
+  url = https://github.com/multiverse-os/loading
+
+[submodule "text"]
+	path = terminal/text
+  url = https://github.com/multiverse-os/text
+
+[submodule "symbols"]
+	path = terminal/text/unicode/symbols
+  url = https://github.com/multiverse-os/symbols
