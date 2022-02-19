@@ -1,6 +1,7 @@
 package cli
 
 import (
+  "fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -18,6 +19,10 @@ type Arguments interface {
 	Slice() []string
 }
 
+// TODO: I dont remember if I tried to use just a type Chain []*Commands but I
+// feel like I spent a lot of time working that one out -- but with programminmg
+// could have changed since then because we are so high up in terms of
+// abstraction.
 type Chain struct {
 	Commands []*Command
 }
@@ -66,7 +71,6 @@ func (self *Chain) NoCommands() bool           { return self.IsRoot() && len(sel
 func (self *Chain) HasCommands() bool          { return self.IsRoot() && 0 < len(self.First().Subcommands) }
 func (self *Chain) IsRoot() bool               { return len(self.Commands) == 1 }
 func (self *Chain) IsNotRoot() bool            { return 1 < len(self.Commands) }
-func (self *Chain) UnselectedCommand() bool    { return 0 < len(self.Last().Subcommands) }
 func (self *Chain) PathExample() (path string) { return strings.Join(self.Path(), " ") }
 
 func (self *Chain) HasSubcommands() bool {
@@ -142,27 +146,37 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 	}
 
 	context.UpdateFlags(parsedFlags)
-	if context.CommandChain.UnselectedCommand() {
-		context.Command = &Command{
-			Parent: context.Command,
-			Name:   "help",
-		}
-	}
 
 	self.Debug = context.HasFlag("debug")
-	if context.Command.is("version") || context.HasFlag("version") {
-		self.RenderVersionTemplate()
-	} else if context.Command.is("help") || context.HasFlag("help") {
-		context.RenderHelpTemplate()
-	}
 
-	if context.CommandChain.IsRoot() &&
-		context.Command.Action == nil {
-		if context.CLI.DefaultAction != nil {
-			context.CLI.DefaultAction(context)
-		}
-	} else {
-		context.Command.Action(context)
+  // TODO: This is currently the router, it would be nice to be able to produce
+  // a standard URL like output (even have a URI scheme, like 
+
+  //  cli://user@program:/command/subcommand?params
+  //  
+  //  OR somethjing similar, then be able to route to a defined functions in a
+  //  controller section, but additionally and importantly, provide consistent,
+  //  specific and useful details to the controller function so that they can be
+  //  slim and written similarly. 
+  // 
+
+  // TODO: We may want to add the ability to do before hook and after hooks as
+  // alternative or in addition to the default action. This woudl also be nice
+  // for like sections, or namespaces as it is sometimes referred to in web
+  // applications. The facility for this should be considered when building out
+  // below. Because it is fairly critical to the fluid design. Global, commands,
+  // and command level should all likely have the functionality.
+
+  fmt.Printf("context.Command.Action: %v\n", context.Command.Action)
+
+  if context.Command.is("version") || context.HasFlag("version") {
+		self.RenderVersionTemplate()
+  } else if context.HasFlag("help") { // TODO: Removed condition where subcommands but no action that should get help output BUT -- should default action run regardless or above happens only when no default
+		  context.RenderHelpTemplate(context.Command)
+  } else if context.Command.is("help") {
+		  context.RenderHelpTemplate(context.Command.Parent)
+  } else {
+      context.Action()
 	}
 
 	return context, nil

@@ -11,30 +11,24 @@ type Command struct {
 	Description string
 	Hidden      bool
 	Parent      *Command
-	Subcommands []Command
+  Subcommands Commands
 	Flags       []Flag
 	Action      Action
 }
 
+type Commands []*Command
+
+func (self Commands) Hidden() (commands Commands) {
+  for _, command := range self {
+    if command.Hidden {
+      commands = append(commands, command)
+    }
+  }
+  return commands
+}
+
+// Command Private Methods
 func (self Command) is(name string) bool { return self.Name == name || self.Alias == name }
-
-func (self Command) visibleSubcommands() (subcommands []Command) {
-	for _, subcommand := range self.Subcommands {
-		if !subcommand.Hidden {
-			subcommands = append(subcommands, subcommand)
-		}
-	}
-	return subcommands
-}
-
-func (self Command) VisibleFlags() (flags []*Flag) {
-	for _, flag := range self.Flags {
-		if !flag.Hidden {
-			flags = append(flags, &flag)
-		}
-	}
-	return flags
-}
 
 func (self Command) usage() (output string) {
 	if len(self.Alias) != 0 {
@@ -51,16 +45,12 @@ func (self Command) path() []string {
 	return route
 }
 
-//
-// Public Methods
-///////////////////////////////////////////////////////////////////////////////
+// Command Public Methods
 func (self Command) Base() bool { return self.Parent == nil }
 
-func (self Command) HasFlags() bool {
-	return 0 < len(self.VisibleFlags())
-}
+func (self Command) HasFlags() bool { return 0 < len(self.VisibleFlags()) }
+func (self Command) HasSubcommands() bool { return 0 < len(self.VisibleSubcommands()) }
 
-func Commands(commands ...Command) []Command { return commands }
 
 func (self Command) Subcommand(name string) (Command, bool) {
 	for _, subcommand := range self.Subcommands {
@@ -87,3 +77,36 @@ func (self Command) Path() []string {
 	}
 	return route
 }
+
+
+// TODO: This can now be accomplished with 
+//
+//                  command.Subcommands.Visible()
+//
+//       which is definitely a much nicer API for developers to interact
+//       with. Commend this out and kinda keep it a bit to provide examples
+//       for this new trick we are bringing into the standard object build. 
+//
+// func (self Command) VisibleSubcommands() (subcommands []Command) {
+// 	for _, subcommand := range self.Subcommands {
+// 		if !subcommand.Hidden {
+// 			subcommands = append(subcommands, subcommand)
+// 		}
+// 	}
+// 	return subcommands
+// }
+
+func (self Command) VisibleFlags() (flags []*Flag) {
+	for _, flag := range self.Flags {
+		if !flag.Hidden {
+			flags = append(flags, &flag)
+		}
+	}
+	return flags
+}
+
+func (self Command) HasNoAction() bool { return self.Action == nil }
+func (self Command) HasAction() bool { return !self.HasNoAction() }
+
+// Commands Public Methods
+func (self Commands) Zero() bool { return len(self) == 0 }

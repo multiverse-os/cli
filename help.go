@@ -7,14 +7,14 @@ import (
 	template "github.com/multiverse-os/cli/terminal/template"
 )
 
-func (self *Context) RenderHelpTemplate() error {
+func (self *Context) RenderHelpTemplate(command *Command) error {
 	helpOptions := map[string]string{
 		"header":            self.CLI.asciiHeader("big"),
 		"usage":             "Usage",
 		"availableCommands": "Commands",
 		"availableFlags":    "Flags",
 	}
-	return template.StdOut(self.helpTemplate(self.Command.Parent), helpOptions)
+	return template.StdOut(self.helpTemplate(command), helpOptions)
 }
 
 // Available Banners Fonts
@@ -48,9 +48,9 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 	t += Prefix() + "{{.usage}}\n"
 	t += Tab() + strings.ToLower(self.CommandChain.PathExample()) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
 	t += Prefix() + "{{.availableCommands}}\n"
-	for index, subcommand := range command.visibleSubcommands() {
+	for index, subcommand := range command.VisibleSubcommands() {
 		t += Tab() + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
-		if index != len(command.visibleSubcommands())-1 {
+		if index != len(command.VisibleSubcommands())-1 {
 			t += "\n"
 		}
 	}

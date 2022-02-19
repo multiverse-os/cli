@@ -37,23 +37,31 @@ type Localisation struct {
 	Text     map[string]string
 }
 
+type Actions struct {
+  Global    Action
+  Fallback  Action
+  OnStart   Action
+  OnExit    Action
+  // OnExit? Or Close? or this just covered by After?
+}
+
 type CLI struct {
-	Name          string
-	Description   string
-	Locale        string
-	Version       Version
-	Build         Build
-	RequiredArgs  int       // For simple scripts, like one that converts a file and requires filename
-	Command       Command   // Base command that represents the CLI itself
-	ParamType     data.Type // Filename types should be able to define extension for autcomplete
-	DefaultAction Action
-	Outputs       Outputs
-	Debug         bool // Controls if Debug output writes are skipped
+	Name           string
+	Description    string
+	Locale         string
+	Version        Version
+	Build          Build
+	RequiredArgs   int       // For simple scripts, like one that converts a file and requires filename
+	Command        Command   // Base command that represents the CLI itself
+	ParamType      data.Type // Filename types should be able to define extension for autcomplete
+  Actions        Actions
+	Outputs        Outputs
+	Debug          bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
-	GlobalFlags []Flag
-	Commands    []Command
-	//Errors        []error
-	//Examples []Chain
+	GlobalFlags   []Flag
+	Commands      []Command
+	//Errors      []error
+	//Examples    []Chain
 }
 
 func (self *CLI) Flags() (flags []*Flag) {
@@ -74,11 +82,6 @@ func New(cli *CLI) *CLI {
 		cli.Outputs = append(cli.Outputs, TerminalOutput())
 	}
 
-	// Reader:      os.Stdin,
-	// Writer:      os.Stdout,
-	// 		fmt.Println(a.Writer, "thing")
-	// ErrWriter:   os.Stderr,
-
 	return &CLI{
 		Name:    cli.Name,
 		Version: cli.Version,
@@ -87,11 +90,16 @@ func New(cli *CLI) *CLI {
 		Build: Build{
 			CompiledAt: time.Now(),
 		},
+		Actions: Actions{
+      Global:   cli.Actions.Global,
+      Fallback: cli.Actions.Fallback,
+      OnStart:  cli.Actions.OnStart,
+      OnExit:   cli.Actions.OnExit,
+    },
 		Command: Command{
 			Name:        cli.Name,
 			Subcommands: cli.Commands,
 			Flags:       cli.GlobalFlags,
 		},
-		DefaultAction: cli.DefaultAction,
 	}
 }

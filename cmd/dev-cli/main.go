@@ -31,6 +31,10 @@ func main() {
 				Name:        "list",
 				Alias:       "c",
 				Description: "complete a task on the list",
+        //Action: func(c *cli.Context) error {
+        //  fmt.Println("list!")
+        //  return nil
+        //},
 				Flags: cli.Flags(
 					cli.Flag{
 						Name:        "filter",
@@ -70,35 +74,43 @@ func main() {
 				Name:        "add",
 				Alias:       "a",
 				Description: "add a task to the list",
+        Action: func(c *cli.Context) error {
+          fmt.Println("add")
+          return nil
+        },
 			},
 		),
-		DefaultAction: func(c *cli.Context) error {
+    Actions: cli.Actions{
+      Fallback: func(c *cli.Context) error {
+        return nil
+      },
+      Global: func(c *cli.Context) error {
+			  fmt.Println("=====================================================")
+			  fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 
-			fmt.Println("=====================================================")
-			fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
+			  fmt.Println("=====================================================")
+			  c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
+			  c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
+			  fmt.Println("=====================================================")
 
-			fmt.Println("=====================================================")
-			c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
-			c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
-			fmt.Println("=====================================================")
+			  for _, command := range c.CommandChain.Commands {
+			  	fmt.Println("=====================================================")
+			  	fmt.Println("command:", command.Name)
+          //fmt.Println("command:action= [", command.Action, "]")
+			  	for _, flag := range command.Flags {
+			  		fmt.Println("command:flag= [", command.Name, "][", flag.Name, "][", flag.Value, "]")
+			  	}
+			  }
 
-			for _, command := range c.CommandChain.Commands {
-				fmt.Println("=====================================================")
-				fmt.Println("command:", command.Name)
-				for _, flag := range command.Flags {
-					fmt.Println("command:flag= [", command.Name, "][", flag.Name, "][", flag.Value, "]")
-				}
-			}
+			  for flagName, flagValue := range c.Flags {
+			  	fmt.Println("=====================================================")
+			  	c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
+			  	c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
+			  }
+			  fmt.Println("=====================================================")
 
-			for flagName, flagValue := range c.Flags {
-				fmt.Println("=====================================================")
-				c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
-				c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
-			}
-			fmt.Println("=====================================================")
-
-			return nil
-		},
+			  return nil
+		  },
 	})
 
 	// NOTE: Has the ability output context and error, this enables developers to
