@@ -1,5 +1,9 @@
 package cli
 
+// NOTE: The reason hooks & actions exists within the context is that these are
+// the specifed actions and hooks being ran (specified by the args passed from
+// the os when the command was ran). CLI contains all possible hooks and
+// actions, and context contains the actions and hooks being executed. 
 type Context struct {
 	PID          int
 	CLI          *CLI
@@ -8,6 +12,8 @@ type Context struct {
 	Command      *Command
 	Params       Params
 	CommandChain *Chain
+  Hooks        Hooks
+  Actions      actions
 	Flags        map[string]*Flag
 	Args         []string
 }
@@ -87,59 +93,29 @@ func (self *Context) CommandFlag(commandName, flagName string) (flag *Flag) {
 // TODO: This is nice to have in its own function because this piece dictates
 // core aspect of the logic and this puts it in a capsule easily understood or
 // changed hopefully. 
-func (self *Context) Execute() {
-  if self.Command.HasAction() {
-    self.Command.Action(self)
-  }else{
-    if self.HasGlobalAction() {
-      self.CLI.Actions.Global(self)
-      // TODO: May need else to either add ehlp command or print help directly.
-      // This could go before version maybe but then version would need and help
-      // would probably have to have their actions moved to their
-      // initializiation as default hidden options. And i ahvent decided if that
-      // is better
-    }
-  }
 
-  if self.CLI.Actions.OnStart != nil {
-    self.CLI.Actions.OnStart(self)
-  }
-  if self.Command.HasAction() {
-    if self.Command.Action != nil {
-      self.Command.Action(self)
-    }
-    
-    // Command Action 
-    // Subcommand action ... for each command up the chain (remember to use the
-    // flags for: (each level)+(global) flags. 
+// TODO: Global and Fallback actions are both running, this should be impossible
+//       by definition
+func (self *Context) ExecuteActions() {
 
-    // Global
-
-    
-  }else{
-    if self.CLI.Actions.Fallback != nil {
-      self.CLI.Actions.Fallback(self)
-    }
-  }
-  if self.CLI.Actions.OnExit != nil {
-    self.CLI.Actions.OnExit(self)
-  }
 }
 
 // TODO: Context should only logically hold the meta methods, nothing directly
 // acting on any collection or object inside but more the helpers made from
 // merging those lower level 
 
-func (self *Context) HasGlobalAction() bool { return self.CLI.Actions.Global != nil }
-func (self *Context) HasFallbackAction() bool { return self.CLI.Actions.Fallback != nil }
-func (self *Context) HasOnStartAction() bool { return self.CLI.Actions.OnStart != nil }
-func (self *Context) HasOnExitAction() bool { return self.CLI.Actions.OnExit != nil }
+func (self *Context) HasGlobalAction() bool { return self.CLI.Actions.Global.IsNil() }
+func (self *Context) HasFallbackAction() bool { return self.CLI.Actions.Fallback.IsNil() }
 
+// TODO: This needs to be updated to reflect the changes made by splitting up
+// hooks from generic actions
+// TODO: Does not take into consideration the command chain and the parent
+// commands potential actions or hooks! or even the current commands hooks, or
+// the global hooks. Right now its just the global actions (fallback or global)
+// and the last command in the commandchain's action (so not complete) 
 func (self *Context) HasAction() bool {
   return self.HasGlobalAction()   || 
          self.HasFallbackAction() || 
-         self.HasOnStartAction()  || 
-         self.HasOnExitAction()   ||
          self.Command.HasAction() // TODO: This needs to iterate through
                                   //       each command in chain to determine IF
                                   //       it has a possible action to preform

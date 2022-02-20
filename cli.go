@@ -6,7 +6,6 @@ import (
 	data "github.com/multiverse-os/cli/data"
 )
 
-type Action func(context *Context) error
 
 // TODO: Scaffolding code to hasten development.
 // https://golang.org/pkg/go/printer/
@@ -38,13 +37,6 @@ type localization struct {
 	Text     map[string]string
 }
 
-type Actions struct {
-  Global    Action
-  Fallback  Action
-  OnStart   Action
-  OnExit    Action
-  // OnExit? Or Close? or this just covered by After?
-}
 
 // TODO: Extend the build aspect of the system. Pull data from last push to the
 // public github (it will eventually be our own fucking git hosting and public
@@ -62,6 +54,7 @@ type CLI struct {
 	Command        Command   // Base command that represents the CLI itself
 	ParamType      data.Type // Filename types should be able to define extension for autcomplete
   Actions        Actions
+  GlobalHooks    Hooks
 	Outputs        Outputs
 	Debug          bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
@@ -101,11 +94,13 @@ func New(cli *CLI) *CLI {
 		Build: Build{
 			CompiledAt: time.Now(),
 		},
+    GlobalHooks: Hooks{
+      BeforeAction: cli.GlobalHooks.BeforeAction,
+      AfterAction: cli.GlobalHooks.AfterAction,
+    },
 		Actions: Actions{
       Global:   cli.Actions.Global,
       Fallback: cli.Actions.Fallback,
-      OnStart:  cli.Actions.OnStart,
-      OnExit:   cli.Actions.OnExit,
     },
 		Command: Command{
 			Name:        cli.Name,

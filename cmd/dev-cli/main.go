@@ -32,10 +32,10 @@ func main() {
 				Name:        "list",
 				Alias:       "c",
 				Description: "complete a task on the list",
-        //Action: func(c *cli.Context) error {
-        //  fmt.Println("list!")
-        //  return nil
-        //},
+        Action: func(c *cli.Context) error {
+          fmt.Println("list!")
+          return nil
+        },
 				Flags: cli.Flags(
 					cli.Flag{
 						Name:        "filter",
@@ -79,17 +79,37 @@ func main() {
           fmt.Println("add")
           return nil
         },
+        Hooks: cli.Hooks{
+          BeforeAction: func(c *cli.Context) error {
+            return nil
+          },
+          AfterAction: func(c *cli.Context) error {
+            return nil
+          },
+        },
 			},
 		),
+    GlobalHooks: cli.Hooks{
+      BeforeAction: func(c *cli.Context) error {
+        return nil
+      },
+      AfterAction: func(c *cli.Context) error {
+        return nil
+      },
+    },
     Actions: cli.Actions{
       Fallback: func(c *cli.Context) error {
+        fmt.Println("fallback action")
         return nil
       },
       Global: func(c *cli.Context) error {
+        fmt.Println("global action")
 			  fmt.Println("=====================================================")
 			  fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 
 			  fmt.Println("=====================================================")
+        // TODO: Switch to only using these and document this log system in the
+        // API better
 			  c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
 			  c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
 			  fmt.Println("=====================================================")

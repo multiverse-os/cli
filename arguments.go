@@ -131,9 +131,21 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		Executable:   executable,
 		CommandChain: &Chain{},
 		Params:       Params{},
+    Hooks:        Hooks{
+      BeforeAction: self.GlobalHooks.BeforeAction,
+      AfterAction: self.GlobalHooks.AfterAction,
+    },
 		Flags:        make(map[string]*Flag),
 		Args:         arguments[1:],
 	}
+
+  // TODO: For the hooks we should reverse iterate over the command chain, and
+  // puill out each of the hooks and merge tbhem into the hooks held in context
+  // then that would resolve how they would be obtained in the execute function,
+  // and make the execute function pretty complete leaving most of the logic in
+  // there and giving us a clean interaction with commands which are at the
+  // heart of this cli framework. in the end its all just about parsing the args
+  // to execute a defined action (and its hooks). 
 
 	context.CommandChain.AddCommand(&self.Command)
 
@@ -148,6 +160,8 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 			if command, ok := context.Command.Subcommand(argument); ok {
 				command.Parent = context.Command
 				context.Command = command
+        // TODO: Since this is a commands type we can add the AddCommand or just
+        // Add so `commands.Add(command)` 
 				context.CommandChain.AddCommand(context.Command)
 			} else {
 				for _, param := range context.Args[index:] {
@@ -189,7 +203,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
   } else if context.Command.is("help") {
 		  context.RenderHelpTemplate(context.Command.Parent)
   } else {
-      context.Execute()
+      context.ExecuteActions()
 	}
 
 	return context, nil

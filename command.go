@@ -4,10 +4,6 @@ import (
 	"strings"
 )
 
-type CommandActions struct {
-  Before Action
-  After  Action
-}
 
 type Command struct {
 	Category    int
@@ -19,7 +15,7 @@ type Command struct {
   Subcommands commands
 	Flags       flags
 	Action      Action
-  Hooks       CommandActions
+  Hooks       Hooks
 }
 
 type commands []*Command
