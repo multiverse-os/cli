@@ -31,8 +31,10 @@ func (self *CLI) simpleHeader() string {
 	return self.Name + "[v" + self.Version.String() + "]\n"
 }
 
+// TODO: Maybe default to just having command and then doing some sort of simple
+// check to add sub? something easier than this possible?
 func (self *Context) expectingCommandsOrSubcommand() string {
-	if self.HasCommands() {
+	if self.Command.Subcommands.IsZero() {
 		return " [command]"
 	} else if !self.Command.Base() {
 		return " [subcommand]"
@@ -46,11 +48,12 @@ func (self *Context) expectingCommandsOrSubcommand() string {
 func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
 	t += Prefix() + "{{.usage}}\n"
+  // TODO: Name commandchain sucks
 	t += Tab() + strings.ToLower(self.CommandChain.PathExample()) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
 	t += Prefix() + "{{.availableCommands}}\n"
-	for index, subcommand := range command.VisibleSubcommands() {
+	for index, subcommand := range command.Subcommands.Visible() {
 		t += Tab() + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
-		if index != len(command.VisibleSubcommands())-1 {
+		if index != len(command.Subcommands.Visible())-1 {
 			t += "\n"
 		}
 	}

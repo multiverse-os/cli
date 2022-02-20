@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	cmd := cli.New(&cli.CLI{
 		Name:        "example",
 		Description: "an example cli application for scripts and full-featured applications",
@@ -111,6 +112,7 @@ func main() {
 
 			  return nil
 		  },
+    },
 	})
 
 	// NOTE: Has the ability output context and error, this enables developers to

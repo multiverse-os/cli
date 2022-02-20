@@ -7,6 +7,7 @@ import (
 	data "github.com/multiverse-os/cli/data"
 )
 
+
 type FlagType int
 
 const (
@@ -71,6 +72,43 @@ type Flag struct {
 	Type        data.Type
 }
 
+type flags []*Flag 
+
+func Flags(definedFlags ...Flag) (flagPointers flags) { 
+  for _, flag := range definedFlags {
+    flagPointers = append(flagPointers, &flag)
+  }
+  return flagPointers
+}
+
+func (self flags) Visible() (visibleFlags flags) {
+  for _, flag := range self {
+    if !flag.Hidden {
+      visibleFlags = append(visibleFlags, flag)
+    }
+  }
+  return visibleFlags
+}
+
+func (self flags) Hidden() (hiddenFlags flags) {
+  for _, flag := range self {
+    if flag.Hidden {
+      hiddenFlags = append(hiddenFlags, flag)
+    }
+  }
+  return hiddenFlags
+}
+
+func (self flags) Scope(scope FlagLevel) (f flags) {
+  for _, flag := range self {
+    if flag.Level == scope {
+      f = append(f, flag)
+    }
+  }
+  return f
+}
+
+
 func HasFlagPrefix(flag string) (FlagType, bool) {
 	if strings.HasPrefix(flag, Long.String()) {
 		return Long, true
@@ -97,8 +135,9 @@ func (self Flag) help() string {
 	return strings.Repeat(" ", 4) + usage + strings.Repeat(" ", 18-len(usage)) + self.Description + defaultValue + "\n"
 }
 
-func Flags(flags ...Flag) []Flag { return flags }
 
+// TODO: I like these and they are similar to the idea had earlier for a active
+// record analogue
 func (self Flag) String() string { return self.Value }
 
 func (self Flag) Int() int {

@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+  data "github.com/multiverse-os/cli/data"
 )
 
 type arguments int
@@ -24,7 +26,7 @@ type Arguments interface {
 // could have changed since then because we are so high up in terms of
 // abstraction.
 type Chain struct {
-	Commands []*Command
+	Commands commands
 }
 
 func (self *Chain) Length() int { return len(self.Commands) }
@@ -56,14 +58,25 @@ func (self *Chain) First() *Command {
 func (self *Chain) AddCommand(command *Command) {
 	self.Commands = append(self.Commands, command)
 
-	flags := []Flag{}
-	for _, flag := range command.Flags {
-		//if len(flag.Value) == 0 {
-		flag.Value = flag.Default
-		//}
-		flags = append(flags, flag)
-	}
-	command.Flags = flags
+  // TODO: IMPORTANT
+  // This takes all flags from the command then just sets them to default
+  // regardless if they are assigned in the cmd line. This is a major bug. Need
+  // to detect each and set default
+  // acordingly
+	//flags := []Flag{}
+	//for _, flag := range command.Flags {
+	//	//if len(flag.Value) == 0 {
+	//	flag.Value = flag.Default
+	//	//}
+	//	flags = append(flags, flag)
+	//}
+	//command.Flags = flags
+
+  for _, commandFlag := range command.Flags {
+    if data.IsNil(commandFlag.Value) {
+      commandFlag.Value = commandFlag.Default
+    }
+  }
 }
 
 func (self *Chain) Last() *Command             { return self.Commands[len(self.Commands)-1] }
@@ -80,7 +93,7 @@ func (self *Chain) HasSubcommands() bool {
 func (self *Chain) Flags() (flags map[string]*Flag) {
 	for _, command := range self.Commands {
 		for _, flag := range command.Flags {
-			flags[flag.Name] = &flag
+			flags[flag.Name] = flag
 		}
 	}
 	return flags
@@ -124,7 +137,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 
 	context.CommandChain.AddCommand(&self.Command)
 
-	parsedFlags := []Flag{}
+	var parsedFlags flags
 	for index, argument := range context.Args {
 		if flagType, ok := HasFlagPrefix(argument); ok {
 			// TODO: Need to handle skipping next argument when next argument is used
@@ -134,7 +147,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 		} else {
 			if command, ok := context.Command.Subcommand(argument); ok {
 				command.Parent = context.Command
-				context.Command = &command
+				context.Command = command
 				context.CommandChain.AddCommand(context.Command)
 			} else {
 				for _, param := range context.Args[index:] {
@@ -176,7 +189,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
   } else if context.Command.is("help") {
 		  context.RenderHelpTemplate(context.Command.Parent)
   } else {
-      context.Action()
+      context.Execute()
 	}
 
 	return context, nil
@@ -192,7 +205,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 // TODO: ==IDEA== Maybe have a expand function that goes over arguments, groups
 // up quoted sections, expand out stacked flags, convert " " separators on flags
 // with "=" separator.
-func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string) (parsedFlag Flag) {
+func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string) (parsedFlag *Flag) {
 	flagParts := strings.Split(StripFlagPrefix(argument), "=")
 	parsedFlag.Name = strings.ToLower(flagParts[0])
 	if len(flagParts) == 2 {
@@ -244,17 +257,18 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 	return parsedFlag
 }
 
-func (self *Context) UpdateFlags(parsedFlags []Flag) {
+func (self *Context) UpdateFlags(parsedFlags flags) {
 	for _, parsedFlag := range parsedFlags {
 		for _, command := range self.CommandChain.Reversed() {
-			var flags []Flag
-			for _, flag := range command.Flags {
-				if flag.is(parsedFlag.Name) {
-					flag.Value = parsedFlag.Value
+			for _, commandFlag := range command.Flags {
+				if commandFlag.is(parsedFlag.Name) {
+					commandFlag.Value = parsedFlag.Value
 				}
-				flags = append(flags, flag)
 			}
-			command.Flags = flags
+      // TODO: Was this style required to get the saves of data>?
+      //       going to save some evidednce it existed to save headache later if
+      //       that turns out why it wont work
+			//command.Flags = flags
 		}
 	}
 

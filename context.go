@@ -23,6 +23,8 @@ func (self *Context) UpdateFlag(name, value string) {
 }
 
 func (self *Context) HasFlag(name string) bool {
+  // TODO: DO we get a preformance increase and how much from hardcoding in
+  // byte(\0x or whatever it is and doing the bytewise comparison? 
 	return self.Flag(name).Value != "0"
 }
 
@@ -37,7 +39,7 @@ func (self *Context) Flag(name string) *Flag {
 				if len(flag.Value) == 0 {
 					flag.Value = flag.Default
 				}
-				return &flag
+				return flag
 			}
 		}
 	}
@@ -56,7 +58,7 @@ func (self *Context) CommandFlag(commandName, flagName string) (flag *Flag) {
 					if len(flag.Value) == 0 {
 						flag.Value = flag.Default
 					}
-					return &flag
+					return flag
 				}
 			}
 		}
@@ -68,24 +70,24 @@ func (self *Context) CommandFlag(commandName, flagName string) (flag *Flag) {
 
 //     self.Command(1), or at least self.Command.First(),... CommandChain is
 //     descriptive but clunky
-func (self *Context) HasSubcommand(name string) bool {
-	_, hasSubcommand := self.Subcommand(name)
-	return hasSubcommand
-}
-
-func (self *Context) Subcommand(name string) (*Command, bool) {
-	for _, subcommand := range self.Command.Subcommands {
-		if subcommand.is(name) {
-			return &subcommand, true
-		}
-	}
-	return nil, false
-}
+//func (self *Context) HasCommand(name string) bool {
+//	_, hasCommand := self.Command(name)
+//	return hasCommand
+//}
+//
+//func (self *Context) Command(name string) (*Command, bool) {
+//	for _, subcommand := range self.Command.Subcommands {
+//		if subcommand.is(name) {
+//			return &subcommand, true
+//		}
+//	}
+//	return nil, false
+//}
 
 // TODO: This is nice to have in its own function because this piece dictates
 // core aspect of the logic and this puts it in a capsule easily understood or
 // changed hopefully. 
-func (self *Context) Action() {
+func (self *Context) Execute() {
   if self.Command.HasAction() {
     self.Command.Action(self)
   }else{
@@ -100,8 +102,9 @@ func (self *Context) Action() {
   }
 
   self.CLI.Actions.OnStart(self)
-  if {
-
+  if self.Command.HasAction() {
+    self.Command.Action(self)
+    
     // Command Action 
     // Subcommand action ... for each command up the chain (remember to use the
     // flags for: (each level)+(global) flags. 
@@ -114,6 +117,10 @@ func (self *Context) Action() {
   }
   self.CLI.Actions.OnExit(self)
 }
+
+// TODO: Context should only logically hold the meta methods, nothing directly
+// acting on any collection or object inside but more the helpers made from
+// merging those lower level 
 
 func (self *Context) HasGlobalAction() bool { return self.CLI.Actions.Global != nil }
 func (self *Context) HasFallbackAction() bool { return self.CLI.Actions.Fallback != nil }
@@ -133,7 +140,4 @@ func (self *Context) HasAction() bool {
                                   //       should have specific actions more
                                   //       meaningful to command, so they cant
                                   //       share the same object. 
-
-// TODO: Move this to command? Command.HasNoAction() ?
-func (self *Context) HasNoAction() bool { !return self.HasNoDefaultAction() }
-func (self *Context) HasNoCommands() bool {  return !self.Command.HasCommands() }
+                                }

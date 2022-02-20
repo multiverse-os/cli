@@ -4,6 +4,11 @@ import (
 	"strings"
 )
 
+type CommandActions struct {
+  Before Action
+  After  Action
+}
+
 type Command struct {
 	Category    int
 	Name        string
@@ -11,16 +16,39 @@ type Command struct {
 	Description string
 	Hidden      bool
 	Parent      *Command
-  Subcommands Commands
-	Flags       []Flag
+  Subcommands commands
+	Flags       flags
 	Action      Action
+  Hooks       CommandActions
 }
 
-type Commands []*Command
+type commands []*Command
 
-func (self Commands) Hidden() (commands Commands) {
+
+func Commands(definedCommands ...Command) (commandPointers commands) { 
+  for _, command := range definedCommands {
+    commandPointers = append(commandPointers, &command)
+  }
+  return commandPointers
+}
+
+// Commands Public Methods
+func (self commands) Count() int { return len(self) }
+func (self commands) IsZero() bool { return self.Count() == 0 }
+
+// NOTE: This allows for Command.Subcommands.Visible()
+func (self commands) Hidden() (commands commands) {
   for _, command := range self {
     if command.Hidden {
+      commands = append(commands, command)
+    }
+  }
+  return commands
+}
+
+func (self commands) Visible() (commands commands) {
+  for _, command := range self {
+    if !command.Hidden {
       commands = append(commands, command)
     }
   }
@@ -48,23 +76,28 @@ func (self Command) path() []string {
 // Command Public Methods
 func (self Command) Base() bool { return self.Parent == nil }
 
-func (self Command) HasFlags() bool { return 0 < len(self.VisibleFlags()) }
-func (self Command) HasSubcommands() bool { return 0 < len(self.VisibleSubcommands()) }
+// TODO: These should be obsoleted by the Flags and Commands structures 
+//func (self Command) HasFlags() bool { return 0 < len(self.VisibleFlags()) }
+//func (self Command) HasSubcommands() bool { return 0 < len(self.VisibleSubcommands()) }
 
-
-func (self Command) Subcommand(name string) (Command, bool) {
+// TODO: This already exists in context, but should be taken out. Context should
+// be for meta logic that combines the individaul or list logic into more
+// complex helpers. Tasks like looking up subcommands should be built in by
+// nature of the fact that even the base command is technically a command and
+// they nest infinitely.
+func (self Command) Subcommand(name string) (*Command, bool) {
 	for _, subcommand := range self.Subcommands {
 		if subcommand.is(name) {
 			return subcommand, true
 		}
 	}
-	return Command{}, false
+	return nil, false
 }
 
 func (self Command) Flag(name string) (*Flag, bool) {
 	for _, flag := range self.Flags {
 		if flag.is(strings.ToLower(name)) {
-			return &flag, true
+			return flag, true
 		}
 	}
 	return nil, false
@@ -77,7 +110,6 @@ func (self Command) Path() []string {
 	}
 	return route
 }
-
 
 // TODO: This can now be accomplished with 
 //
@@ -96,17 +128,16 @@ func (self Command) Path() []string {
 // 	return subcommands
 // }
 
-func (self Command) VisibleFlags() (flags []*Flag) {
-	for _, flag := range self.Flags {
-		if !flag.Hidden {
-			flags = append(flags, &flag)
-		}
-	}
-	return flags
-}
+// TODO: This should be obsoleted by 
+//func (self Command) VisibleFlags() (flags []*Flag) {
+//	for _, flag := range self.Flags {
+//		if !flag.Hidden {
+//			flags = append(flags, &flag)
+//		}
+//	}
+//	return flags
+//}
 
 func (self Command) HasNoAction() bool { return self.Action == nil }
 func (self Command) HasAction() bool { return !self.HasNoAction() }
 
-// Commands Public Methods
-func (self Commands) Zero() bool { return len(self) == 0 }

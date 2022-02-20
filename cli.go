@@ -31,7 +31,8 @@ type Action func(context *Context) error
 // all at once and rerun the command.                                        //
 ///////////////////////////////////////////////////////////////////////////////
 
-type Localisation struct {
+
+type localization struct {
 	Language string
 	Locale   string
 	Text     map[string]string
@@ -45,6 +46,12 @@ type Actions struct {
   // OnExit? Or Close? or this just covered by After?
 }
 
+// TODO: Extend the build aspect of the system. Pull data from last push to the
+// public github (it will eventually be our own fucking git hosting and public
+// and good). Information about the authors, pgp key (holding email, and such),
+// ability to minimize builds or add files. some of the experimental stuff maybe
+// added as modules (look back to the chatbot for a good example of
+// plugin/module style logic) 
 type CLI struct {
 	Name           string
 	Description    string
@@ -58,22 +65,26 @@ type CLI struct {
 	Outputs        Outputs
 	Debug          bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
-	GlobalFlags   []Flag
-	Commands      []Command
+	GlobalFlags   flags
+	Commands      commands
 	//Errors      []error
 	//Examples    []Chain
 }
 
-func (self *CLI) Flags() (flags []*Flag) {
-	for _, flag := range self.GlobalFlags {
-		flags = append(flags, &flag)
-	}
-	return flags
-}
+// TODO: Flags renders this kinda obsolete but we ahve to update all associated
+// functions. This will temporarily break everything but this is pre-alpha and
+// we are getting messy real messy because on the other end of this emss is an
+// API we won't be able to touch without stupid levels of time wasting. 
+//func (self *CLI) Flags() (flags []*Flag) {
+//	for _, flag := range self.GlobalFlags {
+//		flags = append(flags, &flag)
+//	}
+//	return flags
+//}
 
 func New(cli *CLI) *CLI {
 	if data.IsBlank(cli.Name) {
-		cli.Name = "example"
+		cli.Name = "app-cli"
 	}
 	if cli.Version.undefined() {
 		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
@@ -99,6 +110,9 @@ func New(cli *CLI) *CLI {
 		Command: Command{
 			Name:        cli.Name,
 			Subcommands: cli.Commands,
+      // TODO: UNless the global flags append as they parse which they may this
+      // may be inadequate (TESTS LOL righta fter this massive change ins
+      // trcuture tests for realies!) 
 			Flags:       cli.GlobalFlags,
 		},
 	}
