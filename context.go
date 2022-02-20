@@ -101,9 +101,13 @@ func (self *Context) Execute() {
     }
   }
 
-  self.CLI.Actions.OnStart(self)
+  if self.CLI.Actions.OnStart != nil {
+    self.CLI.Actions.OnStart(self)
+  }
   if self.Command.HasAction() {
-    self.Command.Action(self)
+    if self.Command.Action != nil {
+      self.Command.Action(self)
+    }
     
     // Command Action 
     // Subcommand action ... for each command up the chain (remember to use the
@@ -113,9 +117,13 @@ func (self *Context) Execute() {
 
     
   }else{
-    self.CLI.Actions.Fallback(self)
+    if self.CLI.Actions.Fallback != nil {
+      self.CLI.Actions.Fallback(self)
+    }
   }
-  self.CLI.Actions.OnExit(self)
+  if self.CLI.Actions.OnExit != nil {
+    self.CLI.Actions.OnExit(self)
+  }
 }
 
 // TODO: Context should only logically hold the meta methods, nothing directly
