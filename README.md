@@ -14,7 +14,6 @@ The framework design and how developers interact wtih it is inspired by web appl
 Defining commands should be familiar as possible, using design pattern's established in Golang web application frameworks. Providing similar features: middleware, templating, and importantly security related functionality like user input validation. By prioritizing security related functionality, we establish a minimum baseline for applications so less people roll their own, and more people collaborate on important features relevant to all applications. 
 
 
-
 #### Multiverse OS Core Framework
 `cli` framework is designed to meet the requirements of Multiverse OS system applications; since this powers the low-level interface of each core application, Multiverse developers understand the importance of opting for simplicity, while still trying to provide a complete and intuitive user experience. *This is not production ready, it just reached v0.1.0, it currently does not provide validation or have adequate sanitization for both input, but also output printed to Terminal.*
 

@@ -2,10 +2,12 @@ package cli
 
 import (
 	"strings"
+
+  data "github.com/multiverse-os/cli/data"
 )
 
-
 type Command struct {
+  IsRoot      bool
 	Category    int
 	Name        string
 	Alias       string
@@ -18,21 +20,38 @@ type Command struct {
   Hooks       Hooks
 }
 
+func (self *Command) Type() ArgumentType { return CommandArgument }
+
 type commands []*Command
 
-
-func Commands(definedCommands ...Command) (commandPointers commands) { 
-  for _, command := range definedCommands {
+func Commands(commands ...Command) (commandPointers commands) { 
+  for _, command := range commands {
     commandPointers = append(commandPointers, &command)
   }
   return commandPointers
 }
 
+func (self commands) Reversed() (commands commands) {
+	for i := self.Count() - 1; i >= 0; i-- {
+		commands = append(commands, self[i])
+	}
+	return commands
+}
+
+func (self commands) Path() (path []string) {
+	for _, command := range self {
+		path = append(path, command.Name)
+	}
+	return path
+}
+
+
 // Commands Public Methods
+func (self commands) Last() *Command { return self[self.Count()-1] }
+
 func (self commands) Count() int { return len(self) }
 func (self commands) IsZero() bool { return self.Count() == 0 }
 
-// NOTE: This allows for Command.Subcommands.Visible()
 func (self commands) Hidden() (commands commands) {
   for _, command := range self {
     if command.Hidden {
@@ -50,6 +69,33 @@ func (self commands) Visible() (commands commands) {
   }
   return commands
 }
+
+// TODO: Add ...*Command for ability to add more than one command at a time. But
+// for now at least it can easily be chained commands.Add(cmd1).Add(cmd2)
+func (self commands) Add(command *Command) commands  {
+	self.Commands = append(self.Commands, command)
+  // TODO: IMPORTANT
+  // This takes all flags from the command then just sets them to default
+  // regardless if they are assigned in the cmd line. This is a major bug. Need
+  // to detect each and set default
+  // acordingly
+	//flags := []Flag{}
+	//for _, flag := range command.Flags {
+	//	//if len(flag.Value) == 0 {
+	//	flag.Value = flag.Default
+	//	//}
+	//	flags = append(flags, flag)
+	//}
+	//command.Flags = flags
+
+  for _, commandFlag := range command.Flags {
+    if data.IsNil(commandFlag.Value) {
+      commandFlag.Value = commandFlag.Default
+    }
+  }
+  return self.Commands
+}
+
 
 // Command Private Methods
 func (self Command) is(name string) bool { return self.Name == name || self.Alias == name }
@@ -90,13 +136,29 @@ func (self Command) Subcommand(name string) (*Command, bool) {
 	return nil, false
 }
 
-func (self Command) Flag(name string) (*Flag, bool) {
+// TODO: This NEEDs to be using the definedFlags in CLI to build the flag object
+//       So it should be a flag passed to the command, not just the name and
+//       value !!
+func (self Command) AddFlag(flag *Flag) Command {
+  self.Flags = append(self.Flags, flag)
+  return self
+}
+
+// TODO: This was UpdateFlag so hopefully we ahve to fix something and this was
+// not a deleterios function!?
+func (self Command) SetFlag(name, value string) Command {
+  flagExists, flag := self.Flag(name)
+	flag.Value = value
+  return self
+}
+
+func (self Command) Flag(name string) (bool, *Flag) {
 	for _, flag := range self.Flags {
 		if flag.is(strings.ToLower(name)) {
-			return flag, true
+			return true, flag
 		}
 	}
-	return nil, false
+	return false, nil
 }
 
 func (self Command) Path() []string {
@@ -106,6 +168,19 @@ func (self Command) Path() []string {
 	}
 	return route
 }
+
+
+//func (self *Command) Flags() (flags map[string]*Flag) {
+//	for _, flag := range self.Flags {
+//		flags[flag.Name] = flag
+//	}
+//	return flags
+//}
+// c.Flags["port"].Int()
+
+// c.Flags.Name("port").Int() 
+
+// c.Flag("port").Int()
 
 // TODO: This can now be accomplished with 
 //

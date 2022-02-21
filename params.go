@@ -7,10 +7,20 @@ import (
 	data "github.com/multiverse-os/cli/data"
 )
 
-type Params struct {
-	Position int
+type Param struct {
 	Type     data.Type
-	Value    []string
+	Value    string
+}
+
+type params []*Param
+
+func (self *Param) Type() ArgumentType { return ParamArgument }
+
+func Params(params ...Param) (paramPointers params) { 
+  for _, param := range params {
+    paramPointers = append(paramPointers, &param)
+  }
+  return paramPointers
 }
 
 // TODO: Add ability to output URL, and Path types, since these would be very
@@ -20,11 +30,23 @@ type Params struct {
 // TODO: Once the params have been loaded, begin loading flags again; then
 //       apply
 
-func (self Params) Strings() []string { return self.Value }
+func (self params) Strings() (paramStrings []string) { 
+  for _, param := range self {
+    paramStrings = append(paramStrings, param.Value)
+  }
+  return paramStrings
+}
 
-func (self Params) String() string { return strings.Join(self.Value, " ") }
+func (self params) String() string { 
+  return strings.Join(self.Strings(), " ")  
+}
 
-func (self Params) Int() int {
+// TODO: Param.String() 
+func (self Param) String() string {
+  return self.Value
+}
+
+func (self Param) Int() int {
 	intValue, err := strconv.Atoi(self.Value[0])
 	if err != nil {
 		return 0
@@ -33,7 +55,7 @@ func (self Params) Int() int {
 	}
 }
 
-func (self Params) Bool() bool {
+func (self Param) Bool() bool {
 	for _, trueString := range data.True.Strings() {
 		if trueString == self.Value[0] {
 			return true
@@ -41,3 +63,11 @@ func (self Params) Bool() bool {
 	}
 	return false
 }
+
+// TODO: Float 
+
+// TODO: Path
+
+// TODO: URL
+
+// TODO: 

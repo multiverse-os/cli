@@ -16,7 +16,7 @@ import (
 //            global flag    command flag             parameters (params)
 //              __|___        ____|_____             ____|_____
 //             /      \      /          \           /          \
-//     app-cli --flag=2 open --file=thing template /path/to/file
+//     app-cli --flag=2 open --file=thing template /path/to/file /path/to-file
 //     \_____/          \__/              \______/
 //        |              |                   |
 //   application       command             subcommand
@@ -30,12 +30,6 @@ import (
 // all at once and rerun the command.                                        //
 ///////////////////////////////////////////////////////////////////////////////
 
-
-type localization struct {
-	Language string
-	Locale   string
-	Text     map[string]string
-}
 
 
 // TODO: Extend the build aspect of the system. Pull data from last push to the
@@ -58,11 +52,25 @@ type CLI struct {
 	Outputs        Outputs
 	Debug          bool // Controls if Debug output writes are skipped
 	// At this point almost entirely for API simplicity
-	GlobalFlags   flags
-	Commands      commands
-	//Errors      []error
-	//Examples    []Chain
+	GlobalFlags    flags
+	Commands       commands
+	//Errors       []error
+	//Examples     []Chain
 }
+
+// TODO: Move the global flags into the first command in the chain (the root
+// command which is the application itself) -- this will allow for much simpler
+// processing of flags and actions
+  // TODO: look at command, then each command in reverse
+
+// TODO: CLI should have spinners, loaders, etc any TUI style things
+
+//    context.CLI.Spinner() 
+
+// TODO: CLI Needs the ability to pull out defined flags 
+// TODO: CLI needs the ability to pull out defined commands
+// TODO: Need the ability to pull out the action, which should be global and the
+// hooks in a actions slice (SHOULD IT?????)
 
 // TODO: Flags renders this kinda obsolete but we ahve to update all associated
 // functions. This will temporarily break everything but this is pre-alpha and

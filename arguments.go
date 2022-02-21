@@ -2,23 +2,47 @@ package cli
 
 import (
   "fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
-  data "github.com/multiverse-os/cli/data"
+  //data "github.com/multiverse-os/cli/data"
 )
 
-type arguments int
+// TODO: Why is this int instead of []argument and argument being a raw string
+// representation of any given argument in the chain?
+//type arguments int
 
-type Arguments interface {
-	Get(index int) string
-	Flag(index int) string
-	Command(index int) string
-	Params() []string
-	Len() int
-	Present() bool
-	Slice() []string
+// NOTE: Raw string of the argument after splitting, could be flag, stacked
+// flags, command, or param
+//type argument string
+
+type ArgumentType int
+
+const (
+  CommandArgument ArgumentType = iota
+  FlagArgument
+  ParamArgument
+)
+
+type Argument interface {
+  Type()    ArgumentType
+}
+
+type arguments []*Argument 
+
+func (self arguments) Last() *Argument { return self[self.Count()-1] }
+func (self arguments) Count() int { return len(self) }
+
+// TODO: Later look into how this is being used, is it inline and necessary not
+// to produce an error? Or can we produce an error if the index is incorrect?
+// But consider: since there is only 1 error condition, if the returned value is
+// empty, you know its the only error possible, because an argument can't be
+// blank, otherwise its not an argument. 
+func (self arguments) Get(index int) *Argument {
+  if self.Count() < index {
+    return self[index]
+  }
+  return nil
 }
 
 // TODO: I dont remember if I tried to use just a type Chain []*Commands but I
@@ -26,11 +50,22 @@ type Arguments interface {
 // could have changed since then because we are so high up in terms of
 // abstraction.
 type Chain struct {
+  // TODO: Should generic argument object be created for storing the full
+  // command line as it was entered but as an generic interface for commands,
+  // flags and params?
+  Arguments arguments 
+
 	Commands commands
+  Flags    flags
+  Params   params
+
+  // TODO: Our end goal for the CLI framework this session will be developing
+  // the code to properly intialize and load all the actions in the order they
+  // should be run in into this variable and then executing those actions. 
+  Action   actions
 }
 
-func (self *Chain) Length() int { return len(self.Commands) }
-
+// TODO: Not sure if this survives 
 func (self *Chain) Route(path []string) (*Command, bool) {
 	cmd := &Command{}
 	for index, command := range self.Commands {
@@ -55,89 +90,37 @@ func (self *Chain) First() *Command {
 	}
 }
 
-func (self *Chain) AddCommand(command *Command) {
-	self.Commands = append(self.Commands, command)
+// TODO: We had the idea to switch this to be a method of Commands since this
+// functionality is kinda out of scope for the chain object
 
-  // TODO: IMPORTANT
-  // This takes all flags from the command then just sets them to default
-  // regardless if they are assigned in the cmd line. This is a major bug. Need
-  // to detect each and set default
-  // acordingly
-	//flags := []Flag{}
-	//for _, flag := range command.Flags {
-	//	//if len(flag.Value) == 0 {
-	//	flag.Value = flag.Default
-	//	//}
-	//	flags = append(flags, flag)
-	//}
-	//command.Flags = flags
+// TODO: Move Reversed() in arguments to commands object as a method
+// Commands.
+//func (self *Chain) NoCommands() bool           { return self.IsRoot() && len(self.First().Subcommands) == 0 }
+//func (self *Chain) HasCommands() bool          { return self.IsRoot() && 0 < len(self.First().Subcommands) }
 
-  for _, commandFlag := range command.Flags {
-    if data.IsNil(commandFlag.Value) {
-      commandFlag.Value = commandFlag.Default
-    }
-  }
-}
+// TODO: Was this being used? I think possibly in help but feels wrong.
+//func (self *Chain) PathExample() (path string) { return strings.Join(self.Path(), " ") }
 
-func (self *Chain) Last() *Command             { return self.Commands[len(self.Commands)-1] }
-func (self *Chain) NoCommands() bool           { return self.IsRoot() && len(self.First().Subcommands) == 0 }
-func (self *Chain) HasCommands() bool          { return self.IsRoot() && 0 < len(self.First().Subcommands) }
-func (self *Chain) IsRoot() bool               { return len(self.Commands) == 1 }
-func (self *Chain) IsNotRoot() bool            { return 1 < len(self.Commands) }
-func (self *Chain) PathExample() (path string) { return strings.Join(self.Path(), " ") }
+//func (self *Chain) HasSubcommands() bool {
+//	return self.IsNotRoot() && (0 < len(self.Last().Subcommands))
+//}
 
-func (self *Chain) HasSubcommands() bool {
-	return self.IsNotRoot() && (0 < len(self.Last().Subcommands))
-}
-
-func (self *Chain) Flags() (flags map[string]*Flag) {
-	for _, command := range self.Commands {
-		for _, flag := range command.Flags {
-			flags[flag.Name] = flag
-		}
-	}
-	return flags
-}
-
-func (self *Chain) Path() (path []string) {
-	for _, command := range self.Commands {
-		path = append(path, command.Name)
-	}
-	return path
-}
-
-func (self *Chain) Reversed() (commands []*Command) {
-	for i := len(self.Commands) - 1; i >= 0; i-- {
-		commands = append(commands, self.Commands[i])
-	}
-	return commands
-}
-
-func (self *Chain) ReversedPath() (path []string) {
-	for i := len(self.Commands) - 1; i >= 0; i-- {
-		path = append(path, self.Commands[i].Name)
-	}
-	return path
-}
+// TODO: Should move this to commands, but arguments still needs a way to build
+// all the flags
+//func (self *Chain) Flags() (flags map[string]*Flag) {
+//	for _, command := range self.Commands {
+//		for _, flag := range command.Flags {
+//			flags[flag.Name] = flag
+//		}
+//	}
+//	return flags
+//}
 
 func (self *CLI) Parse(arguments []string) (*Context, error) {
 	defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
-	cwd, executable := filepath.Split(arguments[0])
 
-	context := &Context{
-		CLI:          self,
-		CWD:          cwd,
-		Command:      &self.Command,
-		Executable:   executable,
-		CommandChain: &Chain{},
-		Params:       Params{},
-    Hooks:        Hooks{
-      BeforeAction: self.GlobalHooks.BeforeAction,
-      AfterAction: self.GlobalHooks.AfterAction,
-    },
-		Flags:        make(map[string]*Flag),
-		Args:         arguments[1:],
-	}
+  // TODO: Build the chain then apply it to the context at the end and return
+  // it?
 
   // TODO: For the hooks we should reverse iterate over the command chain, and
   // puill out each of the hooks and merge tbhem into the hooks held in context
@@ -147,12 +130,14 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
   // heart of this cli framework. in the end its all just about parsing the args
   // to execute a defined action (and its hooks). 
 
-	context.CommandChain.AddCommand(&self.Command)
+	context.Chain.Commands.Add(&self.Command)
 
 	var parsedFlags flags
 	for index, argument := range context.Args {
 		if flagType, ok := HasFlagPrefix(argument); ok {
 			// TODO: Need to handle skipping next argument when next argument is used
+      // TODO: What about flags with values? This is probably in need of
+      // rewriting
 			parsedFlags = append(parsedFlags, context.ParseFlag(flagType, argument, context.NextArgument(index)))
 
 			//context.ParseFlag(index, flagType, &Flag{Name: argument})
@@ -162,7 +147,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 				context.Command = command
         // TODO: Since this is a commands type we can add the AddCommand or just
         // Add so `commands.Add(command)` 
-				context.CommandChain.AddCommand(context.Command)
+				context.Chain.Commands.Add(context.Command)
 			} else {
 				for _, param := range context.Args[index:] {
 					context.Params.Value = append(context.Params.Value, param)
@@ -206,7 +191,16 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
       context.ExecuteActions()
 	}
 
-	return context, nil
+
+	return &Context{
+		CLI:          self,
+    Process:      Process(),
+		Command:      &self.Command,
+		//Flags:        make(map[string]*Flag),
+    Chain:        argumentChain,
+		Args:         arguments[1:],
+	}, nil
+
 }
 
 // TODO: MISSING ABILITY TO PARSE FLAGS THAT ARE USING "QUOTES TO SPACE TEXT".
@@ -233,7 +227,7 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 	}
 
 	flagFound := false
-	for _, command := range self.CommandChain.Reversed() {
+	for _, command := range self.Chain.Commands.Reversed() {
 		if len(nextArgument) != 0 && command.is(nextArgument) {
 			parsedFlag.Value = "1"
 		}
@@ -250,7 +244,7 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 		// STACKING. However, the best way to do variable short name length is
 		// likely checking 1 2 3, throwing out 1, then again 1 2 3 etc.
 		for index, stackedFlag := range parsedFlag.Name {
-			for _, subcommand := range self.CommandChain.Reversed() {
+			for _, subcommand := range self.Chain.Commands.Reversed() {
 				for _, flag := range subcommand.Flags {
 					if index == len(parsedFlag.Name)+1 {
 						if len(flagParts) == 2 {

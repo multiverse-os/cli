@@ -72,6 +72,7 @@ type Flag struct {
 	Type        data.Type
 }
 
+
 type flags []*Flag 
 
 func Flags(definedFlags ...Flag) (flagPointers flags) { 
@@ -79,6 +80,15 @@ func Flags(definedFlags ...Flag) (flagPointers flags) {
     flagPointers = append(flagPointers, &flag)
   }
   return flagPointers
+}
+
+func (self flags) Name(name string) *Flag {
+  for _, flag := range self {
+    if flag.is(name) {
+      return flag
+    }
+  }
+  return nil
 }
 
 func (self flags) Visible() (visibleFlags flags) {
@@ -119,7 +129,13 @@ func HasFlagPrefix(flag string) (FlagType, bool) {
 	}
 }
 
-func (self Flag) is(name string) bool { return self.Name == name || self.Alias == name }
+// TODO: Added to ToLower here where it should ahve beent the whole time; so as
+// a consequence of bad programming before we need to remove ToLowers where find
+// them elsewhere 
+func (self Flag) is(name string) bool { 
+  name = strings.ToLower(name)
+  return self.Name == name || self.Alias == name 
+}
 
 func (self Flag) flagNames() (output string) { return output }
 
@@ -138,6 +154,8 @@ func (self Flag) help() string {
 
 // TODO: I like these and they are similar to the idea had earlier for a active
 // record analogue
+func (self Flag) Type() ArgumentType { return FlagArgument }
+
 func (self Flag) String() string { return self.Value }
 
 func (self Flag) Int() int {

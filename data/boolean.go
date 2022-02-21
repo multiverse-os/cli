@@ -61,6 +61,8 @@ func IsFalse(value string) bool {
 
 func (self Boolean) Bool() bool { return bool(self) }
 
+// TODO: Maybe in future give more options for string output, as in "1" "t"
+// "yes" 
 func (self Boolean) String() string {
 	if self == True {
 		return "true"
