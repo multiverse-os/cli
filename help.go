@@ -49,7 +49,7 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
 	t += Prefix() + "{{.usage}}\n"
   // TODO: Name commandchain sucks
-	t += Tab() + strings.ToLower(self.CommandChain.PathExample()) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
+	t += Tab() + strings.ToLower(strings.Join(self.Chain.Commands.Path(), " ")) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
 	t += Prefix() + "{{.availableCommands}}\n"
 	for index, subcommand := range command.Subcommands.Visible() {
 		t += Tab() + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description

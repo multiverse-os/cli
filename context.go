@@ -4,7 +4,6 @@ package cli
 // the specifed actions and hooks being ran (specified by the args passed from
 // the os when the command was ran). CLI contains all possible hooks and
 // actions, and context contains the actions and hooks being executed. 
-
 type Context struct {
 	CLI          *CLI
   Process      process
@@ -13,15 +12,47 @@ type Context struct {
   Params       params
 
 	Chain   *Chain
-  // TODO: I don't know if actions should be stored or if we should just be
-  // executing them as we route the command flags and params to their associated
-  // action -- or if we use that route to build up a list of actions that we run
-  // in sequence
   Actions     actions
   Args        []string
+  Debug       bool
 }
 
+func (self *Context) Execute() *Context {
+  // TODO: This is currently the router, it would be nice to be able to produce
+  // a standard URL like output (even have a URI scheme, like 
+
+  //  cli://user@program:/command/subcommand?params
+  //  
+  //  OR somethjing similar, then be able to route to a defined functions in a
+  //  controller section, but additionally and importantly, provide consistent,
+  //  specific and useful details to the controller function so that they can be
+  //  slim and written similarly. 
+  // 
+
+  // TODO: Iterate over context.Actions and execute each action, because this
+  // slice will be popualted during parse, and this new logic will never have
+  // the issue of trying to run a struct field that is of type *Action and have
+  // it be nil 
+
+
+  //if context.Command.is("version") || context.HasFlag("version") {
+	//	self.RenderVersionTemplate()
+  //} else if context.HasFlag("help") { // TODO: Removed condition where subcommands but no action that should get help output BUT -- should default action run regardless or above happens only when no default
+	//	  context.RenderHelpTemplate(context.Command)
+  //} else if context.Command.is("help") {
+	//	  context.RenderHelpTemplate(context.Command.Parent)
+  //} else {
+  //    // Produce a list of actions that need to be run and put them in the
+  //    // context Chain object for later execution so it will eventually be
+  //    // cli.Parse(os.Args).Execute() 
+  //    //context.ExecuteActions()
+	//}
+}
+
+
 // TODO: Need a mirror function in CLI for pulling out defined flags
+
+//     c.Flags["debug"].Bool() -> c.Flag("Debug").Bool()
 func (self *Context) Flag(name string) *Flag {
   return self.Arguments.Flags.Name(name)
 }

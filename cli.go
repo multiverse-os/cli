@@ -50,8 +50,7 @@ type CLI struct {
   Actions        Actions
   GlobalHooks    Hooks
 	Outputs        Outputs
-	Debug          bool // Controls if Debug output writes are skipped
-	// At this point almost entirely for API simplicity
+	Debug          bool
 	GlobalFlags    flags
 	Commands       commands
 	//Errors       []error
@@ -98,7 +97,6 @@ func New(cli *CLI) *CLI {
 		Name:    cli.Name,
 		Version: cli.Version,
 		Outputs: cli.Outputs,
-		Debug:   true,
 		Build: Build{
 			CompiledAt: time.Now(),
 		},

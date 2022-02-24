@@ -69,7 +69,7 @@ type Flag struct {
 	Hidden      bool
 	Default     string
 	Value       string
-	Type        data.Type
+	DataType    data.Type
 }
 
 

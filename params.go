@@ -8,7 +8,7 @@ import (
 )
 
 type Param struct {
-	Type     data.Type
+	DataType data.Type
 	Value    string
 }
 
@@ -29,6 +29,10 @@ func Params(params ...Param) (paramPointers params) {
 
 // TODO: Once the params have been loaded, begin loading flags again; then
 //       apply
+
+func (self params) Count() int { return len(self) }
+func (self params) Last() *Param { return self[self.Count()-1] }
+func (self params) IsZero() bool { return self.Count() == 0 }
 
 func (self params) Strings() (paramStrings []string) { 
   for _, param := range self {

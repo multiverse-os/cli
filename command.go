@@ -31,6 +31,22 @@ func Commands(commands ...Command) (commandPointers commands) {
   return commandPointers
 }
 
+// Commands Public Methods
+func (self commands) First() *Command { return self[0] }
+func (self commands) Last() *Command { return self[self.Count()-1] }
+
+func (self commands) Count() int { return len(self) }
+func (self commands) IsZero() bool { return self.Count() == 0 }
+
+func (self commands) Subcommand(name string) (bool, *Command) {
+  for _, subcommand := range self {
+    if subcommand.is(name) {
+      return true, subcommand
+    }
+  }
+  return false, nil
+}
+
 func (self commands) Reversed() (commands commands) {
 	for i := self.Count() - 1; i >= 0; i-- {
 		commands = append(commands, self[i])
@@ -44,13 +60,6 @@ func (self commands) Path() (path []string) {
 	}
 	return path
 }
-
-
-// Commands Public Methods
-func (self commands) Last() *Command { return self[self.Count()-1] }
-
-func (self commands) Count() int { return len(self) }
-func (self commands) IsZero() bool { return self.Count() == 0 }
 
 func (self commands) Hidden() (commands commands) {
   for _, command := range self {
@@ -73,29 +82,14 @@ func (self commands) Visible() (commands commands) {
 // TODO: Add ...*Command for ability to add more than one command at a time. But
 // for now at least it can easily be chained commands.Add(cmd1).Add(cmd2)
 func (self commands) Add(command *Command) commands  {
-	self.Commands = append(self.Commands, command)
-  // TODO: IMPORTANT
-  // This takes all flags from the command then just sets them to default
-  // regardless if they are assigned in the cmd line. This is a major bug. Need
-  // to detect each and set default
-  // acordingly
-	//flags := []Flag{}
-	//for _, flag := range command.Flags {
-	//	//if len(flag.Value) == 0 {
-	//	flag.Value = flag.Default
-	//	//}
-	//	flags = append(flags, flag)
-	//}
-	//command.Flags = flags
-
+	self = append(self, command)
   for _, commandFlag := range command.Flags {
     if data.IsNil(commandFlag.Value) {
       commandFlag.Value = commandFlag.Default
     }
   }
-  return self.Commands
+  return self
 }
-
 
 // Command Private Methods
 func (self Command) is(name string) bool { return self.Name == name || self.Alias == name }

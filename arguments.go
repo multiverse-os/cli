@@ -1,20 +1,11 @@
 package cli
 
 import (
-  "fmt"
 	"strings"
 	"time"
 
   //data "github.com/multiverse-os/cli/data"
 )
-
-// TODO: Why is this int instead of []argument and argument being a raw string
-// representation of any given argument in the chain?
-//type arguments int
-
-// NOTE: Raw string of the argument after splitting, could be flag, stacked
-// flags, command, or param
-//type argument string
 
 type ArgumentType int
 
@@ -33,26 +24,11 @@ type arguments []*Argument
 func (self arguments) Last() *Argument { return self[self.Count()-1] }
 func (self arguments) Count() int { return len(self) }
 
-// TODO: Later look into how this is being used, is it inline and necessary not
-// to produce an error? Or can we produce an error if the index is incorrect?
-// But consider: since there is only 1 error condition, if the returned value is
-// empty, you know its the only error possible, because an argument can't be
-// blank, otherwise its not an argument. 
-func (self arguments) Get(index int) *Argument {
-  if self.Count() < index {
-    return self[index]
-  }
-  return nil
+func (self arguments) Add(argument Argument) (arguments arguments) {
+  return append(arguments, &argument)
 }
 
-// TODO: I dont remember if I tried to use just a type Chain []*Commands but I
-// feel like I spent a lot of time working that one out -- but with programminmg
-// could have changed since then because we are so high up in terms of
-// abstraction.
 type Chain struct {
-  // TODO: Should generic argument object be created for storing the full
-  // command line as it was entered but as an generic interface for commands,
-  // flags and params?
   Arguments arguments 
 
 	Commands commands
@@ -66,141 +42,113 @@ type Chain struct {
 }
 
 // TODO: Not sure if this survives 
-func (self *Chain) Route(path []string) (*Command, bool) {
-	cmd := &Command{}
-	for index, command := range self.Commands {
-		if command.Name == path[index] {
-			if index == len(path) {
-				return command, true
-			} else {
-				cmd = command
-			}
-		} else {
-			return cmd, (len(cmd.Name) == 0)
-		}
-	}
-	return nil, (len(cmd.Name) == 0)
-}
-
-func (self *Chain) First() *Command {
-	if 0 < len(self.Commands) {
-		return self.Commands[0]
-	} else {
-		return nil
-	}
-}
-
-// TODO: We had the idea to switch this to be a method of Commands since this
-// functionality is kinda out of scope for the chain object
-
-// TODO: Move Reversed() in arguments to commands object as a method
-// Commands.
-//func (self *Chain) NoCommands() bool           { return self.IsRoot() && len(self.First().Subcommands) == 0 }
-//func (self *Chain) HasCommands() bool          { return self.IsRoot() && 0 < len(self.First().Subcommands) }
-
-// TODO: Was this being used? I think possibly in help but feels wrong.
-//func (self *Chain) PathExample() (path string) { return strings.Join(self.Path(), " ") }
-
-//func (self *Chain) HasSubcommands() bool {
-//	return self.IsNotRoot() && (0 < len(self.Last().Subcommands))
-//}
-
-// TODO: Should move this to commands, but arguments still needs a way to build
-// all the flags
-//func (self *Chain) Flags() (flags map[string]*Flag) {
-//	for _, command := range self.Commands {
-//		for _, flag := range command.Flags {
-//			flags[flag.Name] = flag
+//func (self *Chain) Route(path []string) (*Command, bool) {
+//	cmd := &Command{}
+//	for index, command := range self.Commands {
+//		if command.Name == path[index] {
+//			if index == len(path) {
+//				return command, true
+//			} else {
+//				cmd = command
+//			}
+//		} else {
+//			return cmd, (len(cmd.Name) == 0)
 //		}
 //	}
-//	return flags
+//	return nil, (len(cmd.Name) == 0)
 //}
 
-func (self *CLI) Parse(arguments []string) (*Context, error) {
+
+// TODO: We took off the error for command chaining off context
+//       for something like cli.Parse(os.Args).Execute() but that
+//       may prove unwise and we may add the error back
+//       Should it be returning CLI with context or Context with CLI?
+func (self *CLI) Parse(arguments []string) *Context {
 	defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
 
-  // TODO: Build the chain then apply it to the context at the end and return
-  // it?
-
-  // TODO: For the hooks we should reverse iterate over the command chain, and
-  // puill out each of the hooks and merge tbhem into the hooks held in context
-  // then that would resolve how they would be obtained in the execute function,
-  // and make the execute function pretty complete leaving most of the logic in
-  // there and giving us a clean interaction with commands which are at the
-  // heart of this cli framework. in the end its all just about parsing the args
-  // to execute a defined action (and its hooks). 
-
-	context.Chain.Commands.Add(&self.Command)
+  chain := &Chain{
+    Commands: Commands(self.Command),
+    Flags: self.Command.Flags,
+  }
 
 	var parsedFlags flags
-	for index, argument := range context.Args {
+	for index, argument := range arguments[1:] {
 		if flagType, ok := HasFlagPrefix(argument); ok {
+      // TODO: yo, you like never did this- i mean look a few versions back, you
+      // did -but you deleted it. 
+
+      // TODO: we iterate over the flags in chain update it with the flag
+      // currently being parsed (if it has a avlue ' ' or '=' after the flag).
+      // if no value its a boolean.
+      
 			// TODO: Need to handle skipping next argument when next argument is used
       // TODO: What about flags with values? This is probably in need of
       // rewriting
-			parsedFlags = append(parsedFlags, context.ParseFlag(flagType, argument, context.NextArgument(index)))
+
+      // TODO: TO properly parse a flag, we need to lcoate the defnied flag in
+      // the CLI, and then update the value, then add that to the flag chain,
+      // and add it to the command's flags (which should exist already but more
+      // importantly we need to update it.
+      // TODO: THIS IS CRITICAL AND CAN NOT BE SKIPPED ITS THE FLAG PARSING 
+			//parsedFlags = append(parsedFlags, chain.ParseFlag(flagType, argument, chain.NextArgument(index)))
 
 			//context.ParseFlag(index, flagType, &Flag{Name: argument})
+
+
+      // TODO: Add the parsed FLAG to the chain.Arguments too before going
+      // through the loop again! 
+
 		} else {
-			if command, ok := context.Command.Subcommand(argument); ok {
-				command.Parent = context.Command
-				context.Command = command
-        // TODO: Since this is a commands type we can add the AddCommand or just
-        // Add so `commands.Add(command)` 
-				context.Chain.Commands.Add(context.Command)
+      // Command parse
+			if ok, command := self.Commands.Subcommand(argument); ok {
+				command.Parent = chain.Commands.Last()
+        chain.Commands.Add(command)
+
+      // TODO: Add the parsed COMMAND to the chain.Arguments too before going
+      // through the loop again! 
+
 			} else {
-				for _, param := range context.Args[index:] {
-					context.Params.Value = append(context.Params.Value, param)
+        // Param parse
+				for _, paramArguments := range arguments[index:] {
+          for _, paramArgument := range paramArguments {
+            chain.Params = append(chain.Params, &Param{Value: string(paramArgument)})
+          }
+          // TODO: Add the parsed PARAM to the chain.Arguments too before going
+          // through the loop again!
+          chain.Arguments.Add(chain.Params.Last())
+
+
 				}
 				break
 			}
+
+      // Argument Parse
+      // TODO: Parse the argument to establish the chain.arguments
+      // Flag Parse
 		}
+
+    // TODO: Populate Actions in Chain + Build Execute command (executes actions
+    // in order put in the chain.Actions slice)
 	}
 
-	context.UpdateFlags(parsedFlags)
-
-	self.Debug = context.HasFlag("debug")
-
-  // TODO: This is currently the router, it would be nice to be able to produce
-  // a standard URL like output (even have a URI scheme, like 
-
-  //  cli://user@program:/command/subcommand?params
-  //  
-  //  OR somethjing similar, then be able to route to a defined functions in a
-  //  controller section, but additionally and importantly, provide consistent,
-  //  specific and useful details to the controller function so that they can be
-  //  slim and written similarly. 
-  // 
-
-  // TODO: We may want to add the ability to do before hook and after hooks as
-  // alternative or in addition to the default action. This woudl also be nice
-  // for like sections, or namespaces as it is sometimes referred to in web
-  // applications. The facility for this should be considered when building out
-  // below. Because it is fairly critical to the fluid design. Global, commands,
-  // and command level should all likely have the functionality.
-
-  fmt.Printf("context.Command.Action: %v\n", context.Command.Action)
-
-  if context.Command.is("version") || context.HasFlag("version") {
-		self.RenderVersionTemplate()
-  } else if context.HasFlag("help") { // TODO: Removed condition where subcommands but no action that should get help output BUT -- should default action run regardless or above happens only when no default
-		  context.RenderHelpTemplate(context.Command)
-  } else if context.Command.is("help") {
-		  context.RenderHelpTemplate(context.Command.Parent)
-  } else {
-      context.ExecuteActions()
-	}
-
+	//chain.UpdateFlags(parsedFlags)
+  // TODO: This needs to be relpaced by a function that iterates over the
+  // chain.Flags (and sets their values based on the parsed flags. 
+  //   OR
+  // we change the values as we iterate through the arguments
 
 	return &Context{
+  // TODO: Test to see if this is actually working, and ensure it works with
+  // both -debug and -d
+  //              chain.Commands.Subcommand("name")
+    Debug:        chain.Flags.Name("debug").Bool(),
 		CLI:          self,
     Process:      Process(),
-		Command:      &self.Command,
-		//Flags:        make(map[string]*Flag),
-    Chain:        argumentChain,
-		Args:         arguments[1:],
-	}, nil
-
+		Command:      chain.Commands.Last(),
+    Flags:        chain.Flags,
+    Params:       chain.Params,
+    Chain:        chain,
+	}
 }
 
 // TODO: MISSING ABILITY TO PARSE FLAGS THAT ARE USING "QUOTES TO SPACE TEXT".
@@ -213,7 +161,7 @@ func (self *CLI) Parse(arguments []string) (*Context, error) {
 // TODO: ==IDEA== Maybe have a expand function that goes over arguments, groups
 // up quoted sections, expand out stacked flags, convert " " separators on flags
 // with "=" separator.
-func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string) (parsedFlag *Flag) {
+func (self *Chain) ParseFlag(flagType FlagType, argument, nextArgument string) (parsedFlag *Flag) {
 	flagParts := strings.Split(StripFlagPrefix(argument), "=")
 	parsedFlag.Name = strings.ToLower(flagParts[0])
 	if len(flagParts) == 2 {
@@ -227,7 +175,7 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 	}
 
 	flagFound := false
-	for _, command := range self.Chain.Commands.Reversed() {
+	for _, command := range self.Commands.Reversed() {
 		if len(nextArgument) != 0 && command.is(nextArgument) {
 			parsedFlag.Value = "1"
 		}
@@ -244,7 +192,7 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 		// STACKING. However, the best way to do variable short name length is
 		// likely checking 1 2 3, throwing out 1, then again 1 2 3 etc.
 		for index, stackedFlag := range parsedFlag.Name {
-			for _, subcommand := range self.Chain.Commands.Reversed() {
+			for _, subcommand := range self.Commands.Reversed() {
 				for _, flag := range subcommand.Flags {
 					if index == len(parsedFlag.Name)+1 {
 						if len(flagParts) == 2 {
@@ -265,9 +213,9 @@ func (self *Context) ParseFlag(flagType FlagType, argument, nextArgument string)
 	return parsedFlag
 }
 
-func (self *Context) UpdateFlags(parsedFlags flags) {
+func (self *Chain) UpdateFlags(parsedFlags flags) {
 	for _, parsedFlag := range parsedFlags {
-		for _, command := range self.CommandChain.Reversed() {
+		for _, command := range self.Commands.Reversed() {
 			for _, commandFlag := range command.Flags {
 				if commandFlag.is(parsedFlag.Name) {
 					commandFlag.Value = parsedFlag.Value
