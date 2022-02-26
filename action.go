@@ -48,3 +48,36 @@ type Actions struct {
   Fallback  Action
   // OnExit? Or Close? or this just covered by After?
 }
+
+func (self *CLI) Execute() *CLI {
+  // TODO: This is currently the router, it would be nice to be able to produce
+  // a standard URL like output (even have a URI scheme, like 
+
+  //  cli://user@program:/command/subcommand?params
+  //  
+  //  OR somethjing similar, then be able to route to a defined functions in a
+  //  controller section, but additionally and importantly, provide consistent,
+  //  specific and useful details to the controller function so that they can be
+  //  slim and written similarly. 
+  // 
+
+  // TODO: Iterate over context.Actions and execute each action, because this
+  // slice will be popualted during parse, and this new logic will never have
+  // the issue of trying to run a struct field that is of type *Action and have
+  // it be nil 
+
+
+  //if context.Command.is("version") || context.HasFlag("version") {
+	//	self.RenderVersionTemplate()
+  //} else if context.HasFlag("help") { // TODO: Removed condition where subcommands but no action that should get help output BUT -- should default action run regardless or above happens only when no default
+	//	  context.RenderHelpTemplate(context.Command)
+  //} else if context.Command.is("help") {
+	//	  context.RenderHelpTemplate(context.Command.Parent)
+  //} else {
+  //    // Produce a list of actions that need to be run and put them in the
+  //    // context Chain object for later execution so it will eventually be
+  //    // cli.Parse(os.Args).Execute() 
+  //    //context.ExecuteActions()
+	//}
+  return self
+}

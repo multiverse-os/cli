@@ -7,66 +7,43 @@ package cli
 type Context struct {
 	CLI          *CLI
   Process      process
+
+  Arguments    arguments
+
 	Command      *Command
+  Commands     commands
   Flags        flags
   Params       params
 
-	Chain   *Chain
+  // TODO: It may be wise to make both Chain and Actions private, to guarantee
+  // use via the cached versions above (and continue considering putting actions
+  // into chain (action chain no?) 
+	Chain       *Chain
   Actions     actions
   Args        []string
   Debug       bool
 }
 
-func (self *Context) Execute() *Context {
-  // TODO: This is currently the router, it would be nice to be able to produce
-  // a standard URL like output (even have a URI scheme, like 
-
-  //  cli://user@program:/command/subcommand?params
-  //  
-  //  OR somethjing similar, then be able to route to a defined functions in a
-  //  controller section, but additionally and importantly, provide consistent,
-  //  specific and useful details to the controller function so that they can be
-  //  slim and written similarly. 
-  // 
-
-  // TODO: Iterate over context.Actions and execute each action, because this
-  // slice will be popualted during parse, and this new logic will never have
-  // the issue of trying to run a struct field that is of type *Action and have
-  // it be nil 
-
-
-  //if context.Command.is("version") || context.HasFlag("version") {
-	//	self.RenderVersionTemplate()
-  //} else if context.HasFlag("help") { // TODO: Removed condition where subcommands but no action that should get help output BUT -- should default action run regardless or above happens only when no default
-	//	  context.RenderHelpTemplate(context.Command)
-  //} else if context.Command.is("help") {
-	//	  context.RenderHelpTemplate(context.Command.Parent)
-  //} else {
-  //    // Produce a list of actions that need to be run and put them in the
-  //    // context Chain object for later execution so it will eventually be
-  //    // cli.Parse(os.Args).Execute() 
-  //    //context.ExecuteActions()
-	//}
-}
-
+// TODO: Add ability to access Banner/Spinner and other cli text user interface
+// (TUI) tools
 
 // TODO: Need a mirror function in CLI for pulling out defined flags
 
 //     c.Flags["debug"].Bool() -> c.Flag("Debug").Bool()
-func (self *Context) Flag(name string) *Flag {
-  return self.Arguments.Flags.Name(name)
+func (self *Context) Flag(name string) *Flag { 
+  return self.Chain.Flags.Name(name)
 }
 
-	//Params       params
-  // TODO: Perhaps change name to Arguments to create the API
-  //          c.Arguments.Flags() 
-  //          c.Arguments.Command() -> Last command in argument chain
-  //          c.Arguments.Actions() -> produces list of actions, removing it
-  //          from BOTH context and chain
-  //Hooks     Hooks
-  //Actions   actions
-	//Args      []string
-  // c.Flags c.Command c.Flags
+//Params       params
+// TODO: Perhaps change name to Arguments to create the API
+//          c.Arguments.Flags() 
+//          c.Arguments.Command() -> Last command in argument chain
+//          c.Arguments.Actions() -> produces list of actions, removing it
+//          from BOTH context and chain
+//Hooks     Hooks
+//Actions   actions
+//Args      []string
+// c.Flags c.Command c.Flags
 
 // TODO: Move Reversed() in arguments to commands object as a method
 // TODO: Im about to break down this logic and seperate it- but the original
@@ -85,10 +62,6 @@ func (self *Context) Flag(name string) *Flag {
 
 func (self *Context) HasFlag(name string) bool { 
   return self.Flag(name) != nil 
-}
-
-func (self *Context) HasCommandFlag(name string) bool {
-	return self.CommandFlag(self.Command.Name, name) != nil
 }
 
 //func (self *Context) Flag(name string) *Flag {

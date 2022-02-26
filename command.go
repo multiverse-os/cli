@@ -130,6 +130,11 @@ func (self Command) Subcommand(name string) (*Command, bool) {
 	return nil, false
 }
 
+
+func (self *Command) HasFlag(name string) bool {
+    return self.Flags.Name(name) != nil
+}
+
 // TODO: This NEEDs to be using the definedFlags in CLI to build the flag object
 //       So it should be a flag passed to the command, not just the name and
 //       value !!
@@ -141,18 +146,20 @@ func (self Command) AddFlag(flag *Flag) Command {
 // TODO: This was UpdateFlag so hopefully we ahve to fix something and this was
 // not a deleterios function!?
 func (self Command) SetFlag(name, value string) Command {
-  flagExists, flag := self.Flag(name)
-	flag.Value = value
+  flag, flagExists := self.Flag(name)
+  if flagExists {
+	  flag.Value = value
+  }
   return self
 }
 
-func (self Command) Flag(name string) (bool, *Flag) {
+func (self Command) Flag(name string) (*Flag, bool) {
 	for _, flag := range self.Flags {
 		if flag.is(strings.ToLower(name)) {
-			return true, flag
+			return flag, true
 		}
 	}
-	return false, nil
+	return nil, false
 }
 
 func (self Command) Path() []string {

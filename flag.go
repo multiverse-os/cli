@@ -72,7 +72,6 @@ type Flag struct {
 	DataType    data.Type
 }
 
-
 type flags []*Flag 
 
 func Flags(definedFlags ...Flag) (flagPointers flags) { 

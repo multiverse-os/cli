@@ -51,7 +51,7 @@ func (self Param) String() string {
 }
 
 func (self Param) Int() int {
-	intValue, err := strconv.Atoi(self.Value[0])
+  intValue, err := strconv.Atoi(self.Value[0:1])
 	if err != nil {
 		return 0
 	} else {
@@ -61,7 +61,7 @@ func (self Param) Int() int {
 
 func (self Param) Bool() bool {
 	for _, trueString := range data.True.Strings() {
-		if trueString == self.Value[0] {
+    if trueString == self.Value[0:1] {
 			return true
 		}
 	}

@@ -60,7 +60,7 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n\n"
 
 	// TODO: Should the command flags be printed with global flags too?
-	for _, command := range self.CommandChain.Commands {
+	for _, command := range self.Chain.Commands {
 		if len(command.Flags) != 0 {
 			if command.Base() {
 				t += Prefix() + "{{.availableFlags}}\n"

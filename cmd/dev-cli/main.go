@@ -52,7 +52,7 @@ func main() {
 							fmt.Println("=====================================================")
 							fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 							fmt.Println("add a thing to the list")
-							for _, command := range c.CommandChain.Commands {
+							for _, command := range c.Chain.Commands {
 								fmt.Println("=====================================================")
 								fmt.Println("[COMMAND:" + command.Name + "]")
 								for _, flag := range command.Flags {
@@ -114,7 +114,7 @@ func main() {
 			  c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
 			  fmt.Println("=====================================================")
 
-			  for _, command := range c.CommandChain.Commands {
+			  for _, command := range c.Chain.Commands {
 			  	fmt.Println("=====================================================")
 			  	fmt.Println("command:", command.Name)
           //fmt.Println("command:action= [", command.Action, "]")

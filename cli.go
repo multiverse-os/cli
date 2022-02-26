@@ -30,8 +30,6 @@ import (
 // all at once and rerun the command.                                        //
 ///////////////////////////////////////////////////////////////////////////////
 
-
-
 // TODO: Extend the build aspect of the system. Pull data from last push to the
 // public github (it will eventually be our own fucking git hosting and public
 // and good). Information about the authors, pgp key (holding email, and such),
