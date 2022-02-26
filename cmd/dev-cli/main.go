@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
 	cli "github.com/multiverse-os/cli"
 )
 
@@ -33,7 +30,7 @@ func main() {
 				Alias:       "c",
 				Description: "complete a task on the list",
         Action: func(c *cli.Context) error {
-          fmt.Println("list!")
+          c.CLI.Log("list!")
           return nil
         },
 				Flags: cli.Flags(
@@ -49,22 +46,22 @@ func main() {
 						Name:        "add",
 						Description: "lists all of something",
 						Action: func(c *cli.Context) error {
-							fmt.Println("=====================================================")
-							fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
-							fmt.Println("add a thing to the list")
+							c.CLI.Log("=====================================================")
+							c.CLI.Log("====> c.Flag(\"lang\"):", c.Flag("lang").String())
+							c.CLI.Log("add a thing to the list")
 							for _, command := range c.Chain.Commands {
-								fmt.Println("=====================================================")
-								fmt.Println("[COMMAND:" + command.Name + "]")
+								c.CLI.Log("=====================================================")
+								c.CLI.Log("[COMMAND:" + command.Name + "]")
 								for _, flag := range command.Flags {
-									fmt.Println("       `'==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.Value + "][DEFAULT:" + flag.Default + "]")
+									c.CLI.Log("       `'==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.String() + "][DEFAULT:" + flag.Default + "]")
 								}
 							}
-							for flagName, flagValue := range c.Flags {
-								fmt.Println("=====================================================")
-								c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
-								c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
+							for _, flag := range c.Flags {
+								c.CLI.Log("=====================================================")
+								c.CLI.Log("flag.Name :       ", flag.Name)
+								c.CLI.Log("flag.Value:       ", flag.String())
 							}
-							fmt.Println("=====================================================")
+							c.CLI.Log("=====================================================")
 
 							return nil
 						},
@@ -76,7 +73,7 @@ func main() {
 				Alias:       "a",
 				Description: "add a task to the list",
         Action: func(c *cli.Context) error {
-          fmt.Println("add")
+          c.CLI.Log("add")
           return nil
         },
         Hooks: cli.Hooks{
@@ -99,36 +96,36 @@ func main() {
     },
     Actions: cli.Actions{
       Fallback: func(c *cli.Context) error {
-        fmt.Println("fallback action")
+        c.CLI.Log("fallback action")
         return nil
       },
       Global: func(c *cli.Context) error {
-        fmt.Println("global action")
-			  fmt.Println("=====================================================")
-			  fmt.Println("====> c.Flag(\"lang\"):", c.Flag("lang").String())
+        c.CLI.Log("global action")
+			  c.CLI.Log("=====================================================")
+			  c.CLI.Log("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 
-			  fmt.Println("=====================================================")
+			  c.CLI.Log("=====================================================")
         // TODO: Switch to only using these and document this log system in the
         // API better
-			  c.CLI.Log(cli.INFO, "Command.Name:         ", c.Command.Name)
-			  c.CLI.Log(cli.INFO, "flag count [ ", len(c.Command.Flags), "] :")
-			  fmt.Println("=====================================================")
+			  c.CLI.Log("Command.Name:         ", c.Command.Name)
+			  c.CLI.Log("flag count [ ", string(c.Command.Flags.Count()), "] :")
+			  c.CLI.Log("=====================================================")
 
 			  for _, command := range c.Chain.Commands {
-			  	fmt.Println("=====================================================")
-			  	fmt.Println("command:", command.Name)
-          //fmt.Println("command:action= [", command.Action, "]")
+			  	c.CLI.Log("=====================================================")
+			  	c.CLI.Log("command:", command.Name)
+          //c.CLI.Log("command:action= [", command.Action, "]")
 			  	for _, flag := range command.Flags {
-			  		fmt.Println("command:flag= [", command.Name, "][", flag.Name, "][", flag.Value, "]")
+			  		c.CLI.Log("command:flag= [", command.Name, "][", flag.Name, "][", flag.String(), "]")
 			  	}
 			  }
 
-			  for flagName, flagValue := range c.Flags {
-			  	fmt.Println("=====================================================")
-			  	c.CLI.Log(cli.INFO, "flag.Name :       ", flagName)
-			  	c.CLI.Log(cli.INFO, "flag.Value:       ", flagValue)
+			  for _, flag := range c.Flags {
+			  	c.CLI.Log("=====================================================")
+			  	c.CLI.Log("flag.Name :       ", flag.Name)
+			  	c.CLI.Log("flag.Value:       ", flag.String())
 			  }
-			  fmt.Println("=====================================================")
+			  c.CLI.Log("=====================================================")
 
 			  return nil
 		  },
@@ -138,5 +135,8 @@ func main() {
 	// NOTE: Has the ability output context and error, this enables developers to
 	// handle their own routing or actions based on parsed context.
 	// context, _ := cmd.Parse(os.Args)
-	cmd.Parse(os.Args)
+  // TODO: Do we need to pass in os.Args? Could it not be obtained within parse
+  // removing a 'os' depedency making using the library simpler?
+	cmd.ParseArgs()
+  // cmd.Parse(os.Args)
 }

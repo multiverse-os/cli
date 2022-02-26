@@ -103,7 +103,7 @@ type LogLevel int
 const (
 	INFO LogLevel = iota
 	DEBUG
-	WARNING
+	WARN
 	ERROR
 	FATAL
 )
@@ -114,7 +114,7 @@ func (self LogLevel) String() string {
 		return "INFO"
 	case DEBUG:
 		return "DEBUG"
-	case WARNING:
+	case WARN:
 		return "WARNING"
 	case ERROR:
 		return "ERROR"
@@ -207,7 +207,7 @@ func (self Outputs) Log(level LogLevel, output ...string) {
 	switch level {
 	case DEBUG:
 		levelOutput = ansi.Blue(level.String())
-	case WARNING:
+	case WARN:
 		levelOutput = ansi.Olive(level.String())
 	case ERROR:
 		levelOutput = ansi.Red(level.String())
@@ -230,12 +230,6 @@ func (self Outputs) Log(level LogLevel, output ...string) {
 // Want both and output to a website? No problem.
 func (self *CLI) Output(text ...interface{}) {
 	self.Outputs.Write(merge(text))
-}
-
-func (self *CLI) Log(level LogLevel, text ...interface{}) {
-	if level != DEBUG || level == DEBUG && self.Debug {
-		self.Outputs.Log(level, merge(text, " "))
-	}
 }
 
 // TODO: Can make this even better by having it return a function then we only need to pass the desription

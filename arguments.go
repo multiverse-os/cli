@@ -1,9 +1,10 @@
 package cli
 
 import (
+  "fmt"
+  "os"
   "strings"
   "time"
-  "fmt"
 
   //data "github.com/multiverse-os/cli/data"
 )
@@ -18,6 +19,7 @@ const (
 
 type Argument interface {
   Type()    ArgumentType
+  IsValid() bool
 }
 
 type arguments []*Argument 
@@ -39,7 +41,7 @@ type Chain struct {
   // TODO: Our end goal for the CLI framework this session will be developing
   // the code to properly intialize and load all the actions in the order they
   // should be run in into this variable and then executing those actions. 
-  Action   actions
+  Actions  actions
 }
 
 // TODO: Not sure if this survives 
@@ -64,35 +66,19 @@ type Chain struct {
 //       for something like cli.Parse(os.Args).Execute() but that
 //       may prove unwise and we may add the error back
 //       Should it be returning CLI with context or Context with CLI?
-func (self *CLI) Parse(arguments []string) *Context {
-  defer self.benchmark(time.Now(), "benmarking argument parsing and action execution")
+func (self *CLI) ParseArgs() *Context {
+  defer self.benchmark(time.Now(), "benmarking argument parsing")
+  // TODO: Keep this field in context?
+  self.Context.Args = os.Args[1:]
 
-  chain := &Chain{
-    Commands: Commands(self.Command),
-    Flags: self.Command.Flags,
-  }
-
-  //var parsedFlags flags
-  for index, argument := range arguments[1:] {
+  for index, argument := range os.Args[1:] {
+    // TODO: Must not ToLower Params type arguments
+    argument = strings.ToLower(argument)
     if flagType, ok := HasFlagPrefix(argument); ok {
+      fmt.Printf("%v\n", flagType)
 
-      fmt.Printf("flagType: %v \n", flagType)
-      // TODO: yo, you like never did this- i mean look a few versions back, you
-      // did -but you deleted it. 
 
-      // TODO: we iterate over the flags in chain update it with the flag
-      // currently being parsed (if it has a avlue ' ' or '=' after the flag).
-      // if no value its a boolean.
 
-      // TODO: Need to handle skipping next argument when next argument is used
-      // TODO: What about flags with values? This is probably in need of
-      // rewriting
-
-      // TODO: TO properly parse a flag, we need to lcoate the defnied flag in
-      // the CLI, and then update the value, then add that to the flag chain,
-      // and add it to the command's flags (which should exist already but more
-      // importantly we need to update it.
-      // TODO: THIS IS CRITICAL AND CAN NOT BE SKIPPED ITS THE FLAG PARSING 
       //parsedFlags = append(parsedFlags, chain.ParseFlag(flagType, argument, chain.NextArgument(index)))
 
       //context.ParseFlag(index, flagType, &Flag{Name: argument})
@@ -103,22 +89,33 @@ func (self *CLI) Parse(arguments []string) *Context {
 
     } else {
       // Command parse
-      if ok, command := self.Commands.Subcommand(argument); ok {
-        command.Parent = chain.Commands.Last()
-        chain.Commands.Add(command)
+      if command, ok := self.Commands.Subcommand(argument); ok {
+        command.Parent = self.commands().Last()
+        self.commands().Add(command)
 
         // TODO: Add the parsed COMMAND to the chain.Arguments too before going
         // through the loop again! 
 
       } else {
         // Param parse
-        for _, paramArguments := range arguments[index:] {
+        for _, paramArguments := range self.Context.Args[index:] {
+          // TODO: Would like to be able to add flags to the end after params
+          //         add index, then after first one begin checking if they are
+          //         flags if not flag then its param
+
           for _, paramArgument := range paramArguments {
-            chain.Params = append(chain.Params, &Param{Value: string(paramArgument)})
+            self.Context.Chain.Params = append(
+              self.params(), 
+              &Param{
+                Value: string(paramArgument),
+              },
+            )
           }
           // TODO: Add the parsed PARAM to the chain.Arguments too before going
           // through the loop again!
-          chain.Arguments.Add(chain.Params.Last())
+          self.arguments().Add(
+            self.params().Last(),
+          )
         }
         break
       }
@@ -143,18 +140,9 @@ func (self *CLI) Parse(arguments []string) *Context {
   //  debugValue := debugFlag.Bool()
   //}
 
-  return &Context{
-    // TODO: Test to see if this is actually working, and ensure it works with
-    // both -debug and -d
-    //              chain.Commands.Subcommand("name")
-    Debug:        false,
-    CLI:          self,
-    Process:      Process(),
-    Command:      chain.Commands.Last(),
-    Flags:        chain.Flags,
-    Params:       chain.Params,
-    Chain:        chain,
-  }
+  // TODO: Here is where we will cache the chain objects in the context before
+  // passing context object out of the parse function
+  return self.Context
 }
 
 // TODO: MISSING ABILITY TO PARSE FLAGS THAT ARE USING "QUOTES TO SPACE TEXT".
@@ -170,22 +158,22 @@ func (self *CLI) Parse(arguments []string) *Context {
 func (self *Chain) ParseFlag(flagType FlagType, argument string, nextArgument string) (parsedFlag *Flag) {
 
   fmt.Printf("flagType: %v \n", flagType)
-  flagParts := strings.Split(StripFlagPrefix(argument), "=")
+  flagParts := strings.Split(flagType.TrimPrefix(argument), "=")
   parsedFlag.Name = strings.ToLower(flagParts[0])
   if len(flagParts) == 2 {
-    parsedFlag.Value = flagParts[1]
+    parsedFlag.Param.Value = flagParts[1]
   } else if len(flagParts) == 1 {
     if _, ok := HasFlagPrefix(nextArgument); ok {
-      parsedFlag.Value = "1"
+      parsedFlag.Param.Value = "1"
     } else {
-      parsedFlag.Value = nextArgument
+      parsedFlag.Param.Value = nextArgument
     }
   }
 
   flagFound := false
   for _, command := range self.Commands.Reversed() {
     if len(nextArgument) != 0 && command.is(nextArgument) {
-      parsedFlag.Value = "1"
+      parsedFlag.Param.Value = "1"
     }
     for _, flag := range command.Flags {
       if flag.is(parsedFlag.Name) {
@@ -204,13 +192,13 @@ func (self *Chain) ParseFlag(flagType FlagType, argument string, nextArgument st
         for _, flag := range subcommand.Flags {
           if index == len(parsedFlag.Name)+1 {
             if len(flagParts) == 2 {
-              parsedFlag.Value = flagParts[1]
+              parsedFlag.Param.Value = flagParts[1]
             } else {
               // TODO: Needs to check if nextArgument is viable, if not, then
               //       "1"
             }
           } else if flag.Alias == string(stackedFlag) {
-            parsedFlag.Value = "1"
+            parsedFlag.Param.Value = "1"
           }
         }
 
@@ -226,7 +214,7 @@ func (self *Chain) UpdateFlags(parsedFlags flags) {
     for _, command := range self.Commands.Reversed() {
       for _, commandFlag := range command.Flags {
         if commandFlag.is(parsedFlag.Name) {
-          commandFlag.Value = parsedFlag.Value
+          commandFlag.Param.Value = parsedFlag.Param.Value
         }
       }
       // TODO: Was this style required to get the saves of data>?
@@ -235,21 +223,18 @@ func (self *Chain) UpdateFlags(parsedFlags flags) {
       //command.Flags = flags
     }
   }
-
 }
 
 // NOTE: These are here for dev reasons while parsing is being completed; once
 // it is these can be moved into the appropriate files like flag.go
-func StripFlagPrefix(flagName string) string { return strings.Replace(flagName, "-", "", -1) }
+// TODO: Bug exists here, if the flag contains a dash in the middle like
+// app-path then it will turn into -
 
 func FlagNameForType(flagType FlagType, argument string) (name string) {
-  switch flagType {
-  case Short:
-    name = argument[1:len(argument)]
-  case Long:
-    name = argument[2:len(argument)]
-  }
-  return strings.ToLower(strings.Split(name, "=")[0])
+  // TODO: use strings.HasPrefix()
+  argument = flagType.TrimPrefix(argument)
+
+  return strings.Split(name, "=")[0]
 }
 
 func (self *Context) NextArgument(index int) string {

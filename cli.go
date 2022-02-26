@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"time"
+  "time"
 
-	data "github.com/multiverse-os/cli/data"
+  data "github.com/multiverse-os/cli/data"
 )
 
 
@@ -37,28 +37,56 @@ import (
 // added as modules (look back to the chatbot for a good example of
 // plugin/module style logic) 
 type CLI struct {
-	Name           string
-	Description    string
-	Locale         string
-	Version        Version
-	Build          Build
-	RequiredArgs   int       // For simple scripts, like one that converts a file and requires filename
-	Command        Command   // Base command that represents the CLI itself
-	ParamType      data.Type // Filename types should be able to define extension for autcomplete
+  Name           string
+  Description    string
+
+  Locale         string // Not yet implemented
+
+  Context        *Context
+
+  Version        Version
+  Build          Build
+  // TODO: Would like a better solution for this concept, perhaps having to do
+  // with the argument interface, through a function implemented on each type,
+  // flag, command, and param
+  //MinimumArgs    int       // For simple scripts, like one that converts a file and requires filename
+  Outputs        Outputs
+
+  Debug          bool
+
+  GlobalFlags    flags
+  Commands       commands
   Actions        Actions
   GlobalHooks    Hooks
-	Outputs        Outputs
-	Debug          bool
-	GlobalFlags    flags
-	Commands       commands
-	//Errors       []error
-	//Examples     []Chain
+  //Errors       []error
+  //Examples     []Chain
 }
+
+type Level uint8
+
+const (
+	GlobalLevel Level = iota
+	CommandLevel
+)
+
+// Helpers
+//// logging
+func (self CLI) Log(output ...string)   { self.Outputs.Log(DEBUG, output...) }
+func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
+func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
+func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
+//// (actions|command|flags|params) chain
+func (self CLI) arguments() arguments { return self.Context.Chain.Arguments }
+func (self CLI) commands() commands { return self.Context.Chain.Commands }
+func (self CLI) flags() flags { return self.Context.Chain.Flags }
+func (self CLI) params() params { return self.Context.Chain.Params }
+
+//
 
 // TODO: Move the global flags into the first command in the chain (the root
 // command which is the application itself) -- this will allow for much simpler
 // processing of flags and actions
-  // TODO: look at command, then each command in reverse
+// TODO: look at command, then each command in reverse
 
 // TODO: CLI should have spinners, loaders, etc any TUI style things
 
@@ -80,39 +108,53 @@ type CLI struct {
 //	return flags
 //}
 
-func New(cli *CLI) *CLI {
-	if data.IsBlank(cli.Name) {
-		cli.Name = "app-cli"
-	}
-	if cli.Version.undefined() {
-		cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
-	}
-	if data.IsZero(len(cli.Outputs)) {
-		cli.Outputs = append(cli.Outputs, TerminalOutput())
-	}
+// TODO: Ensure we parse environmental variables
+// TODO: Add support for configurations
+// TODO: Add support for important paths like ~/.local and ~/.config
 
-	return &CLI{
-		Name:    cli.Name,
-		Version: cli.Version,
-		Outputs: cli.Outputs,
-		Build: Build{
-			CompiledAt: time.Now(),
-		},
+func New(cli *CLI) *CLI {
+
+  // TODO: Flag Names & Command Names is validated (and default params?)
+  if data.IsBlank(cli.Name) {
+    cli.Name = "app-cli"
+  }
+  if cli.Version.undefined() {
+    cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
+  }
+  if data.IsZero(len(cli.Outputs)) {
+    cli.Outputs = append(cli.Outputs, TerminalOutput())
+  }
+
+  newCLI := &CLI{
+    Name:    cli.Name,
+    Version: cli.Version,
+    Outputs: cli.Outputs,
+    Build: Build{
+      CompiledAt: time.Now(),
+    },
     GlobalHooks: Hooks{
       BeforeAction: cli.GlobalHooks.BeforeAction,
       AfterAction: cli.GlobalHooks.AfterAction,
     },
-		Actions: Actions{
+    Actions: Actions{
       Global:   cli.Actions.Global,
       Fallback: cli.Actions.Fallback,
     },
-		Command: Command{
-			Name:        cli.Name,
-			Subcommands: cli.Commands,
-      // TODO: UNless the global flags append as they parse which they may this
-      // may be inadequate (TESTS LOL righta fter this massive change ins
-      // trcuture tests for realies!) 
-			Flags:       cli.GlobalFlags,
-		},
-	}
+  }
+
+  newCLI.Context = &Context{
+    CLI:     cli,
+    Process: Process(),
+    Debug:   false,
+    Chain:   &Chain{
+      Flags: cli.GlobalFlags,
+      Commands: commands([]*Command{&Command{
+        Name:        cli.Name,
+        Subcommands: cli.Commands,
+        Flags:       cli.GlobalFlags,
+      }}),
+    },
+  }
+
+  return newCLI
 }

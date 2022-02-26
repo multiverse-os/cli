@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"strconv"
 	"strings"
 
 	data "github.com/multiverse-os/cli/data"
@@ -15,6 +14,10 @@ const (
 	Long
 	NotAvailable
 )
+
+func (self FlagType) TrimPrefix(flagArgument string) string { 
+  return flagArgument[self.Length():]
+}
 
 // NOTE: DEV Function
 func (self FlagType) Name() string {
@@ -49,28 +52,54 @@ func (self FlagSeparator) String() string {
 	}
 }
 
-type FlagLevel uint8
-
-const (
-	GlobalFlag FlagLevel = iota
-	CommandFlag
-)
 
 // TODO: Be able to define the file extension that would be selected for when generating an autocomplete file
 //        -
 //       Could eventually build out more functionality to support autocomplete
 type Flag struct {
 	Command     *Command
-	Level       FlagLevel
+	Level       Level
 	Name        string
 	Alias       string
 	Description string
 	Options     []string
 	Hidden      bool
 	Default     string
-	Value       string
-	DataType    data.Type
+
+  Param       *Param
 }
+
+
+// NOTE: Can be thought of as equivilent to New() but flags are a special
+//       sub-type that do not exist without a command. 
+func (self *Flag) Copy() (newFlag *Flag) {
+  newFlag = self
+  return newFlag
+}
+
+func (self *Flag) Set(value string) *Flag {
+  // TODO: Validate against param's validation
+  self.Param.Value = value
+  return self
+}
+
+func ValidateFlag(flag Flag) error {
+  if 32 < len(flag.Name) {
+    return errInvalidArgumentLength
+  }
+  for _, flagRune := range flag.Name {
+    // NOTE: 
+    // a = 97
+    // z = 122
+    // - = 45
+    if (97 <= flagRune && flagRune <= 122) || flagRune == 45 {
+      return errInvalidArgumentFormat
+    }
+  }
+  return nil
+}
+
+func (self Flag) IsValid() bool { return ValidateFlag(self) != nil }
 
 type flags []*Flag 
 
@@ -108,14 +137,17 @@ func (self flags) Hidden() (hiddenFlags flags) {
   return hiddenFlags
 }
 
-func (self flags) Scope(scope FlagLevel) (f flags) {
+func (self flags) Level(level Level) (f flags) {
   for _, flag := range self {
-    if flag.Level == scope {
+    if flag.Level == level {
       f = append(f, flag)
     }
   }
   return f
 }
+
+func (self flags) Count() int { return len(self) }
+func (self flags) IsZero() bool { return self.Count() == 0 }
 
 
 func HasFlagPrefix(flag string) (FlagType, bool) {
@@ -155,15 +187,6 @@ func (self Flag) help() string {
 // record analogue
 func (self Flag) Type() ArgumentType { return FlagArgument }
 
-func (self Flag) String() string { return self.Value }
-
-func (self Flag) Int() int {
-	intValue, err := strconv.Atoi(self.Value)
-	if err != nil {
-		return 0
-	} else {
-		return intValue
-	}
-}
-
-func (self Flag) Bool() bool { return data.IsTrue(self.Value) }
+func (self Flag) String() string { return self.Param.String() }
+func (self Flag) Int() int { return self.Param.Int() }
+func (self Flag) Bool() bool { return self.Param.Bool() }

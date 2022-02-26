@@ -20,6 +20,24 @@ type Command struct {
   Hooks       Hooks
 }
 
+func ValidateCommand(command Command) error {
+  if 32 < len(command.Name) {
+    return errInvalidArgumentLength
+  }
+  for _, commandRune := range command.Name {
+    // NOTE: 
+    // a = 97
+    // z = 122
+    // - = 45
+    if (97 <= commandRune && commandRune <= 122) || commandRune == 45 {
+      return errInvalidArgumentFormat
+    }
+  }
+  return nil
+}
+
+func (self Command) IsValid() bool { return ValidateCommand(self) != nil }
+
 func (self *Command) Type() ArgumentType { return CommandArgument }
 
 type commands []*Command
@@ -38,13 +56,13 @@ func (self commands) Last() *Command { return self[self.Count()-1] }
 func (self commands) Count() int { return len(self) }
 func (self commands) IsZero() bool { return self.Count() == 0 }
 
-func (self commands) Subcommand(name string) (bool, *Command) {
+func (self commands) Subcommand(name string) (*Command, bool) {
   for _, subcommand := range self {
     if subcommand.is(name) {
-      return true, subcommand
+      return subcommand, true
     }
   }
-  return false, nil
+  return nil, false
 }
 
 func (self commands) Reversed() (commands commands) {
@@ -83,9 +101,9 @@ func (self commands) Visible() (commands commands) {
 // for now at least it can easily be chained commands.Add(cmd1).Add(cmd2)
 func (self commands) Add(command *Command) commands  {
 	self = append(self, command)
-  for _, commandFlag := range command.Flags {
-    if data.IsNil(commandFlag.Value) {
-      commandFlag.Value = commandFlag.Default
+  for _, flag := range command.Flags {
+    if data.IsNil(flag.Param.Value) {
+      flag.Param.Value = flag.Default
     }
   }
   return self
@@ -148,7 +166,7 @@ func (self Command) AddFlag(flag *Flag) Command {
 func (self Command) SetFlag(name, value string) Command {
   flag, flagExists := self.Flag(name)
   if flagExists {
-	  flag.Value = value
+	  flag.Set(value) // Param.Value = value
   }
   return self
 }

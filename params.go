@@ -12,6 +12,32 @@ type Param struct {
 	Value    string
 }
 
+func (self *Param) Copy() (newParam *Param) {
+  newParam = self
+  return newParam
+}
+
+// NOTE: Length Limit in Linux
+//         Path:     4096
+//         Filename: 256
+// TODO: *(?) Base the length on the datatype?*
+func ValidateParam(param Param) error {
+  if 4096 < len(param.Value) {
+    return errInvalidArgumentLength
+  }
+  // TODO: Format validation should be based on data type
+  //for _, paramRune := range param.Value {
+  //  if !unicode.IsLetter(paramRune) {
+  //    return errors.New(errInvalidParamFormat)
+  //  }
+  //}
+  return nil
+}
+
+func (self Param) IsValid() bool {
+  return ValidateParam(self) != nil
+}
+
 type params []*Param
 
 func (self *Param) Type() ArgumentType { return ParamArgument }
@@ -70,7 +96,7 @@ func (self Param) Bool() bool {
 
 // TODO: Float 
 
-// TODO: Path
+// TODO: Path / Filename
 
 // TODO: URL
 

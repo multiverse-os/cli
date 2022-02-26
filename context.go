@@ -19,7 +19,6 @@ type Context struct {
   // use via the cached versions above (and continue considering putting actions
   // into chain (action chain no?) 
 	Chain       *Chain
-  Actions     actions
   Args        []string
   Debug       bool
 }
