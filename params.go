@@ -43,8 +43,8 @@ type params []*Param
 func (self *Param) Type() ArgumentType { return ParamArgument }
 
 func Params(params ...Param) (paramPointers params) { 
-  for _, param := range params {
-    paramPointers = append(paramPointers, &param)
+  for index, _ := range params {
+    paramPointers = append(paramPointers, &params[index])
   }
   return paramPointers
 }

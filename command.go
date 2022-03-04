@@ -1,22 +1,23 @@
 package cli
 
 import (
-	"strings"
+  "strings"
+  "fmt"
 
   data "github.com/multiverse-os/cli/data"
 )
 
 type Command struct {
   IsRoot      bool
-	Category    int
-	Name        string
-	Alias       string
-	Description string
-	Hidden      bool
-	Parent      *Command
+  Category    int
+  Name        string
+  Alias       string
+  Description string
+  Hidden      bool
+  Parent      *Command
   Subcommands commands
-	Flags       flags
-	Action      Action
+  Flags       flags
+  Action      Action
   Hooks       Hooks
 }
 
@@ -43,8 +44,8 @@ func (self *Command) Type() ArgumentType { return CommandArgument }
 type commands []*Command
 
 func Commands(commands ...Command) (commandPointers commands) { 
-  for _, command := range commands {
-    commandPointers = append(commandPointers, &command)
+  for index, _ := range commands {
+    commandPointers = append(commandPointers, &commands[index])
   }
   return commandPointers
 }
@@ -56,7 +57,7 @@ func (self commands) Last() *Command { return self[self.Count()-1] }
 func (self commands) Count() int { return len(self) }
 func (self commands) IsZero() bool { return self.Count() == 0 }
 
-func (self commands) Subcommand(name string) (*Command, bool) {
+func (self commands) Name(name string) (*Command, bool) {
   for _, subcommand := range self {
     if subcommand.is(name) {
       return subcommand, true
@@ -66,17 +67,17 @@ func (self commands) Subcommand(name string) (*Command, bool) {
 }
 
 func (self commands) Reversed() (commands commands) {
-	for i := self.Count() - 1; i >= 0; i-- {
-		commands = append(commands, self[i])
-	}
-	return commands
+  for i := self.Count() - 1; i >= 0; i-- {
+    commands = append(commands, self[i])
+  }
+  return commands
 }
 
 func (self commands) Path() (path []string) {
-	for _, command := range self {
-		path = append(path, command.Name)
-	}
-	return path
+  for _, command := range self {
+    path = append(path, command.Name)
+  }
+  return path
 }
 
 func (self commands) Hidden() (commands commands) {
@@ -100,7 +101,7 @@ func (self commands) Visible() (commands commands) {
 // TODO: Add ...*Command for ability to add more than one command at a time. But
 // for now at least it can easily be chained commands.Add(cmd1).Add(cmd2)
 func (self commands) Add(command *Command) commands  {
-	self = append(self, command)
+  self = append(self, command)
   for _, flag := range command.Flags {
     if data.IsNil(flag.Param.Value) {
       flag.Param.Value = flag.Default
@@ -110,21 +111,23 @@ func (self commands) Add(command *Command) commands  {
 }
 
 // Command Private Methods
-func (self Command) is(name string) bool { return self.Name == name || self.Alias == name }
+func (self Command) is(name string) bool { 
+  return self.Name == name || self.Alias == name
+}
 
 func (self Command) usage() (output string) {
-	if len(self.Alias) != 0 {
-		output += ", " + self.Alias
-	}
-	return self.Name + output
+  if len(self.Alias) != 0 {
+    output += ", " + self.Alias
+  }
+  return self.Name + output
 }
 
 func (self Command) path() []string {
-	route := []string{self.Name}
-	for parent := self.Parent; parent != nil; parent = parent.Parent {
-		route = append(route, parent.Name)
-	}
-	return route
+  route := []string{self.Name}
+  for parent := self.Parent; parent != nil; parent = parent.Parent {
+    route = append(route, parent.Name)
+  }
+  return route
 }
 
 // Command Public Methods
@@ -140,17 +143,17 @@ func (self Command) Base() bool { return self.Parent == nil }
 // nature of the fact that even the base command is technically a command and
 // they nest infinitely.
 func (self Command) Subcommand(name string) (*Command, bool) {
-	for _, subcommand := range self.Subcommands {
-		if subcommand.is(name) {
-			return subcommand, true
-		}
-	}
-	return nil, false
+  for _, subcommand := range self.Subcommands {
+    if subcommand.is(name) {
+      return subcommand, true
+    }
+  }
+  return nil, false
 }
 
 
 func (self *Command) HasFlag(name string) bool {
-    return self.Flags.Name(name) != nil
+  return self.Flags.Name(name) != nil
 }
 
 // TODO: This NEEDs to be using the definedFlags in CLI to build the flag object
@@ -166,26 +169,26 @@ func (self Command) AddFlag(flag *Flag) Command {
 func (self Command) SetFlag(name, value string) Command {
   flag, flagExists := self.Flag(name)
   if flagExists {
-	  flag.Set(value) // Param.Value = value
+    flag.Set(value) // Param.Value = value
   }
   return self
 }
 
 func (self Command) Flag(name string) (*Flag, bool) {
-	for _, flag := range self.Flags {
-		if flag.is(strings.ToLower(name)) {
-			return flag, true
-		}
-	}
-	return nil, false
+  for _, flag := range self.Flags {
+    if flag.is(strings.ToLower(name)) {
+      return flag, true
+    }
+  }
+  return nil, false
 }
 
 func (self Command) Path() []string {
-	route := []string{self.Name}
-	for parent := self.Parent; parent != nil; parent = parent.Parent {
-		route = append(route, parent.Name)
-	}
-	return route
+  route := []string{self.Name}
+  for parent := self.Parent; parent != nil; parent = parent.Parent {
+    route = append(route, parent.Name)
+  }
+  return route
 }
 
 

@@ -68,14 +68,27 @@ type Chain struct {
 //       Should it be returning CLI with context or Context with CLI?
 func (self *CLI) ParseArgs() *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
-  // TODO: Keep this field in context?
+  // TODO: Keep this field in context? If we are not using it below why are we
+  // saving it exactly?
   self.Context.Args = os.Args[1:]
+
+
+  fmt.Printf("%v \n", self.commands())
+
+  fmt.Printf("commands:\n")
+  for _, command := range self.commands() {
+    fmt.Printf("command name: %v \n", command.Name)
+  }
 
   for index, argument := range os.Args[1:] {
     // TODO: Must not ToLower Params type arguments
     argument = strings.ToLower(argument)
+
+    fmt.Printf("parsing argument: '%v' \n", argument)
+
+    // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
-      fmt.Printf("%v\n", flagType)
+      fmt.Printf("%v\n", flagType.Name())
 
 
 
@@ -88,15 +101,18 @@ func (self *CLI) ParseArgs() *Context {
       // through the loop again! 
 
     } else {
+      fmt.Printf("else (argument is not a flag, must be command or param)\n")
       // Command parse
-      if command, ok := self.Commands.Subcommand(argument); ok {
-        command.Parent = self.commands().Last()
-        self.commands().Add(command)
+      if command, ok := self.commands().Name(argument); ok {
+        fmt.Printf("found subcommand %v\n", command.Name)
+        //command.Parent = self.commands().Last()
+        //self.commands().Add(command)
 
         // TODO: Add the parsed COMMAND to the chain.Arguments too before going
         // through the loop again! 
 
       } else {
+        fmt.Printf("parsing param")
         // Param parse
         for _, paramArguments := range self.Context.Args[index:] {
           // TODO: Would like to be able to add flags to the end after params

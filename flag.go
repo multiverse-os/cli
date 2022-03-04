@@ -104,8 +104,8 @@ func (self Flag) IsValid() bool { return ValidateFlag(self) != nil }
 type flags []*Flag 
 
 func Flags(definedFlags ...Flag) (flagPointers flags) { 
-  for _, flag := range definedFlags {
-    flagPointers = append(flagPointers, &flag)
+  for index, _ := range definedFlags {
+    flagPointers = append(flagPointers, &flags[index])
   }
   return flagPointers
 }

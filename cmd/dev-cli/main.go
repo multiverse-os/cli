@@ -1,19 +1,21 @@
 package main
 
 import (
+  //"os"
+
 	cli "github.com/multiverse-os/cli"
 )
 
 func main() {
 
-	cmd := cli.New(&cli.CLI{
+	cmd := cli.New(&cli.App{
 		Name:        "example",
 		Description: "an example cli application for scripts and full-featured applications",
 		Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
 		GlobalFlags: cli.Flags(
 			cli.Flag{
-				Name:        "lang",
-				Alias:       "l",
+				Name:        "language",
+				Alias:       "lang",
 				Default:     "english",
 				Description: "Locale used when executing the program",
 			},
@@ -27,7 +29,7 @@ func main() {
 		Commands: cli.Commands(
 			cli.Command{
 				Name:        "list",
-				Alias:       "c",
+				Alias:       "l",
 				Description: "complete a task on the list",
         Action: func(c *cli.Context) error {
           c.CLI.Log("list!")
@@ -69,11 +71,11 @@ func main() {
 				),
 			},
 			cli.Command{
-				Name:        "add",
-				Alias:       "a",
-				Description: "add a task to the list",
+				Name:        "example",
+				Alias:       "ex",
+				Description: "example command",
         Action: func(c *cli.Context) error {
-          c.CLI.Log("add")
+          c.CLI.Log("example action")
           return nil
         },
         Hooks: cli.Hooks{
@@ -137,6 +139,6 @@ func main() {
 	// context, _ := cmd.Parse(os.Args)
   // TODO: Do we need to pass in os.Args? Could it not be obtained within parse
   // removing a 'os' depedency making using the library simpler?
-	cmd.ParseArgs()
-  // cmd.Parse(os.Args)
+	//cmd.ParseArgs()
+  cmd.ParseArgs()
 }

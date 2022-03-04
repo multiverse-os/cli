@@ -2,6 +2,7 @@ package cli
 
 import (
   "time"
+  "fmt"
 
   data "github.com/multiverse-os/cli/data"
 )
@@ -16,7 +17,7 @@ import (
 //            global flag    command flag             parameters (params)
 //              __|___        ____|_____             ____|_____
 //             /      \      /          \           /          \
-//     app-cli --flag=2 open --file=thing template /path/to/file /path/to-file
+//     app-cli --flag=2 open -f=thing template /path/to/file /path/to-file
 //     \_____/          \__/              \______/
 //        |              |                   |
 //   application       command             subcommand
@@ -36,30 +37,31 @@ import (
 // ability to minimize builds or add files. some of the experimental stuff maybe
 // added as modules (look back to the chatbot for a good example of
 // plugin/module style logic) 
-type CLI struct {
+
+// TODO: Perhaps split up this object, so one object will be used when calling
+// .New() for initialization. And a separate object used by the app calling the
+// library with a minimalized structure.
+type App struct {
   Name           string
   Description    string
-
-  Locale         string // Not yet implemented
-
-  Context        *Context
-
   Version        Version
-  Build          Build
-  // TODO: Would like a better solution for this concept, perhaps having to do
-  // with the argument interface, through a function implemented on each type,
-  // flag, command, and param
-  //MinimumArgs    int       // For simple scripts, like one that converts a file and requires filename
-  Outputs        Outputs
-
   Debug          bool
-
+  Outputs        Outputs
   GlobalFlags    flags
   Commands       commands
   Actions        Actions
   GlobalHooks    Hooks
-  //Errors       []error
-  //Examples     []Chain
+}
+
+type CLI struct {
+  Name           string
+  Description    string
+  Version        Version
+  Build          Build
+  Debug          bool
+  Context        *Context
+  Outputs        Outputs
+  //Locale         string // Not yet implemented
 }
 
 type Level uint8
@@ -76,8 +78,10 @@ func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
 func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
 func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
 //// (actions|command|flags|params) chain
+func (self CLI) commands() commands { 
+  return self.Context.Chain.Commands.First().Subcommands 
+}
 func (self CLI) arguments() arguments { return self.Context.Chain.Arguments }
-func (self CLI) commands() commands { return self.Context.Chain.Commands }
 func (self CLI) flags() flags { return self.Context.Chain.Flags }
 func (self CLI) params() params { return self.Context.Chain.Params }
 
@@ -112,49 +116,54 @@ func (self CLI) params() params { return self.Context.Chain.Params }
 // TODO: Add support for configurations
 // TODO: Add support for important paths like ~/.local and ~/.config
 
-func New(cli *CLI) *CLI {
-
+func New(app *App) *CLI {
   // TODO: Flag Names & Command Names is validated (and default params?)
-  if data.IsBlank(cli.Name) {
-    cli.Name = "app-cli"
+  if data.IsBlank(app.Name) {
+    app.Name = "app-cli"
   }
-  if cli.Version.undefined() {
-    cli.Version = Version{Major: 0, Minor: 1, Patch: 0}
+  if app.Version.undefined() {
+    app.Version = Version{Major: 0, Minor: 1, Patch: 0}
   }
-  if data.IsZero(len(cli.Outputs)) {
-    cli.Outputs = append(cli.Outputs, TerminalOutput())
+  if data.IsZero(len(app.Outputs)) {
+    app.Outputs = append(app.Outputs, TerminalOutput())
   }
 
-  newCLI := &CLI{
-    Name:    cli.Name,
-    Version: cli.Version,
-    Outputs: cli.Outputs,
+
+  fmt.Printf("commands:\n")
+  for _, command := range app.Commands {
+    fmt.Printf("command name: %v \n", command.Name)
+  }
+
+  cli := &CLI{
+    Name:     app.Name,
+    Version:  app.Version,
+    Outputs:  app.Outputs,
     Build: Build{
       CompiledAt: time.Now(),
     },
-    GlobalHooks: Hooks{
-      BeforeAction: cli.GlobalHooks.BeforeAction,
-      AfterAction: cli.GlobalHooks.AfterAction,
-    },
-    Actions: Actions{
-      Global:   cli.Actions.Global,
-      Fallback: cli.Actions.Fallback,
-    },
   }
 
-  newCLI.Context = &Context{
+  cli.Context = &Context{
     CLI:     cli,
     Process: Process(),
     Debug:   false,
     Chain:   &Chain{
-      Flags: cli.GlobalFlags,
+      Flags: app.GlobalFlags,
       Commands: commands([]*Command{&Command{
-        Name:        cli.Name,
-        Subcommands: cli.Commands,
-        Flags:       cli.GlobalFlags,
+        Name:        app.Name,
+        Subcommands: app.Commands,
+        Flags:       app.GlobalFlags,
       }}),
     },
+    //GlobalHooks: Hooks{
+    //  BeforeAction: app.GlobalHooks.BeforeAction,
+    //  AfterAction: app.GlobalHooks.AfterAction,
+    //},
+    //Actions: Actions{
+    //  Global:   app.Actions.Global,
+    //  Fallback: app.Actions.Fallback,
+    //},
   }
 
-  return newCLI
+  return cli
 }
