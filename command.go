@@ -2,9 +2,6 @@ package cli
 
 import (
   "strings"
-  "fmt"
-
-  data "github.com/multiverse-os/cli/data"
 )
 
 type Command struct {
@@ -39,7 +36,7 @@ func ValidateCommand(command Command) error {
 
 func (self Command) IsValid() bool { return ValidateCommand(self) != nil }
 
-func (self *Command) Type() ArgumentType { return CommandArgument }
+func (self Command) Type() ArgumentType { return CommandArgument }
 
 type commands []*Command
 
@@ -98,20 +95,19 @@ func (self commands) Visible() (commands commands) {
   return commands
 }
 
-// TODO: Add ...*Command for ability to add more than one command at a time. But
-// for now at least it can easily be chained commands.Add(cmd1).Add(cmd2)
 func (self commands) Add(command *Command) commands  {
-  self = append(self, command)
   for _, flag := range command.Flags {
-    if data.IsNil(flag.Param.Value) {
-      flag.Param.Value = flag.Default
+    flag.Param = &Param{
+      Value: flag.Default,
     }
   }
-  return self
+
+  return append(self, command)
 }
 
 // Command Private Methods
 func (self Command) is(name string) bool { 
+  name = strings.ToLower(name)
   return self.Name == name || self.Alias == name
 }
 
@@ -130,27 +126,16 @@ func (self Command) path() []string {
   return route
 }
 
+func (self Command) Subcommand(name string) (*Command, bool) {
+  return self.Subcommands.Name(name)
+}
+
 // Command Public Methods
 func (self Command) Base() bool { return self.Parent == nil }
 
 // TODO: These should be obsoleted by the Flags and Commands structures 
 //func (self Command) HasFlags() bool { return 0 < len(self.VisibleFlags()) }
 //func (self Command) HasSubcommands() bool { return 0 < len(self.VisibleSubcommands()) }
-
-// TODO: This already exists in context, but should be taken out. Context should
-// be for meta logic that combines the individaul or list logic into more
-// complex helpers. Tasks like looking up subcommands should be built in by
-// nature of the fact that even the base command is technically a command and
-// they nest infinitely.
-func (self Command) Subcommand(name string) (*Command, bool) {
-  for _, subcommand := range self.Subcommands {
-    if subcommand.is(name) {
-      return subcommand, true
-    }
-  }
-  return nil, false
-}
-
 
 func (self *Command) HasFlag(name string) bool {
   return self.Flags.Name(name) != nil

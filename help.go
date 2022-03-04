@@ -34,9 +34,9 @@ func (self *CLI) simpleHeader() string {
 // TODO: Maybe default to just having command and then doing some sort of simple
 // check to add sub? something easier than this possible?
 func (self *Context) expectingCommandsOrSubcommand() string {
-	if self.Command.Subcommands.IsZero() {
+	if self.Chain.Commands.First().Subcommands.IsZero() {
 		return " [command]"
-	} else if !self.Command.Base() {
+	} else if self.Chain.Commands.Count() == 1 {
 		return " [subcommand]"
 	} else {
 		return ""

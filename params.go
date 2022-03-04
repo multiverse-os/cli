@@ -49,6 +49,11 @@ func Params(params ...Param) (paramPointers params) {
   return paramPointers
 }
 
+func (self params) Add(param string) params { 
+
+  return append(self, &Param{Value: string(param)})
+}
+
 // TODO: Add ability to output URL, and Path types, since these would be very
 //       common and the ability to validate them would be nice. For example,
 //       being able to check if a file exists easily.

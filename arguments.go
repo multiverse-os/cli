@@ -5,8 +5,6 @@ import (
   "os"
   "strings"
   "time"
-
-  //data "github.com/multiverse-os/cli/data"
 )
 
 type ArgumentType int
@@ -24,11 +22,18 @@ type Argument interface {
 
 type arguments []*Argument 
 
+func Arguments(arguments ...Argument) (argumentPointers arguments) { 
+  for index, _ := range arguments {
+    argumentPointers = append(argumentPointers, &arguments[index])
+  }
+  return argumentPointers
+}
+
 func (self arguments) Last() *Argument { return self[self.Count()-1] }
 func (self arguments) Count() int { return len(self) }
 
-func (self arguments) Add(argument Argument) (arguments arguments) {
-  return append(arguments, &argument)
+func (self arguments) Add(argument Argument) arguments {
+  return append(self, &argument)
 }
 
 type Chain struct {
@@ -63,82 +68,40 @@ type Chain struct {
 
 
 // TODO: We took off the error for command chaining off context
-//       for something like cli.Parse(os.Args).Execute() but that
+//       for something like cli.ParseArgs().Execute() but that
 //       may prove unwise and we may add the error back
 //       Should it be returning CLI with context or Context with CLI?
 func (self *CLI) ParseArgs() *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
-  // TODO: Keep this field in context? If we are not using it below why are we
-  // saving it exactly?
-  self.Context.Args = os.Args[1:]
-
-
-  fmt.Printf("%v \n", self.commands())
-
-  fmt.Printf("commands:\n")
-  for _, command := range self.commands() {
-    fmt.Printf("command name: %v \n", command.Name)
-  }
-
-  for index, argument := range os.Args[1:] {
-    // TODO: Must not ToLower Params type arguments
-    argument = strings.ToLower(argument)
-
+  for _, argument := range os.Args[1:] {
     fmt.Printf("parsing argument: '%v' \n", argument)
-
     // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
       fmt.Printf("%v\n", flagType.Name())
-
-
-
       //parsedFlags = append(parsedFlags, chain.ParseFlag(flagType, argument, chain.NextArgument(index)))
 
       //context.ParseFlag(index, flagType, &Flag{Name: argument})
 
-
       // TODO: Add the parsed FLAG to the chain.Arguments too before going
       // through the loop again! 
-
     } else {
-      fmt.Printf("else (argument is not a flag, must be command or param)\n")
-      // Command parse
-      if command, ok := self.commands().Name(argument); ok {
-        fmt.Printf("found subcommand %v\n", command.Name)
-        //command.Parent = self.commands().Last()
-        //self.commands().Add(command)
-
-        // TODO: Add the parsed COMMAND to the chain.Arguments too before going
-        // through the loop again! 
-
+      if command, ok := self.Context.Command.Subcommand(argument); ok {
+        // Command parse
+        argument = strings.ToLower(argument)
+        command.Parent = self.Context.Command
+        self.Context.Chain.Commands = self.Context.Chain.Commands.Add(command)
+        self.Context.Chain.Arguments = self.Context.Chain.Arguments.Add(
+          self.Context.Chain.Commands.Last(),
+        )
+        self.Context.Command = self.Context.Chain.Commands.Last()
       } else {
-        fmt.Printf("parsing param")
         // Param parse
-        for _, paramArguments := range self.Context.Args[index:] {
-          // TODO: Would like to be able to add flags to the end after params
-          //         add index, then after first one begin checking if they are
-          //         flags if not flag then its param
-
-          for _, paramArgument := range paramArguments {
-            self.Context.Chain.Params = append(
-              self.params(), 
-              &Param{
-                Value: string(paramArgument),
-              },
-            )
-          }
-          // TODO: Add the parsed PARAM to the chain.Arguments too before going
-          // through the loop again!
-          self.arguments().Add(
-            self.params().Last(),
-          )
-        }
-        break
+        self.Context.Chain.Params = self.Context.Chain.Params.Add(argument)
+        self.Context.Chain.Arguments = self.Context.Chain.Arguments.Add(
+          self.Context.Chain.Params.Last(),
+        )
       }
     }
-    // Argument Parse
-    // TODO: Parse the argument to establish the chain.arguments
-    // Flag Parse
 
     // TODO: Populate Actions in Chain + Build Execute command (executes actions
     // in order put in the chain.Actions slice)
@@ -158,6 +121,8 @@ func (self *CLI) ParseArgs() *Context {
 
   // TODO: Here is where we will cache the chain objects in the context before
   // passing context object out of the parse function
+
+
   return self.Context
 }
 
@@ -251,11 +216,4 @@ func FlagNameForType(flagType FlagType, argument string) (name string) {
   argument = flagType.TrimPrefix(argument)
 
   return strings.Split(name, "=")[0]
-}
-
-func (self *Context) NextArgument(index int) string {
-  if index+1 < len(self.Args) {
-    return self.Args[index+1]
-  }
-  return ""
 }

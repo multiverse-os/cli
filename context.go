@@ -10,7 +10,7 @@ type Context struct {
 
   Arguments    arguments
 
-	Command      *Command
+  Command      *Command
   Commands     commands
   Flags        flags
   Params       params
@@ -19,7 +19,6 @@ type Context struct {
   // use via the cached versions above (and continue considering putting actions
   // into chain (action chain no?) 
 	Chain       *Chain
-  Args        []string
   Debug       bool
 }
 
@@ -29,7 +28,7 @@ type Context struct {
 // TODO: Need a mirror function in CLI for pulling out defined flags
 
 //     c.Flags["debug"].Bool() -> c.Flag("Debug").Bool()
-func (self *Context) Flag(name string) *Flag { 
+func (self Context) Flag(name string) *Flag { 
   return self.Chain.Flags.Name(name)
 }
 
@@ -59,7 +58,7 @@ func (self *Context) Flag(name string) *Flag {
 //	}
 //}
 
-func (self *Context) HasFlag(name string) bool { 
+func (self Context) HasFlag(name string) bool { 
   return self.Flag(name) != nil 
 }
 

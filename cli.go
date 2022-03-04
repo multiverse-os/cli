@@ -2,7 +2,6 @@ package cli
 
 import (
   "time"
-  "fmt"
 
   data "github.com/multiverse-os/cli/data"
 )
@@ -71,21 +70,10 @@ const (
 	CommandLevel
 )
 
-// Helpers
-//// logging
 func (self CLI) Log(output ...string)   { self.Outputs.Log(DEBUG, output...) }
 func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
 func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
 func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
-//// (actions|command|flags|params) chain
-func (self CLI) commands() commands { 
-  return self.Context.Chain.Commands.First().Subcommands 
-}
-func (self CLI) arguments() arguments { return self.Context.Chain.Arguments }
-func (self CLI) flags() flags { return self.Context.Chain.Flags }
-func (self CLI) params() params { return self.Context.Chain.Params }
-
-//
 
 // TODO: Move the global flags into the first command in the chain (the root
 // command which is the application itself) -- this will allow for much simpler
@@ -128,12 +116,6 @@ func New(app *App) *CLI {
     app.Outputs = append(app.Outputs, TerminalOutput())
   }
 
-
-  fmt.Printf("commands:\n")
-  for _, command := range app.Commands {
-    fmt.Printf("command name: %v \n", command.Name)
-  }
-
   cli := &CLI{
     Name:     app.Name,
     Version:  app.Version,
@@ -143,17 +125,21 @@ func New(app *App) *CLI {
     },
   }
 
+  appCommand := Command{
+    Name:        app.Name,
+    Subcommands: app.Commands,
+    Flags:       app.GlobalFlags,
+  }
+
   cli.Context = &Context{
     CLI:     cli,
     Process: Process(),
     Debug:   false,
+    Command: &appCommand,
     Chain:   &Chain{
       Flags: app.GlobalFlags,
-      Commands: commands([]*Command{&Command{
-        Name:        app.Name,
-        Subcommands: app.Commands,
-        Flags:       app.GlobalFlags,
-      }}),
+      Commands: Commands(appCommand),
+      Arguments: Arguments(appCommand),
     },
     //GlobalHooks: Hooks{
     //  BeforeAction: app.GlobalHooks.BeforeAction,

@@ -69,7 +69,6 @@ type Flag struct {
   Param       *Param
 }
 
-
 // NOTE: Can be thought of as equivilent to New() but flags are a special
 //       sub-type that do not exist without a command. 
 func (self *Flag) Copy() (newFlag *Flag) {
@@ -103,11 +102,15 @@ func (self Flag) IsValid() bool { return ValidateFlag(self) != nil }
 
 type flags []*Flag 
 
-func Flags(definedFlags ...Flag) (flagPointers flags) { 
-  for index, _ := range definedFlags {
+func Flags(flags ...Flag) (flagPointers flags) { 
+  for index, _ := range flags {
     flagPointers = append(flagPointers, &flags[index])
   }
   return flagPointers
+}
+
+func (self flags) Add(flag *Flag) flags {
+  return append(self, flag)
 }
 
 func (self flags) Name(name string) *Flag {
@@ -149,15 +152,17 @@ func (self flags) Level(level Level) (f flags) {
 func (self flags) Count() int { return len(self) }
 func (self flags) IsZero() bool { return self.Count() == 0 }
 
-
 func HasFlagPrefix(flag string) (FlagType, bool) {
-	if strings.HasPrefix(flag, Long.String()) {
-		return Long, true
-	} else if strings.HasPrefix(flag, Short.String()) {
-		return Short, true
-	} else {
-		return NotAvailable, false
-	}
+  // NOTE: It is unnecessary to do the len(flag) != 0 check since arguments by
+  // definition to be parsed by the OS must be not blank.
+  if flag[0] == 45 {
+	  if strings.HasPrefix(flag, Long.String()) {
+	  	return Long, true
+	  }else{
+	  	return Short, true
+	  }
+  }
+ 	return NotAvailable, false
 }
 
 // TODO: Added to ToLower here where it should ahve beent the whole time; so as
