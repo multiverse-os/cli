@@ -38,44 +38,6 @@ func (self Param) IsValid() bool {
   return ValidateParam(self) != nil
 }
 
-type params []*Param
-
-func (self *Param) Type() ArgumentType { return ParamArgument }
-
-func Params(params ...Param) (paramPointers params) { 
-  for index, _ := range params {
-    paramPointers = append(paramPointers, &params[index])
-  }
-  return paramPointers
-}
-
-func (self params) Add(param string) params { 
-
-  return append(self, &Param{Value: string(param)})
-}
-
-// TODO: Add ability to output URL, and Path types, since these would be very
-//       common and the ability to validate them would be nice. For example,
-//       being able to check if a file exists easily.
-
-// TODO: Once the params have been loaded, begin loading flags again; then
-//       apply
-
-func (self params) Count() int { return len(self) }
-func (self params) Last() *Param { return self[self.Count()-1] }
-func (self params) IsZero() bool { return self.Count() == 0 }
-
-func (self params) Strings() (paramStrings []string) { 
-  for _, param := range self {
-    paramStrings = append(paramStrings, param.Value)
-  }
-  return paramStrings
-}
-
-func (self params) String() string { 
-  return strings.Join(self.Strings(), " ")  
-}
-
 // TODO: Param.String() 
 func (self Param) String() string {
   return self.Value
@@ -106,3 +68,55 @@ func (self Param) Bool() bool {
 // TODO: URL
 
 // TODO: 
+
+
+type params []*Param
+
+func (self *Param) Type() ArgumentType { return ParamArgument }
+
+func Params(params ...Param) (paramPointers params) { 
+  for index, _ := range params {
+    paramPointers = append(paramPointers, &params[index])
+  }
+  return paramPointers
+}
+
+func (self params) Add(param string) (params, error) { 
+  newParam := &Param{Value: param}
+  err := ValidateParam(*newParam)
+  if err != nil {
+    return append(self, newParam), err
+  }else{
+    return self, err
+  }
+}
+
+// TODO: Add ability to output URL, and Path types, since these would be very
+//       common and the ability to validate them would be nice. For example,
+//       being able to check if a file exists easily.
+
+// TODO: Once the params have been loaded, begin loading flags again; then
+//       apply
+
+func (self params) Count() int { return len(self) }
+
+func (self params) Last() *Param { 
+  if 0 < self.Count() {
+    return self[self.Count()-1] 
+  }
+  return nil
+}
+
+func (self params) IsZero() bool { return self.Count() == 0 }
+
+func (self params) Strings() (paramStrings []string) { 
+  for _, param := range self {
+    paramStrings = append(paramStrings, param.Value)
+  }
+  return paramStrings
+}
+
+func (self params) String() string { 
+  return strings.Join(self.Strings(), " ")  
+}
+

@@ -118,7 +118,7 @@ func (self *CLI) Parse(args []string) *Context {
       } else {
         // Param parse
         fmt.Println("parsing param: ", argument)
-        self.Context.Params = self.Context.Params.Add(argument)
+        self.Context.Params, _ = self.Context.Params.Add(argument)
         self.Context.Arguments = self.Context.Arguments.Add(
           self.Context.Params.Last(),
         )
@@ -151,8 +151,9 @@ func (self *CLI) Parse(args []string) *Context {
 
   fmt.Println("must test if changing the command affects the command stored in")
   fmt.Println("arguments and commands. and vice versa\n")
-  fmt.Println("
-
+  fmt.Println("lets try changing a param from Context.Params, and see if it")
+  fmt.Println("affects the same pointer object in Context.Arguments\n\n")
+  
 
 
   return self.Context
