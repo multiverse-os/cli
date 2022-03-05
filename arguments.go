@@ -8,15 +8,23 @@ type Argument interface {
   IsValid() bool
 }
 
-func ArgumentToParam(self *Argument) *Param { return (*self).(*Param) }
-func ArgumentToFlag(self *Argument) *Flag { return (*self).(*Flag) }
-func ArgumentToCommand(self *Argument) *Command { return (*self).(*Command) }
+func ToParam(param Argument) Param {
+  return param.(Param)
+}
 
-type arguments []*Argument 
+func ToFlag(flag Argument) *Flag {
+  return flag.(*Flag)
+}
+
+func ToCommand(command Argument) *Command {
+  return command.(*Command)
+}
+
+type arguments []Argument 
 
 func Arguments(arguments ...Argument) (argumentPointers arguments) { 
   for index, _ := range arguments {
-    argumentPointers = append(argumentPointers, &arguments[index])
+    argumentPointers = append(argumentPointers, arguments[index])
   }
   return argumentPointers
 }
@@ -34,9 +42,9 @@ func Arguments(arguments ...Argument) (argumentPointers arguments) {
 //  return strings.Join(self.Strings(), " ")
 //}
 
-func (self arguments) Last() *Argument { return self[self.Count()-1] }
+func (self arguments) Last() Argument { return self[self.Count()-1] }
 func (self arguments) Count() int { return len(self) }
 
 func (self arguments) Add(argument Argument) arguments {
-  return append(self, &argument)
+  return append(self, argument)
 }

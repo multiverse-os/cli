@@ -119,8 +119,9 @@ func (self *CLI) Parse(args []string) *Context {
         // Param parse
         fmt.Println("parsing param: ", argument)
         self.Context.Params, _ = self.Context.Params.Add(argument)
-        self.Context.Arguments = self.Context.Arguments.Add(
-          self.Context.Params.Last(),
+        self.Context.Arguments = append(
+          self.Context.Arguments, 
+          *self.Context.Params.Last(),
         )
       }
     }
@@ -163,7 +164,8 @@ func (self *CLI) Parse(args []string) *Context {
   argumentTwo := self.Context.Arguments[2]
   fmt.Println("argument two or first param (in this test)")
   fmt.Println("arg:", argumentTwo)
-  fmt.Println("arg value:", ArgumentToParam(argumentTwo).Value)
+  fmt.Println("arg value:", ToParam(argumentTwo).Value)
+  fmt.Println("THAT WORKS! OMG I FIXED IT!")
   
 
 
