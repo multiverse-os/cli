@@ -1,7 +1,7 @@
 package main
 
 import (
-  //"os"
+  "os"
 
 	cli "github.com/multiverse-os/cli"
 )
@@ -51,7 +51,7 @@ func main() {
 							c.CLI.Log("=====================================================")
 							c.CLI.Log("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 							c.CLI.Log("add a thing to the list")
-							for _, command := range c.Chain.Commands {
+							for _, command := range c.Commands {
 								c.CLI.Log("=====================================================")
 								c.CLI.Log("[COMMAND:" + command.Name + "]")
 								for _, flag := range command.Flags {
@@ -113,7 +113,7 @@ func main() {
 			  c.CLI.Log("flag count [ ", string(c.Command.Flags.Count()), "] :")
 			  c.CLI.Log("=====================================================")
 
-			  for _, command := range c.Chain.Commands {
+			  for _, command := range c.Commands {
 			  	c.CLI.Log("=====================================================")
 			  	c.CLI.Log("command:", command.Name)
           //c.CLI.Log("command:action= [", command.Action, "]")
@@ -137,8 +137,5 @@ func main() {
 	// NOTE: Has the ability output context and error, this enables developers to
 	// handle their own routing or actions based on parsed context.
 	// context, _ := cmd.Parse(os.Args)
-  // TODO: Do we need to pass in os.Args? Could it not be obtained within parse
-  // removing a 'os' depedency making using the library simpler?
-	//cmd.ParseArgs()
-  cmd.ParseArgs()
+  cmd.Parse(os.Args)
 }

@@ -2,6 +2,8 @@ package cli
 
 import (
   "strings"
+
+  data "github.com/multiverse-os/cli/data"
 )
 
 type Command struct {
@@ -23,10 +25,7 @@ func ValidateCommand(command Command) error {
     return errInvalidArgumentLength
   }
   for _, commandRune := range command.Name {
-    // NOTE: 
-    // a = 97
-    // z = 122
-    // - = 45
+    // NOTE: a = 97; z = 122; - = 45
     if (97 <= commandRune && commandRune <= 122) || commandRune == 45 {
       return errInvalidArgumentFormat
     }
@@ -47,6 +46,14 @@ func Commands(commands ...Command) (commandPointers commands) {
   return commandPointers
 }
 
+func (self commands) Names() (commandNames []string) {
+  for _, command := range self {
+    commandNames = append(commandNames, command.Name)
+  }
+  return commandNames
+}
+  
+
 // Commands Public Methods
 func (self commands) First() *Command { return self[0] }
 func (self commands) Last() *Command { return self[self.Count()-1] }
@@ -63,36 +70,29 @@ func (self commands) Name(name string) (*Command, bool) {
   return nil, false
 }
 
-func (self commands) Reversed() (commands commands) {
+func (self commands) Reversed() (reversedCommands commands) {
   for i := self.Count() - 1; i >= 0; i-- {
-    commands = append(commands, self[i])
+    reversedCommands = append(reversedCommands, self[i])
   }
-  return commands
+  return reversedCommands
 }
 
-func (self commands) Path() (path []string) {
-  for _, command := range self {
-    path = append(path, command.Name)
-  }
-  return path
-}
-
-func (self commands) Hidden() (commands commands) {
+func (self commands) Hidden() (hiddenCommands commands) {
   for _, command := range self {
     if command.Hidden {
-      commands = append(commands, command)
+      hiddenCommands = append(hiddenCommands, command)
     }
   }
-  return commands
+  return hiddenCommands
 }
 
-func (self commands) Visible() (commands commands) {
+func (self commands) Visible() (visibleCommands commands) {
   for _, command := range self {
     if !command.Hidden {
-      commands = append(commands, command)
+      visibleCommands = append(visibleCommands, command)
     }
   }
-  return commands
+  return visibleCommands
 }
 
 func (self commands) Add(command *Command) commands  {
@@ -101,7 +101,6 @@ func (self commands) Add(command *Command) commands  {
       Value: flag.Default,
     }
   }
-
   return append(self, command)
 }
 
@@ -112,7 +111,7 @@ func (self Command) is(name string) bool {
 }
 
 func (self Command) usage() (output string) {
-  if len(self.Alias) != 0 {
+  if data.IsBlank(self.Alias) {
     output += ", " + self.Alias
   }
   return self.Name + output

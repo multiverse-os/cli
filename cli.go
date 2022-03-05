@@ -6,10 +6,7 @@ import (
   data "github.com/multiverse-os/cli/data"
 )
 
-
-// TODO: Scaffolding code to hasten development.
-// https://golang.org/pkg/go/printer/
-
+///////////////////////////////////////////////////////////////////////////////
 // Ontology of a command-line interface
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -22,13 +19,24 @@ import (
 //   application       command             subcommand
 //
 ///////////////////////////////////////////////////////////////////////////////
+// Alpha Release
+
+// TODO: Add localization support
+
+// TODO: Fix permissions (public vs private) on functions only leaving
+// explicitly the functions used by a developer using the library
+
+// TODO: Reduce flag alias size to 1 character (rune), but command aliases can
+// be any length
 
 ///////////////////////////////////////////////////////////////////////////////
-// TODO: Ability to have multiple errors, for example we can parse and       //
-// provide all errors at once regarding input so user does not need to trial //
-// and error to get the information how to fix issues but can instead fix    //
-// all at once and rerun the command.                                        //
-///////////////////////////////////////////////////////////////////////////////
+// TODO: Scaffolding code to hasten development.
+// https://golang.org/pkg/go/printer/
+
+// TODO: Ability to have multiple errors, for example we can parse and
+// provide all errors at once regarding input so user does not need to trial
+// and error to get the information how to fix issues but can instead fix
+// all at once and rerun the command.
 
 // TODO: Extend the build aspect of the system. Pull data from last push to the
 // public github (it will eventually be our own fucking git hosting and public
@@ -37,9 +45,18 @@ import (
 // added as modules (look back to the chatbot for a good example of
 // plugin/module style logic) 
 
-// TODO: Perhaps split up this object, so one object will be used when calling
-// .New() for initialization. And a separate object used by the app calling the
-// library with a minimalized structure.
+// TODO: Add ability to access Banner/Spinner (and others) text user interface 
+// (TUI) tools from actions.
+//          context.CLI.Spinner() 
+
+// TODO: Ensure we parse environmental variables
+
+// TODO: Add support for configuration (flag < env < file)
+//         Support ~/.local and ~/.config
+
+// TODO: Autocomplete via tab defined during initalization
+
+
 type App struct {
   Name           string
   Description    string
@@ -75,37 +92,8 @@ func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
 func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
 func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
 
-// TODO: Move the global flags into the first command in the chain (the root
-// command which is the application itself) -- this will allow for much simpler
-// processing of flags and actions
-// TODO: look at command, then each command in reverse
-
-// TODO: CLI should have spinners, loaders, etc any TUI style things
-
-//    context.CLI.Spinner() 
-
-// TODO: CLI Needs the ability to pull out defined flags 
-// TODO: CLI needs the ability to pull out defined commands
-// TODO: Need the ability to pull out the action, which should be global and the
-// hooks in a actions slice (SHOULD IT?????)
-
-// TODO: Flags renders this kinda obsolete but we ahve to update all associated
-// functions. This will temporarily break everything but this is pre-alpha and
-// we are getting messy real messy because on the other end of this emss is an
-// API we won't be able to touch without stupid levels of time wasting. 
-//func (self *CLI) Flags() (flags []*Flag) {
-//	for _, flag := range self.GlobalFlags {
-//		flags = append(flags, &flag)
-//	}
-//	return flags
-//}
-
-// TODO: Ensure we parse environmental variables
-// TODO: Add support for configurations
-// TODO: Add support for important paths like ~/.local and ~/.config
 
 func New(app *App) *CLI {
-  // TODO: Flag Names & Command Names is validated (and default params?)
   if data.IsBlank(app.Name) {
     app.Name = "app-cli"
   }
@@ -134,22 +122,19 @@ func New(app *App) *CLI {
   cli.Context = &Context{
     CLI:     cli,
     Process: Process(),
-    Debug:   false,
-    Command: &appCommand,
-    Chain:   &Chain{
+    chain:   chain{
+      Params: params{},
       Flags: app.GlobalFlags,
       Commands: Commands(appCommand),
       Arguments: Arguments(appCommand),
     },
-    //GlobalHooks: Hooks{
-    //  BeforeAction: app.GlobalHooks.BeforeAction,
-    //  AfterAction: app.GlobalHooks.AfterAction,
-    //},
-    //Actions: Actions{
-    //  Global:   app.Actions.Global,
-    //  Fallback: app.Actions.Fallback,
-    //},
   }
+
+  cli.Context.Command = cli.Context.chain.Commands.Last()
+
+  // TODO: Take actions+hooks and insert them into the app psuedo-command so
+  // they can be consolidated and executed in the Execute() command under
+  // actions.
 
   return cli
 }

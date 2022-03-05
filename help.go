@@ -34,9 +34,9 @@ func (self *CLI) simpleHeader() string {
 // TODO: Maybe default to just having command and then doing some sort of simple
 // check to add sub? something easier than this possible?
 func (self *Context) expectingCommandsOrSubcommand() string {
-	if self.Chain.Commands.First().Subcommands.IsZero() {
+	if self.chain.Commands.First().Subcommands.IsZero() {
 		return " [command]"
-	} else if self.Chain.Commands.Count() == 1 {
+	} else if self.chain.Commands.Count() == 1 {
 		return " [subcommand]"
 	} else {
 		return ""
@@ -49,7 +49,7 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
 	t += Prefix() + "{{.usage}}\n"
   // TODO: Name commandchain sucks
-	t += Tab() + strings.ToLower(strings.Join(self.Chain.Commands.Path(), " ")) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
+	t += Tab() + strings.ToLower(strings.Join(self.chain.Commands.Names(), " ")) + strings.ToLower(self.expectingCommandsOrSubcommand()) + " [parameters]" + "\n\n"
 	t += Prefix() + "{{.availableCommands}}\n"
 	for index, subcommand := range command.Subcommands.Visible() {
 		t += Tab() + subcommand.usage() + strings.Repeat(" ", (18-len(subcommand.usage()))) + subcommand.Description
@@ -60,7 +60,7 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n\n"
 
 	// TODO: Should the command flags be printed with global flags too?
-	for _, command := range self.Chain.Commands {
+	for _, command := range self.chain.Commands {
 		if len(command.Flags) != 0 {
 			if command.Base() {
 				t += Prefix() + "{{.availableFlags}}\n"

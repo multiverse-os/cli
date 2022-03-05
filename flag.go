@@ -6,17 +6,22 @@ import (
 	data "github.com/multiverse-os/cli/data"
 )
 
+// TODO: Create a VersionFlag, HelpFlag, and DebugFlag all hidden by default and
+// added by default to the global flags. 
+
+// TODO: Provide helpers/shortcuts for accessing flag.Param.Int() directly
+// such as flag.Int()
 
 type FlagType int
 
 const (
-	Short FlagType = iota + 1
+  UndefinedFlagType FlagType = iota
+	Short 
 	Long
-	NotAvailable
 )
 
 func (self FlagType) TrimPrefix(flagArgument string) string { 
-  return flagArgument[self.Length():]
+  return flagArgument[int(self):]
 }
 
 // NOTE: DEV Function
@@ -26,14 +31,12 @@ func (self FlagType) Name() string {
 		return "short"
 	case Long:
 		return "long"
-	default: // NotAvailable
-		return "n/a"
 	}
+	return ""
 }
 
-func (self FlagType) Is(flagType FlagType) bool { return self == flagType }
-func (self FlagType) Length() int               { return int(self) }
-func (self FlagType) String() string            { return strings.Repeat("-", self.Length()) }
+func (self FlagType) is(flagType FlagType) bool { return self == flagType }
+func (self FlagType) String() string            { return strings.Repeat("-", int(self)) }
 
 type FlagSeparator int
 
@@ -52,15 +55,11 @@ func (self FlagSeparator) String() string {
 	}
 }
 
-
-// TODO: Be able to define the file extension that would be selected for when generating an autocomplete file
-//        -
-//       Could eventually build out more functionality to support autocomplete
 type Flag struct {
 	Command     *Command
 	Level       Level
 	Name        string
-	Alias       string
+  Alias       string
 	Description string
 	Options     []string
 	Hidden      bool
@@ -82,15 +81,18 @@ func (self *Flag) Set(value string) *Flag {
   return self
 }
 
+func (self *Flag) True() *Flag { return self.Set("1") }
+
 func ValidateFlag(flag Flag) error {
   if 32 < len(flag.Name) {
     return errInvalidArgumentLength
   }
+  if len(flag.Alias) != 1 {
+    return errInvalidFlagShortLength
+  }
+
   for _, flagRune := range flag.Name {
-    // NOTE: 
-    // a = 97
-    // z = 122
-    // - = 45
+    // NOTE: a = 97; z = 122; - = 45
     if (97 <= flagRune && flagRune <= 122) || flagRune == 45 {
       return errInvalidArgumentFormat
     }
@@ -107,6 +109,13 @@ func Flags(flags ...Flag) (flagPointers flags) {
     flagPointers = append(flagPointers, &flags[index])
   }
   return flagPointers
+}
+
+func (self flags) Reversed() (reversedFlags flags) {
+  for i := self.Count() - 1; i >= 0; i-- {
+    reversedFlags = append(reversedFlags, self[i])
+  }
+  return reversedFlags
 }
 
 func (self flags) Add(flag *Flag) flags {
@@ -151,6 +160,7 @@ func (self flags) Level(level Level) (f flags) {
 
 func (self flags) Count() int { return len(self) }
 func (self flags) IsZero() bool { return self.Count() == 0 }
+func (self flags) Last() *Flag { return self[len(self)+1] }
 
 func HasFlagPrefix(flag string) (FlagType, bool) {
   // NOTE: It is unnecessary to do the len(flag) != 0 check since arguments by
@@ -162,14 +172,13 @@ func HasFlagPrefix(flag string) (FlagType, bool) {
 	  	return Short, true
 	  }
   }
- 	return NotAvailable, false
+ 	return UndefinedFlagType, false
 }
 
 // TODO: Added to ToLower here where it should ahve beent the whole time; so as
 // a consequence of bad programming before we need to remove ToLowers where find
 // them elsewhere 
 func (self Flag) is(name string) bool { 
-  name = strings.ToLower(name)
   return self.Name == name || self.Alias == name 
 }
 
