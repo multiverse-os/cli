@@ -100,6 +100,13 @@ func (self params) Add(param string) (params, error) {
 
 func (self params) Count() int { return len(self) }
 
+func (self params) First() *Param {
+  if 0 < self.Count() {
+    return self[0]
+  }
+  return nil
+}
+
 func (self params) Last() *Param { 
   if 0 < self.Count() {
     return self[self.Count()-1] 
@@ -119,4 +126,3 @@ func (self params) Strings() (paramStrings []string) {
 func (self params) String() string { 
   return strings.Join(self.Strings(), " ")  
 }
-

@@ -210,11 +210,16 @@ func (self flags) Level(level Level) (f flags) {
 func (self flags) Count() int { return len(self) }
 func (self flags) IsZero() bool { return self.Count() == 0 }
 
+func (self flags) First() *Flag {
+  if 0 < self.Count() {
+    return self[0] 
+  }
+  return nil
+}
+
 func (self flags) Last() *Flag { 
   if 0 < self.Count() {
     return self[len(self)+1] 
-  }else{
-    return nil 
   }
+  return nil 
 }
-
