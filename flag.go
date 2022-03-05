@@ -103,10 +103,6 @@ func (self Flag) help() string {
 }
 
 
-// TODO: I like these and they are similar to the idea had earlier for a active
-// record analogue
-func (self Flag) Type() ArgumentType { return FlagArgument }
-
 func (self Flag) String() string { return self.Param.Value }
 func (self Flag) Int() int { return self.Param.Int() }
 func (self Flag) Bool() bool { return self.Param.Bool() }

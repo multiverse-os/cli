@@ -35,8 +35,6 @@ func ValidateCommand(command Command) error {
 
 func (self Command) IsValid() bool { return ValidateCommand(self) != nil }
 
-func (self Command) Type() ArgumentType { return CommandArgument }
-
 type commands []*Command
 
 func Commands(commands ...Command) (commandPointers commands) { 
@@ -53,7 +51,6 @@ func (self commands) Names() (commandNames []string) {
   return commandNames
 }
   
-
 // Commands Public Methods
 func (self commands) First() *Command { return self[0] }
 func (self commands) Last() *Command { return self[self.Count()-1] }

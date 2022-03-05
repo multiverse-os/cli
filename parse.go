@@ -138,7 +138,6 @@ func (self *CLI) Parse(args []string) *Context {
   fmt.Println("                  ", self.Context.Params)
   fmt.Println("---------------")
   for index, _ := range self.Context.Arguments {
-    fmt.Println((*self.Context.Arguments[index]).Type())
     fmt.Println(self.Context.Arguments[index])
   }
   fmt.Println("---------------")
@@ -153,6 +152,18 @@ func (self *CLI) Parse(args []string) *Context {
   fmt.Println("arguments and commands. and vice versa\n")
   fmt.Println("lets try changing a param from Context.Params, and see if it")
   fmt.Println("affects the same pointer object in Context.Arguments\n\n")
+
+  contextParamFromParams := self.Context.Params.First()
+  fmt.Println("pulled out first param:", contextParamFromParams)
+  contextParamFromParams.Value = "changed"
+  contextParamFromParamsTwo := self.Context.Params.First()
+  fmt.Println("changed first param to changed and repulled it out: ", contextParamFromParamsTwo)
+
+  fmt.Println("that works, now time to see if arguments second paramter is what we expect 'changed' and not the original value")
+  argumentTwo := self.Context.Arguments[2]
+  fmt.Println("argument two or first param (in this test)")
+  fmt.Println("arg:", argumentTwo)
+  fmt.Println("arg value:", ArgumentToParam(argumentTwo).Value)
   
 
 

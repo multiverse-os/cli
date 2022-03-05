@@ -4,32 +4,13 @@ package cli
 //  "strings"
 //)
 
-type ArgumentType int
-
-const (
-  UndefinedArgumentType ArgumentType = iota
-  CommandArgument 
-  FlagArgument
-  ParamArgument
-)
-
-func (self ArgumentType) String() string {
-  switch self {
-  case CommandArgument:
-    return "command"
-  case FlagArgument:
-    return "flag"
-  case ParamArgument:
-    return "param"
-  default: // UndefinedArgumentType
-    return ""
-  }
-}
-
 type Argument interface {
-  Type()    ArgumentType
   IsValid() bool
 }
+
+func ArgumentToParam(self *Argument) *Param { return (*self).(*Param) }
+func ArgumentToFlag(self *Argument) *Flag { return (*self).(*Flag) }
+func ArgumentToCommand(self *Argument) *Command { return (*self).(*Command) }
 
 type arguments []*Argument 
 
