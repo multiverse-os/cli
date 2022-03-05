@@ -46,6 +46,7 @@ func (self *CLI) Parse(args []string) *Context {
         }else{
           // Stacked
           for index, shortFlag := range argument {
+            fmt.Println("stacked short flag parsed:", string(shortFlag))
             // Last Flag (should both functions be at the top?)
             // When argument length == index +1 
             //  || flag BEFORE equals sign 
@@ -58,21 +59,23 @@ func (self *CLI) Parse(args []string) *Context {
 
               //      ELSE
               //       next argument is the new flag value
-              
             }
             // TODO: When we hit the = sign, we take the last flag (which was
             // set to true) and we replace it with argument[index+1:]
             // NOTE: '=' = 61;
             if shortFlag == 61 {
+              fmt.Println("equals sign found, assigning param to last flag added")
+              // TODO: But this wont work yet because we are not yet actually
+              // locating the defined flags and adding them to the flag chain
               flag := self.Context.chain.Flags.Last()
               flag.Set(argument[index+1:])
               break
             }
 
-
             // Every flag before the last one value is boolean and == "1"
             flag := self.Context.chain.Flags.Reversed().Name(string(shortFlag))
             if flag != nil {
+              fmt.Println("flag ", string(shortFlag), " exists, setting it to true")
             // TODO: Update the flag param value (from default) and confirm it is
             // working by checking after the parse function is ran
               flag.True()
