@@ -68,6 +68,48 @@ type Flag struct {
   Param       *Param
 }
 
+func HasFlagPrefix(flag string) (FlagType, bool) {
+  // NOTE: It is unnecessary to do the len(flag) != 0 check since arguments by
+  // definition to be parsed by the OS must be not blank.
+  if flag[0] == 45 {
+	  if strings.HasPrefix(flag, Long.String()) {
+	  	return Long, true
+	  }else{
+	  	return Short, true
+	  }
+  }
+ 	return UndefinedFlagType, false
+}
+
+// TODO: Added to ToLower here where it should ahve beent the whole time; so as
+// a consequence of bad programming before we need to remove ToLowers where find
+// them elsewhere 
+func (self Flag) is(name string) bool { 
+  return self.Name == name || self.Alias == name 
+}
+
+func (self Flag) flagNames() (output string) { return output }
+
+func (self Flag) help() string {
+	usage := Long.String() + self.Name
+	if data.NotBlank(self.Alias) {
+		usage += ", " + Short.String() + self.Alias
+	}
+	var defaultValue string
+	if len(self.Default) != 0 {
+		defaultValue = " [≅ " + self.Default + "]"
+	}
+	return strings.Repeat(" ", 4) + usage + strings.Repeat(" ", 18-len(usage)) + self.Description + defaultValue + "\n"
+}
+
+
+// TODO: I like these and they are similar to the idea had earlier for a active
+// record analogue
+func (self Flag) Type() ArgumentType { return FlagArgument }
+
+func (self Flag) String() string { return self.Param.Value }
+func (self Flag) Int() int { return self.Param.Int() }
+func (self Flag) Bool() bool { return self.Param.Bool() }
 // NOTE: Can be thought of as equivilent to New() but flags are a special
 //       sub-type that do not exist without a command. 
 func (self *Flag) Copy() (newFlag *Flag) {
@@ -81,7 +123,7 @@ func (self *Flag) Set(value string) *Flag {
   return self
 }
 
-func (self *Flag) True() *Flag { return self.Set("1") }
+func (self *Flag) SetTrue() *Flag { return self.Set("1") }
 
 func ValidateFlag(flag Flag) error {
   if 32 < len(flag.Name) {
@@ -100,7 +142,7 @@ func ValidateFlag(flag Flag) error {
   return nil
 }
 
-func (self Flag) IsValid() bool { return ValidateFlag(self) != nil }
+func (self Flag) IsValid() bool {  return ValidateFlag(self) != nil }
 
 type flags []*Flag 
 
@@ -118,8 +160,15 @@ func (self flags) Reversed() (reversedFlags flags) {
   return reversedFlags
 }
 
-func (self flags) Add(flag *Flag) flags {
-  return append(self, flag)
+// TODO: This required changing IsValid to return the error, and this must be
+// done for param and command.
+func (self flags) Add(flag *Flag) (flags, error) {
+  err := ValidateFlag(*flag)
+  if err != nil {
+    return append(self, flag), err
+  }else{
+    return self, err
+  }
 }
 
 func (self flags) Name(name string) *Flag {
@@ -162,45 +211,3 @@ func (self flags) Count() int { return len(self) }
 func (self flags) IsZero() bool { return self.Count() == 0 }
 func (self flags) Last() *Flag { return self[len(self)+1] }
 
-func HasFlagPrefix(flag string) (FlagType, bool) {
-  // NOTE: It is unnecessary to do the len(flag) != 0 check since arguments by
-  // definition to be parsed by the OS must be not blank.
-  if flag[0] == 45 {
-	  if strings.HasPrefix(flag, Long.String()) {
-	  	return Long, true
-	  }else{
-	  	return Short, true
-	  }
-  }
- 	return UndefinedFlagType, false
-}
-
-// TODO: Added to ToLower here where it should ahve beent the whole time; so as
-// a consequence of bad programming before we need to remove ToLowers where find
-// them elsewhere 
-func (self Flag) is(name string) bool { 
-  return self.Name == name || self.Alias == name 
-}
-
-func (self Flag) flagNames() (output string) { return output }
-
-func (self Flag) help() string {
-	usage := Long.String() + self.Name
-	if data.NotBlank(self.Alias) {
-		usage += ", " + Short.String() + self.Alias
-	}
-	var defaultValue string
-	if len(self.Default) != 0 {
-		defaultValue = " [≅ " + self.Default + "]"
-	}
-	return strings.Repeat(" ", 4) + usage + strings.Repeat(" ", 18-len(usage)) + self.Description + defaultValue + "\n"
-}
-
-
-// TODO: I like these and they are similar to the idea had earlier for a active
-// record analogue
-func (self Flag) Type() ArgumentType { return FlagArgument }
-
-func (self Flag) String() string { return self.Param.String() }
-func (self Flag) Int() int { return self.Param.Int() }
-func (self Flag) Bool() bool { return self.Param.Bool() }

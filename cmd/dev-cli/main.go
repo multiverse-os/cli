@@ -15,14 +15,13 @@ func main() {
 		GlobalFlags: cli.Flags(
 			cli.Flag{
 				Name:        "language",
-				Alias:       "lang",
-				Default:     "english",
+				Alias:       "l",
+				Default:     "en",
 				Description: "Locale used when executing the program",
 			},
 			cli.Flag{
 				Name:        "daemon",
-				Alias:       "d",
-				Default:     "false",
+				Alias:       "dm",
 				Description: "Daemonize the program when launching",
 			},
 		),

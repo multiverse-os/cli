@@ -6,13 +6,13 @@ import (
   "fmt"
 )
 
-type chain struct {
-  Arguments arguments 
-  Commands commands
-  Flags    flags
-  Params   params
-  Actions  actions
-}
+//type chain struct {
+//  Arguments arguments 
+//  Commands commands
+//  Flags    flags
+//  Params   params
+//  Actions  actions
+//}
 
 // TODO: We took off the error for command chaining off context
 //       for something like cli.ParseArgs().Execute() but that
@@ -22,9 +22,10 @@ func (self *CLI) Parse(args []string) *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
   for index, argument := range os.Args[1:] {
     fmt.Println("index: ", index)
-    fmt.Printf("parsing argument: '%v' \n", argument)
+    fmt.Printf("determining if flag, command or param: '%v' \n", argument)
     // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
+      fmt.Println("argument has flag prefix, determining if long or short")
       fmt.Printf("%v\n", flagType.Name())
       argument = flagType.TrimPrefix(argument)
 
@@ -37,11 +38,11 @@ func (self *CLI) Parse(args []string) *Context {
         if len(argument) == 1 {
           // Not stacked; So, we know value is boolean and == "1"
 
-          flag := self.Context.chain.Flags.Reversed().Name(argument)
+          flag := self.Context.Flags.Reversed().Name(argument)
           if flag != nil {
             // TODO: Update the flag param value (from default) and confirm it is
             // working by checking after the parse function is ran
-            flag.True()
+            flag.SetTrue()
           }
         }else{
           // Stacked
@@ -67,18 +68,18 @@ func (self *CLI) Parse(args []string) *Context {
               fmt.Println("equals sign found, assigning param to last flag added")
               // TODO: But this wont work yet because we are not yet actually
               // locating the defined flags and adding them to the flag chain
-              flag := self.Context.chain.Flags.Last()
+              flag := self.Context.Flags.Last()
               flag.Set(argument[index+1:])
               break
             }
 
             // Every flag before the last one value is boolean and == "1"
-            flag := self.Context.chain.Flags.Reversed().Name(string(shortFlag))
+            flag := self.Context.Flags.Reversed().Name(string(shortFlag))
             if flag != nil {
               fmt.Println("flag ", string(shortFlag), " exists, setting it to true")
             // TODO: Update the flag param value (from default) and confirm it is
             // working by checking after the parse function is ran
-              flag.True()
+              flag.SetTrue()
             }
 
           }
@@ -89,9 +90,6 @@ func (self *CLI) Parse(args []string) *Context {
         //    || check next argument for flag or command, else assume param
         
       }
-
-
-      
       // TODO: All these conditions need to be supported
       // -fl --flag
       // -flag=param
@@ -104,37 +102,58 @@ func (self *CLI) Parse(args []string) *Context {
       // TODO: Recursively call the Parse function using arguments skipping up to 
       //       the index+1
       // (for the next argument when used by a flag) 
-
     } else {
       if command, ok := self.Context.Command.Subcommand(argument); ok {
         // Command parse
         command.Parent = self.Context.Command
 
-        self.Context.chain.Commands = self.Context.chain.Commands.Add(command)
-        for _, commandFlag := range command.Flags {
-          self.Context.chain.Flags = append(self.Context.chain.Flags, commandFlag)
-        }
+        self.Context.Commands = self.Context.Commands.Add(command)
+        self.Context.Flags = append(self.Context.Flags, command.Flags...)
 
-        self.Context.chain.Arguments = self.Context.chain.Arguments.Add(
-          self.Context.chain.Commands.Last(),
+        self.Context.Arguments = self.Context.Arguments.Add(
+          self.Context.Commands.Last(),
         )
 
-        self.Context.Command = self.Context.chain.Commands.Last()
+        self.Context.Command = self.Context.Commands.Last()
       } else {
         // Param parse
-        self.Context.chain.Params = self.Context.chain.Params.Add(argument)
-        self.Context.chain.Arguments = self.Context.chain.Arguments.Add(
-          self.Context.chain.Params.Last(),
+        fmt.Println("parsing param: ", argument)
+        self.Context.Params = self.Context.Params.Add(argument)
+        self.Context.Arguments = self.Context.Arguments.Add(
+          self.Context.Params.Last(),
         )
       }
     }
   }
 
-  // NOTE: Caching values for easier access from an action
-  self.Context.Arguments = self.Context.chain.Arguments
-  self.Context.Commands = self.Context.chain.Commands
-  self.Context.Flags = self.Context.chain.Flags
-  self.Context.Params = self.Context.chain.Params
+  fmt.Println("================")
+  fmt.Println("parsing COMPLETED!") 
+  fmt.Println("arguments parsed: ", len(self.Context.Arguments))
+  fmt.Println("                  ", self.Context.Arguments)
+  fmt.Println("commands parsed:  ", len(self.Context.Commands))
+  fmt.Println("                  ", self.Context.Commands)
+  fmt.Println("flags parsed:     ", len(self.Context.Flags))
+  fmt.Println("                  ", self.Context.Flags)
+  fmt.Println("params parsed:    ", len(self.Context.Params))
+  fmt.Println("                  ", self.Context.Params)
+  fmt.Println("---------------")
+  for index, _ := range self.Context.Arguments {
+    fmt.Println((*self.Context.Arguments[index]).Type())
+    fmt.Println(self.Context.Arguments[index])
+  }
+  fmt.Println("---------------")
+  fmt.Println("command:          ", &self.Context.Command)
+
+
+  fmt.Println("\n\n")
+  fmt.Println("================")
+
+
+  fmt.Println("must test if changing the command affects the command stored in")
+  fmt.Println("arguments and commands. and vice versa\n")
+  fmt.Println("
+
+
 
   return self.Context
 }

@@ -122,15 +122,13 @@ func New(app *App) *CLI {
   cli.Context = &Context{
     CLI:     cli,
     Process: Process(),
-    chain:   chain{
-      Params: params{},
-      Flags: app.GlobalFlags,
-      Commands: Commands(appCommand),
-      Arguments: Arguments(appCommand),
-    },
+    Commands: Commands(appCommand),
+    Params: params{},
+    Flags: app.GlobalFlags,
+    Arguments: Arguments(appCommand),
   }
 
-  cli.Context.Command = cli.Context.chain.Commands.Last()
+  cli.Context.Command = cli.Context.Commands.Last()
 
   // TODO: Take actions+hooks and insert them into the app psuedo-command so
   // they can be consolidated and executed in the Execute() command under
