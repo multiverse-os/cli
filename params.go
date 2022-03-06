@@ -2,7 +2,7 @@ package cli
 
 import (
 	"strconv"
-	//"strings"
+	"strings"
 
 	data "github.com/multiverse-os/cli/data"
 )
@@ -29,9 +29,7 @@ func ValidateParam(param Param) error {
   return nil
 }
 
-func (self Param) IsValid() bool {
-  return ValidateParam(self) != nil
-}
+func (self Param) IsValid() bool { return ValidateParam(self) != nil }
 
 // TODO: Param.String() 
 func (self Param) String() string {
@@ -62,7 +60,7 @@ func (self Param) Bool() bool {
 
 // TODO: URL
 
-// TODO: 
+// TODO: This all should be handled by data subpackage
 
 ///////////////////////////////////////////////////////////////////////////////
 type params []*Param
@@ -108,14 +106,11 @@ func (self params) Last() *Param {
 }
 
 func (self params) IsZero() bool { return self.Count() == 0 }
+func (self params) String() string { return strings.Join(self.Strings(), " ") }
 
-//func (self params) Strings() (paramStrings []string) { 
-//  for _, param := range self {
-//    paramStrings = append(paramStrings, param.Value)
-//  }
-//  return paramStrings
-//}
-//
-//func (self params) String() string { 
-//  return strings.Join(self.Strings(), " ")  
-//}
+func (self params) Strings() (paramStrings []string) { 
+  for _, param := range self {
+    paramStrings = append(paramStrings, param.Value)
+  }
+  return paramStrings
+}

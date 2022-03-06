@@ -2,8 +2,6 @@ package cli
 
 import (
   "strings"
-
-  data "github.com/multiverse-os/cli/data"
 )
 
 type Command struct {
@@ -33,81 +31,19 @@ func ValidateCommand(command Command) error {
 
 func (self Command) IsValid() bool { return ValidateCommand(self) != nil }
 
-// Command Private Methods
 func (self Command) is(name string) bool { 
   name = strings.ToLower(name)
   return self.Name == name || self.Alias == name
-}
-
-func (self Command) usage() (output string) {
-  if data.IsBlank(self.Alias) {
-    output += ", " + self.Alias
-  }
-  return self.Name + output
-}
-
-func (self Command) path() []string {
-  route := []string{self.Name}
-  for parent := self.Parent; parent != nil; parent = parent.Parent {
-    route = append(route, parent.Name)
-  }
-  return route
 }
 
 func (self Command) Subcommand(name string) (*Command, bool) {
   return self.Subcommands.Name(name)
 }
 
-// Command Public Methods
 func (self Command) Base() bool { return self.Parent == nil }
-
-// TODO: These should be obsoleted by the Flags and Commands structures 
-//func (self Command) HasFlags() bool { return 0 < len(self.VisibleFlags()) }
-//func (self Command) HasSubcommands() bool { return 0 < len(self.VisibleSubcommands()) }
-
-func (self *Command) HasFlag(name string) bool {
-  return self.Flags.Name(name) != nil
-}
-
-// TODO: This NEEDs to be using the definedFlags in CLI to build the flag object
-//       So it should be a flag passed to the command, not just the name and
-//       value !!
-func (self Command) AddFlag(flag *Flag) Command {
-  self.Flags = append(self.Flags, flag)
-  return self
-}
-
-// TODO: This was UpdateFlag so hopefully we ahve to fix something and this was
-// not a deleterios function!?
-func (self Command) SetFlag(name, value string) Command {
-  flag, flagExists := self.Flag(name)
-  if flagExists {
-    flag.Set(value) // Param.Value = value
-  }
-  return self
-}
-
-func (self Command) Flag(name string) (*Flag, bool) {
-  for _, flag := range self.Flags {
-    if flag.is(strings.ToLower(name)) {
-      return flag, true
-    }
-  }
-  return nil, false
-}
-
-func (self Command) Path() []string {
-  route := []string{self.Name}
-  for parent := self.Parent; parent != nil; parent = parent.Parent {
-    route = append(route, parent.Name)
-  }
-  return route
-}
-
-func (self Command) HasNoAction() bool { return self.Action == nil }
-func (self Command) HasAction() bool { return !self.HasNoAction() }
-
 ///////////////////////////////////////////////////////////////////////////////
+// TODO: These should be consist with linked list even if we dont use it (and we
+// probably should)
 type commands []*Command
 
 func Commands(commands ...Command) (commandPointers commands) { 
@@ -158,7 +94,10 @@ func (self commands) Visible() (visibleCommands commands) {
 
 func (self commands) Add(command *Command) commands  {
   command.Flags = command.Flags.SetDefaults()
+  // TODO: For now add a reversed before returning, so we can have the newest
+  // ones up front. Later we can switch it to container/list package or linked
+  // list so we can append, prepend, etc
+  //return append(self, command).Reversed()
+  // To add this we need to remove 2 reverses from parse
   return append(self, command)
 }
-
-

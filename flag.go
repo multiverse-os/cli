@@ -1,14 +1,9 @@
 package cli
 
 import (
+  "fmt"
 	"strings"
 )
-
-// TODO: When flag is blank, assume its boolean 
-
-// TODO: Create a VersionFlag, HelpFlag, and DebugFlag all hidden by default and
-// added by default to the global flags. 
-
 // TODO: Provide helpers/shortcuts for accessing flag.Param.Int() directly
 // such as flag.Int()
 type FlagType int
@@ -34,6 +29,7 @@ func HasFlagPrefix(flag string) (FlagType, bool) {
   }
  	return UndefinedFlagType, false
 }
+///////////////////////////////////////////////////////////////////////////////
 
 type Flag struct {
 	Command     *Command
@@ -44,36 +40,6 @@ type Flag struct {
 	Default     string
   Param       *Param
 }
-
-func (self Flag) is(name string) bool { 
-  return self.Name == name || self.Alias == name
-}
-
-func (self Flag) String() string { return self.Param.Value }
-func (self Flag) Int() int { return self.Param.Int() }
-func (self Flag) Bool() bool { return self.Param.Bool() }
-
-func (self *Flag) Set(value string) *Flag {
-  // TODO: Validate against param's validation (or create a param set that does
-  // the validation and use that function preferably)
-  self.Param.Value = value
-  return self
-}
-
-func (self *Flag) SetDefault() *Flag {
-  if len(self.Param.Value) == 0 {
-    if len(self.Default) != 0 {
-      self.Set(self.Default)
-    }else{
-      self.SetFalse()
-    }
-  }
-  return self
-}
-
-
-func (self *Flag) SetTrue() *Flag { return self.Set("1") }
-func (self *Flag) SetFalse() *Flag { return self.Set("0") }
 
 func ValidateFlag(flag Flag) error {
   // TODO: Validate param
@@ -95,7 +61,46 @@ func ValidateFlag(flag Flag) error {
 
 func (self Flag) IsValid() bool {  return ValidateFlag(self) != nil }
 
+func (self Flag) is(name string) bool { 
+  return self.Name == name || self.Alias == name
+}
+
+func (self Flag) String() string { return self.Param.Value }
+func (self Flag) Int() int { return self.Param.Int() }
+func (self Flag) Bool() bool { return self.Param.Bool() }
+
+func (self *Flag) Set(value string) *Flag {
+  // TODO: Validate against param's validation (or create a param set that does
+  // the validation and use that function preferably)
+
+  // Prob #1 priorirty
+  // TODO: Before adding a check if param exists and creating a if condition to
+  //       either assign or create param and assign-- we should check if the
+  //       defaults are being correctly defined (and only once)
+  //if self.P
+  fmt.Println("self.Param is nil?", self.Param.Value)
+  self.Param.Value = value
+  return self
+}
+
+func (self *Flag) SetDefault() *Flag {
+  if len(self.Param.Value) == 0 {
+    if len(self.Default) != 0 {
+      self.Set(self.Default)
+    }else{
+      self.SetFalse()
+    }
+  }
+  return self
+}
+
+// TODO: These should be replaced by a toggle, so if a bool is default
+//       true, and the flag sets the variable to false, toggle will 
+//       guarantee we have no edge case failrue. 
+func (self *Flag) SetTrue() *Flag { return self.Set("1") }
+func (self *Flag) SetFalse() *Flag { return self.Set("0") }
 ///////////////////////////////////////////////////////////////////////////////
+
 type flags []*Flag 
 
 func Flags(flags ...Flag) (flagPointers flags) { 
@@ -111,6 +116,9 @@ func (self flags) Reversed() (reversedFlags flags) {
     reversedFlags = append(reversedFlags, self[i])
   }
   return reversedFlags
+  // TODO: Using the principle of this function we could add a Prepend and make
+  // add Append but we will only be prepending and avoiding looping through and
+  // resorting it more than once
 }
 
 // TODO: This required changing IsValid to return the error, and this must be

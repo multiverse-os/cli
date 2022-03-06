@@ -1,7 +1,6 @@
 package cli
 
 import (
-  "fmt"
   "time"
 
   data "github.com/multiverse-os/cli/data"
@@ -125,9 +124,6 @@ func New(app App) *CLI {
     Flags: appCommand.Flags,
     Arguments: Arguments(appCommand),
   }
-
-  fmt.Println("flags from appCommand:", appCommand.Flags)
-  fmt.Println("flags from context:", cli.Context.Flags)
 
   cli.Context.Command = cli.Context.Commands.First()
 

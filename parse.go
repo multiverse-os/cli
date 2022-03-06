@@ -22,68 +22,30 @@ func (self *CLI) Parse(args []string) *Context {
       // alias or name to reduce the unncessary string comparisons
       switch flagType {
       case Short:
-        if len(argument) == 1 {
-          // Not stacked; So, we know value is boolean and == "1"
-          flag := self.Context.Flags.Reversed().Name(argument)
-          if flag != nil {
-            // TODO: Update the flag param value (from default) and confirm it is
-            // working by checking after the parse function is ran
-            flag.SetTrue()
-          }
-        }else{
-          // Stacked
-          fmt.Println("stacked flag, going into loop")
-          for index, shortFlag := range argument {
-            fmt.Println("stacked short flag parsed:", string(shortFlag))
-            // Last Flag (should both functions be at the top?)
-            // When argument length == index +1 
-            //  || flag BEFORE equals sign 
-            if len(argument) == index + 1 {
-              fmt.Println("argument length + 1; or AT the end of the stack!")
-              // Last short flag could be boolean == "1" 
-              //    || check next argument for flag or command, else assume param
+        fmt.Println("stacked flag, going into loop")
+        // NOTE: One or more short flags (stacked and single)
+        for index, shortFlag := range argument {
+          // TODO: Still need to handle condition for flag has param and not
+          // using equals but ' ' (space) 
+          // if next major argument is not flag or command, then we should
+          // just assign that param to both the last flag, and the general
+          // params (using a single object)
 
-              // TODO: Check if the next argument is COMMAND or FLAG or NIL
-              //             In this condition flag value == "1"
-
-              //      ELSE
-              //       next argument is the new flag value
-              break
-            }
-            // TODO: When we hit the = sign, we take the last flag (which was
-            // set to true) and we replace it with argument[index+1:]
-            // NOTE: '=' = 61;
-            if shortFlag == 61 {
-              fmt.Println("equals sign found, assigning param to last flag added")
-              // TODO: But this wont work yet because we are not yet actually
-              // locating the defined flags and adding them to the flag chain
-
-              fmt.Println("----")
-              fmt.Println("flags in context count!:", len(self.Context.Flags))
-              fmt.Println("flags:", self.Context.Flags)
-              fmt.Println("----")
-              fmt.Println("argument[index+1:]:", argument[index+1:])
-              fmt.Println("----")
-          
-              // Pull LAST stacked flag
-              // TODO: Should this be reversed?
-              previousFlag := self.Context.Flags.Reversed().Name(string(argument[index-1]))
-              previousFlag.Set(argument[index+1:])
-              // NOTE: We definitely break here, because we are skipping the
-              // reaminder, since we just assigned it all to the previous flag
-              break
-            }
-
-            // Every flag before the last one value is boolean and == "1"
-            flag := self.Context.Flags.Reversed().Name(string(shortFlag))
+          // NOTE: Confirm we are not last && next argument is '=' (61)
+          if len(argument) != index + 1 && argument[index+1] == 61 { 
+            previousFlag := self.Context.Flags.Name(string(argument[index-1]))
+            // NOTE: +2 because we must skip the equals sign
+            // TODO: Confirm this doesnt fail with empty flag like -l= test
+            //       probably gonna need a size check before attempting this 
+            //       to avoid weird edge case runtime errors
+            fmt.Println("previousFlag has param?", previousFlag.Param)
+            previousFlag.Set(argument[index+2:])
+          }else{
+            // NOTE: Every flag before the last one value is boolean and == "1"
+            flag := self.Context.Flags.Name(string(shortFlag))
             if flag != nil {
-              fmt.Println("flag ", string(shortFlag), " exists, setting it to true")
-
-            // working by checking after the parse function is ran
-            // TODO: This one is misfiring, if its on, it will wrongly convert a
-            // flag that is supposed to include a param (even using -l=test) to
-            // 1
-              //flag.SetTrue()
+              // NOTE: Working by checking after the parse function is ran
+              flag.SetTrue()
             }
           }
         }
@@ -93,18 +55,6 @@ func (self *CLI) Parse(args []string) *Context {
         //    || check next argument for flag or command, else assume param
         
       }
-      // TODO: All these conditions need to be supported
-      // -fl --flag
-      // -flag=param
-      // -flag param
-
-      //parsedFlags = append(parsedFlags, chain.ParseFlag(flagType, argument, chain.NextArgument(index)))
-
-      //context.ParseFlag(index, flagType, &Flag{Name: argument})
-
-      // TODO: Recursively call the Parse function using arguments skipping up to 
-      //       the index+1
-      // (for the next argument when used by a flag) 
     } else {
       if command, ok := self.Context.Command.Subcommand(argument); ok {
         // Command parse
@@ -119,6 +69,10 @@ func (self *CLI) Parse(args []string) *Context {
 
         self.Context.Command = self.Context.Commands.Last()
       } else {
+        // TODO: If PREV argument is type Flag (use type switch not enumerator)
+        //       then also assign this param to the previous flags param 
+        //       (but use same object, changing one should affect the other)
+        //       and then that will cover both = and ' '
         // Param parse
         fmt.Println("parsing param: ", argument)
         self.Context.Params, _ = self.Context.Params.Add(argument)
