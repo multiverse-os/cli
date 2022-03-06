@@ -22,7 +22,7 @@ type Version struct {
 	Major int
 	Minor int
 	Patch int
-	Build *BuildInformation
+	Build BuildInformation
 }
 
 func MarshalVersion(version string) Version {
@@ -45,7 +45,7 @@ type BuildInformation struct {
 	CompiledAt string
 }
 
-func (self *Build) AddDeveloper(name, email string) {
+func (self Build) AddDeveloper(name, email string) {
 	self.Developers = append(self.Developers, Developer{
 		Name:  name,
 		Email: email,
@@ -72,10 +72,13 @@ func (self Version) ColorString() string {
 			colorVersion = append(colorVersion, ansi.Bold(ansi.Purple(versionComponent)))
 		}
 	}
-	return ansi.Light(ansi.Blue("[")) + ansi.Light(ansi.Blue("v")) + strings.Join(colorVersion, ansi.White(".")) + ansi.Light(ansi.Blue("]"))
+	return ansi.Light(ansi.Blue("[")) + 
+         ansi.Light(ansi.Blue("v")) + 
+         strings.Join(colorVersion, ansi.White(".")) +
+         ansi.Light(ansi.Blue("]"))
 }
 
-func (self *CLI) RenderVersionTemplate() error {
+func (self CLI) RenderVersionTemplate() error {
 	err := template.StdOut(defaultVersionTemplate(), map[string]string{
 		"header":  ansi.Bold(ansi.SkyBlue(self.Context.Commands.First().Name)),
 		"version": self.Version.ColorString(),
@@ -97,44 +100,29 @@ func defaultVersionTemplate() string {
 }
 
 func (self Version) undefined() bool {
-	return (self.Major == 0 && self.Minor == 0 && self.Patch == 0)
+	return self.Major == 0 &&
+         self.Minor == 0 &&
+         self.Patch == 0
 }
 
-func DefaultVersion() Version {
-	return Version{Major: 0, Minor: 1, Patch: 0}
-}
-
-// Public Methods
 ///////////////////////////////////////////////////////////////////////////////
-type Compare func(a, b int) bool
-
-func (self Version) DefaultVersion() Version { return Version{Major: 0, Minor: 1, Patch: 0} }
-
-func (self Version) CompareComponent(component VersionComponent, compare Compare, v Version) bool {
-	switch component {
-	case Major:
-		return compare(self.Major, v.Major)
-	case Minor:
-		return compare(self.Minor, v.Minor)
-	case Patch:
-		return compare(self.Minor, v.Minor)
-	default:
-		return false
-	}
-}
-
+// TODO: Add sorting
 func (self Version) IsSame(v Version) bool {
-	return self.Major == v.Major && self.Minor == v.Minor && self.Patch == v.Patch
+	return self.Major == v.Major && 
+         self.Minor == v.Minor &&
+         self.Patch == v.Patch
 }
 
 func (self Version) IsOlderThan(v Version) bool {
 	return self.Major < v.Major ||
-		(self.Major == v.Major && (self.Minor < v.Minor || (self.Minor == v.Minor && self.Patch < v.Patch)))
+		     (self.Major == v.Major && (self.Minor < v.Minor ||
+         (self.Minor == v.Minor && self.Patch < v.Patch)))
 }
 
 func (self Version) IsNewerThan(v Version) bool {
 	return self.Major > v.Major ||
-		(self.Major == v.Major && (self.Minor > v.Minor || (self.Minor == v.Minor && self.Patch > v.Patch)))
+		     (self.Major == v.Major && (self.Minor > v.Minor || 
+         (self.Minor == v.Minor && self.Patch > v.Patch)))
 }
 
 func (self Version) String() string {

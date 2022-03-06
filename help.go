@@ -53,40 +53,34 @@ func (self *Context) expectingCommandsOrSubcommand() string {
 //       template like this. This could be the default fallback.
 func (self *Context) helpTemplate(command *Command) (t string) {
 	t += "\n{{.header}}"
-
-	t += Prefix() + 
-       "{{.usage}}\n"
-
+	t += Prefix() + "{{.usage}}\n"
 	t += Tab() + 
        strings.ToLower(strings.Join(self.Commands.Names(), " ")) + 
        strings.ToLower(self.expectingCommandsOrSubcommand()) + 
        " [parameters]" + 
        "\n\n"
-
-	t += Prefix() +
+	t += Prefix() + 
        "{{.availableCommands}}\n"
-
 	for _, subcommand := range command.Subcommands.Visible() {
 		t += Tab() + 
          subcommand.usage() + 
-         strings.Repeat(" ", (18-len(subcommand.usage()))) + 
-         subcommand.Description
+        strings.Repeat(" ", (18-len(subcommand.usage()))) +
+        subcommand.Description
 	}
-
 	t += "\n\n\n"
 
 	// TODO: Should the command flags be printed with global flags too?
 	for _, command := range self.Commands {
 		if len(command.Flags) != 0 {
 			if command.Base() {
-				t += Prefix() + 
+				t += Prefix() +
              "{{.availableFlags}}\n"
 			} else {
-				t += Prefix() +
+				t += Prefix() + 
              "Global {{.availableFlags}}\n"
 			}
 			for _, flag := range command.Flags {
-				t += FlagHelp(flag)
+				t += flagHelp(*flag)
 			}
 			t += "\n"
 		}
@@ -96,18 +90,24 @@ func (self *Context) helpTemplate(command *Command) (t string) {
 }
 
 
-func FlagHelp(flag *Flag) string {
-	usage := Long.String() + flag.Name
+func flagHelp(flag Flag) string {
+	usage := Long.String() + 
+           flag.Name
 	if data.NotBlank(flag.Alias) {
-		usage += ", " + Short.String() + flag.Alias
+		usage += ", " +
+             Short.String() +
+             flag.Alias
 	}
 	var defaultValue string
 	if len(flag.Default) != 0 {
-		defaultValue = " [≅ " + flag.Default + "]"
+		defaultValue = " [≅ " +
+                  flag.Default +
+                  "]"
 	}
 	return strings.Repeat(" ", 4) +
-         usage + 
+         usage +
          strings.Repeat(" ", 18-len(usage)) +
          flag.Description + defaultValue +
          "\n"
 }
+
