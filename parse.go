@@ -1,6 +1,7 @@
 package cli
 
 import (
+  "fmt"
   "os"
   "strings"
   "time"
@@ -11,6 +12,11 @@ import (
 func (self *CLI) Parse(args []string) *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
   for _, argument := range os.Args[1:] {
+
+    // TODO
+    // Right now stacked flags work fine, but a single short flag space
+    // separated will not work; but equals works 
+
     // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
       argument = flagType.TrimPrefix(argument)
@@ -79,10 +85,21 @@ func (self *CLI) Parse(args []string) *Context {
 
         self.Context.Command = self.Context.Commands.Last()
       } else {
-        self.Context.Params, _ = self.Context.Params.Add(argument)
+        self.Context.Params = self.Context.Params.Add(argument)
 
         if flag := self.Context.Arguments.PreviousFlag(); flag != nil {
-          if len(flag.Param.Value) == 0 || flag.Param.Value == flag.Default {
+          fmt.Println("are we getting here because we like ened to be here")
+
+          fmt.Println("flag.Param.Value: ", flag.Param.Value) 
+          fmt.Println("len(flag.Param.Value) == 0", len(flag.Param.Value) == 0)
+
+          fmt.Println("...")
+          fmt.Println("flag.Default: ", flag.Default)
+
+          if len(flag.Param.Value) == 0 ||
+             flag.Param.Value == flag.Default ||
+             len(flag.Default) == 0 {
+
             flag.Param = self.Context.Params.Last()
           }
         }

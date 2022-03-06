@@ -72,15 +72,18 @@ func Params(params ...Param) (paramPointers params) {
   return paramPointers
 }
 
-func (self params) Add(param string) (params, error) { 
-  newParam := &Param{Value: param}
-  err := ValidateParam(*newParam)
-  if err != nil {
-    return append(self, newParam), err
-  }else{
-    return self, err
+func (self params) Add(paramValue string) (prepended params) {
+  newParam := &Param{Value: paramValue}
+  //err := ValidateParam(*newParam)
+  prepended = append(prepended, newParam)
+  for _, param := range self {
+    prepended = append(prepended, param)
   }
+
+  return prepended
 }
+
+
 
 // TODO: Add ability to output URL, and Path types, since these would be very
 //       common and the ability to validate them would be nice. For example,

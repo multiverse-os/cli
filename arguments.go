@@ -19,10 +19,15 @@ func Arguments(arguments ...Argument) (argumentPointers arguments) {
 }
 
 func (self arguments) Last() Argument { return self[self.Count()-1] }
+func (self arguments) First() Argument { return self[0] }
 func (self arguments) Count() int { return len(self) }
 
-func (self arguments) Add(argument Argument) arguments { 
-  return append(self, argument)
+func (self arguments) Add(newArgument Argument) arguments { 
+  prepended := Arguments(newArgument)
+  for _, argument := range self {
+    prepended = append(prepended, argument)
+  }
+  return prepended
 }
 
 func (self arguments) Reversed() (reversedArguments arguments) {
@@ -35,7 +40,7 @@ func (self arguments) Reversed() (reversedArguments arguments) {
 // TODO: This works but we would rather build the prepend function, get rid of
 // Reversed() if we don't end up using it, 
 func (self arguments) PreviousFlag() *Flag {
-  argument := self.Reversed()[0]
+  argument := self.First()
 	switch argument.(type) {
 	case *Flag:
     return ToFlag(argument)

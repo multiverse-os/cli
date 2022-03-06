@@ -110,30 +110,18 @@ func Flags(flags ...Flag) (flagPointers flags) {
   return flagPointers
 }
 
-func (self flags) Reversed() (reversedFlags flags) {
-  for i := self.Count() - 1; i >= 0; i-- {
-    reversedFlags = append(reversedFlags, self[i])
+func (self flags) Add(newFlag *Flag) (prepended flags) { 
+  newFlag.Param = &Param{Value: newFlag.Default}
+  // TODO: Previously it had validation, decide if its actually necessary
+  //       because arguments for example doesnt have two return values; and we
+  //       want consistency across the different add functions. if it does go
+  //       in, we need it for all of them
+  //err := ValidateFlag(*flag)
+  prepended = append(prepended, newFlag)
+  for _, flag := range self {
+    prepended = append(prepended, flag)
   }
-  return reversedFlags
-  // TODO: Using the principle of this function we could add a Prepend and make
-  // add Append but we will only be prepending and avoiding looping through and
-  // resorting it more than once
-}
-
-// TODO: This required changing IsValid to return the error, and this must be
-// done for param and command.
-func (self flags) Add(flag *Flag) (flags, error) {
-  // TODO: Add should prepend, by looping thruogh and assigning to a new loop
-  // that is initiated with our new flag
-  // Pull from the reverse function, start new flags with our new added flag
-  // then we add each one in order
-  flag.Param = &Param{Value: flag.Default}
-  err := ValidateFlag(*flag)
-  if err != nil {
-    return append(self, flag), err
-  }else{
-    return self, err
-  }
+  return prepended
 }
 
 func (self flags) Name(name string) *Flag {

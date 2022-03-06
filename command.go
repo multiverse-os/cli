@@ -92,12 +92,12 @@ func (self commands) Visible() (visibleCommands commands) {
   return visibleCommands
 }
 
-func (self commands) Add(command *Command) commands  {
-  command.Flags = command.Flags.SetDefaults()
-  // TODO: For now add a reversed before returning, so we can have the newest
-  // ones up front. Later we can switch it to container/list package or linked
-  // list so we can append, prepend, etc
-  //return append(self, command).Reversed()
-  // To add this we need to remove 2 reverses from parse
-  return append(self, command)
+func (self commands) Add(newCommand *Command) (prepended commands) { 
+  newCommand.Flags = newCommand.Flags.SetDefaults()
+  prepended = append(prepended, newCommand)
+  for _, command := range self {
+    prepended = append(prepended, command)
+  }
+  return prepended
 }
+
