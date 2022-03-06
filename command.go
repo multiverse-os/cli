@@ -147,16 +147,6 @@ func (self commands) Reversed() (reversedCommands commands) {
   return reversedCommands
 }
 
-// TODO: This isnt used atm, and probably wont be needed
-//func (self commands) Hidden() (hiddenCommands commands) {
-//  for _, command := range self {
-//    if command.Hidden {
-//      hiddenCommands = append(hiddenCommands, command)
-//    }
-//  }
-//  return hiddenCommands
-//}
-
 func (self commands) Visible() (visibleCommands commands) {
   for _, command := range self {
     if !command.Hidden {
@@ -167,11 +157,7 @@ func (self commands) Visible() (visibleCommands commands) {
 }
 
 func (self commands) Add(command *Command) commands  {
-  for _, flag := range command.Flags {
-    flag.Param = &Param{
-      Value: flag.Default,
-    }
-  }
+  command.Flags = command.Flags.SetDefaults()
   return append(self, command)
 }
 

@@ -24,7 +24,6 @@ func (self *CLI) Parse(args []string) *Context {
       case Short:
         if len(argument) == 1 {
           // Not stacked; So, we know value is boolean and == "1"
-
           flag := self.Context.Flags.Reversed().Name(argument)
           if flag != nil {
             // TODO: Update the flag param value (from default) and confirm it is
@@ -33,12 +32,14 @@ func (self *CLI) Parse(args []string) *Context {
           }
         }else{
           // Stacked
+          fmt.Println("stacked flag, going into loop")
           for index, shortFlag := range argument {
             fmt.Println("stacked short flag parsed:", string(shortFlag))
             // Last Flag (should both functions be at the top?)
             // When argument length == index +1 
             //  || flag BEFORE equals sign 
             if len(argument) == index + 1 {
+              fmt.Println("argument length + 1; or AT the end of the stack!")
               // Last short flag could be boolean == "1" 
               //    || check next argument for flag or command, else assume param
 
@@ -47,6 +48,7 @@ func (self *CLI) Parse(args []string) *Context {
 
               //      ELSE
               //       next argument is the new flag value
+              break
             }
             // TODO: When we hit the = sign, we take the last flag (which was
             // set to true) and we replace it with argument[index+1:]
@@ -60,9 +62,15 @@ func (self *CLI) Parse(args []string) *Context {
               fmt.Println("flags in context count!:", len(self.Context.Flags))
               fmt.Println("flags:", self.Context.Flags)
               fmt.Println("----")
-
-              flag := self.Context.Flags.Last()
-              flag.Set(argument[index+1:])
+              fmt.Println("argument[index+1:]:", argument[index+1:])
+              fmt.Println("----")
+          
+              // Pull LAST stacked flag
+              // TODO: Should this be reversed?
+              previousFlag := self.Context.Flags.Reversed().Name(string(argument[index-1]))
+              previousFlag.Set(argument[index+1:])
+              // NOTE: We definitely break here, because we are skipping the
+              // reaminder, since we just assigned it all to the previous flag
               break
             }
 
@@ -70,11 +78,13 @@ func (self *CLI) Parse(args []string) *Context {
             flag := self.Context.Flags.Reversed().Name(string(shortFlag))
             if flag != nil {
               fmt.Println("flag ", string(shortFlag), " exists, setting it to true")
-            // TODO: Update the flag param value (from default) and confirm it is
-            // working by checking after the parse function is ran
-              flag.SetTrue()
-            }
 
+            // working by checking after the parse function is ran
+            // TODO: This one is misfiring, if its on, it will wrongly convert a
+            // flag that is supposed to include a param (even using -l=test) to
+            // 1
+              //flag.SetTrue()
+            }
           }
         }
       case Long:

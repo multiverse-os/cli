@@ -113,7 +113,7 @@ func New(app App) *CLI {
     Name:        app.Name,
     Description: app.Description,
     Subcommands: app.Commands,
-    Flags:       app.GlobalFlags,
+    Flags:       app.GlobalFlags.SetDefaults(),
     Hidden:      true,
   }
 

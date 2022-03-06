@@ -60,6 +60,18 @@ func (self *Flag) Set(value string) *Flag {
   return self
 }
 
+func (self *Flag) SetDefault() *Flag {
+  if len(self.Param.Value) == 0 {
+    if len(self.Default) != 0 {
+      self.Set(self.Default)
+    }else{
+      self.SetFalse()
+    }
+  }
+  return self
+}
+
+
 func (self *Flag) SetTrue() *Flag { return self.Set("1") }
 func (self *Flag) SetFalse() *Flag { return self.Set("0") }
 
@@ -148,4 +160,11 @@ func (self flags) Last() *Flag {
     return self[len(self)-1] 
   }
   return nil 
+}
+
+func (self flags) SetDefaults() flags {
+  for _, flag := range self {
+    flag.SetDefault()
+  }
+  return self
 }
