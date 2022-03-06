@@ -1,9 +1,5 @@
 package cli
 
-import (
-  "fmt"
-)
-
 type Argument interface {
   IsValid() bool
 }
@@ -40,7 +36,6 @@ func (self arguments) Reversed() (reversedArguments arguments) {
 // Reversed() if we don't end up using it, 
 func (self arguments) PreviousFlag() *Flag {
   argument := self.Reversed()[0]
-  fmt.Println("checking argument for previous flag")
 	switch argument.(type) {
 	case *Flag:
     return ToFlag(argument)
