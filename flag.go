@@ -1,7 +1,6 @@
 package cli
 
 import (
-  "fmt"
 	"strings"
 
   data "github.com/multiverse-os/cli/data"
@@ -70,13 +69,6 @@ func (self Flag) Bool() bool { return self.Param.Bool() }
 func (self *Flag) Set(value string) *Flag {
   // TODO: Validate against param's validation (or create a param set that does
   // the validation and use that function preferably)
-
-  // Prob #1 priorirty
-  // TODO: Before adding a check if param exists and creating a if condition to
-  //       either assign or create param and assign-- we should check if the
-  //       defaults are being correctly defined (and only once)
-  //if self.P
-  fmt.Println("self.Param is nil?", self.Param.Value)
   self.Param.Value = value
   return self
 }
@@ -133,8 +125,8 @@ func (self flags) Reversed() (reversedFlags flags) {
 func (self flags) Add(flag *Flag) (flags, error) {
   // TODO: Add should prepend, by looping thruogh and assigning to a new loop
   // that is initiated with our new flag
-  // TODO: Doesn't correctly handle this; default can be blank, and we need a
-  // default value. Also if value already exists, we don't overwrite it!
+  // Pull from the reverse function, start new flags with our new added flag
+  // then we add each one in order
   flag.Param = &Param{Value: flag.Default}
   err := ValidateFlag(*flag)
   if err != nil {
@@ -146,8 +138,6 @@ func (self flags) Add(flag *Flag) (flags, error) {
 
 func (self flags) Name(name string) *Flag {
   for _, flag := range self {
-    fmt.Println("checking flag with name:", flag.Name)
-    fmt.Println("                   alias:", flag.Alias)
     if flag.is(name) {
       return flag
     }

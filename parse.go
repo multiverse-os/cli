@@ -16,23 +16,28 @@ func (self *CLI) Parse(args []string) *Context {
     if flagType, ok := HasFlagPrefix(argument); ok {
       argument = flagType.TrimPrefix(argument)
       switch flagType {
+        // TODO: and the preventing of non-boolean defaults not allowing
+        // param.value to be set 
       case Short:
         // NOTE: One or more short flags (stacked and single)
-        for index, shortFlag := range argument {
+        for index, flagAlias := range argument {
           // NOTE: Confirm we are not last && next argument is '=' (61) &&
           if len(argument) != index + 1 && argument[index+1] == 61 { 
-            if previousFlag := self.Context.Flags.Name(string(argument[index])); previousFlag != nil {
+            if flag := self.Context.Flags.Name(string(flagAlias)); flag != nil {
               if flagParam := argument[index+2:]; len(flagParam) != 0 {
-                previousFlag.Set(flagParam)
+                flag.Set(flagParam)
               }else{
-                previousFlag.SetDefault()
+                flag.SetDefault()
               }
+              break
             }
           }else{
-            if flag := self.Context.Flags.Name(string(shortFlag)); flag != nil {
-              if data.IsTrue(flag.Default) || data.IsFalse(flag.Default) {
+            if flag := self.Context.Flags.Name(string(flagAlias)); flag != nil {
+              // NOTE: If the default value is not boolean or blank, no
+              // assignment occurs to avoid input failures.
+              if data.IsBoolean(flag.Default) {
                 flag.ToggleBoolean()
-              }else{
+              }else if len(flag.Default) == 0 {
                 flag.SetTrue()
               }
             }
@@ -72,6 +77,9 @@ func (self *CLI) Parse(args []string) *Context {
 
         self.Context.Command = self.Context.Commands.Last()
       } else {
+        // TODO: THIS IS THE LAST PART OF THE PARSING FUCNTION, we jsut need to
+        // assign any param we locate to the PREV flag
+
         // TODO: If PREV argument is type Flag (use type switch not enumerator)
         //       then also assign this param to the previous flags param 
         //       (but use same object, changing one should affect the other)
@@ -92,29 +100,29 @@ func (self *CLI) Parse(args []string) *Context {
     }
   }
 
-  fmt.Println("================")
-  fmt.Println("parsing COMPLETED!") 
-  fmt.Println("arguments parsed: ", len(self.Context.Arguments))
-  fmt.Println("                  ", self.Context.Arguments)
-  fmt.Println("commands parsed:  ", len(self.Context.Commands))
-  fmt.Println("                  ", self.Context.Commands)
-  fmt.Println("flags parsed:     ", len(self.Context.Flags))
-  fmt.Println("                  ", self.Context.Flags)
-  fmt.Println("params parsed:    ", len(self.Context.Params))
-  fmt.Println("                  ", self.Context.Params)
-  fmt.Println("---------------")
+  //fmt.Println("================")
+  //fmt.Println("parsing COMPLETED!") 
+  //fmt.Println("arguments parsed: ", len(self.Context.Arguments))
+  //fmt.Println("                  ", self.Context.Arguments)
+  //fmt.Println("commands parsed:  ", len(self.Context.Commands))
+  //fmt.Println("                  ", self.Context.Commands)
+  //fmt.Println("flags parsed:     ", len(self.Context.Flags))
+  //fmt.Println("                  ", self.Context.Flags)
+  //fmt.Println("params parsed:    ", len(self.Context.Params))
+  //fmt.Println("                  ", self.Context.Params)
+  //fmt.Println("---------------")
 
-  firstCommand := self.Context.Commands.First()
-  fmt.Println("Command(first)")
-  fmt.Println("  Name:        ", firstCommand.Name)
-  fmt.Println("  Alias:       ", firstCommand.Alias)
-  fmt.Println("  Description: ", firstCommand.Description)
-  fmt.Println("  Hidden:      ", firstCommand.Hidden)
-  fmt.Println("  Parent:      ", firstCommand.Parent)
-  fmt.Println("  Subcommands: ", firstCommand.Subcommands)
-  fmt.Println("  Flags:       ", firstCommand.Flags)
-  fmt.Println("  Action:      ", firstCommand.Action)
-  fmt.Println("  Hooks:       ", firstCommand.Hooks)
+  //firstCommand := self.Context.Commands.First()
+  //fmt.Println("Command(first)")
+  //fmt.Println("  Name:        ", firstCommand.Name)
+  //fmt.Println("  Alias:       ", firstCommand.Alias)
+  //fmt.Println("  Description: ", firstCommand.Description)
+  //fmt.Println("  Hidden:      ", firstCommand.Hidden)
+  //fmt.Println("  Parent:      ", firstCommand.Parent)
+  //fmt.Println("  Subcommands: ", firstCommand.Subcommands)
+  //fmt.Println("  Flags:       ", firstCommand.Flags)
+  //fmt.Println("  Action:      ", firstCommand.Action)
+  //fmt.Println("  Hooks:       ", firstCommand.Hooks)
 
   return self.Context
 }

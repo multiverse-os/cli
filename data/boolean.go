@@ -57,6 +57,8 @@ func IsFalse(value string) bool {
 	return false
 }
 
+func IsBoolean(value string) bool { return IsFalse(value) || IsTrue(value) }
+
 ///////////////////////////////////////////////////////////////////////////////
 
 func (self Boolean) Bool() bool { return bool(self) }
