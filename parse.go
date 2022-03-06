@@ -4,6 +4,8 @@ import (
   "time"
   "os"
   "fmt"
+
+  data "github.com/multiverse-os/cli/data"
 )
 
 func (self *CLI) Parse(args []string) *Context {
@@ -34,32 +36,19 @@ func (self *CLI) Parse(args []string) *Context {
           // NOTE: Confirm we are not last && next argument is '=' (61) &&
           if len(argument) != index + 1 && argument[index+1] == 61 { 
             if previousFlag := self.Context.Flags.Name(string(argument[index])); previousFlag != nil {
-              // TODO: Confirm this doesnt fail with empty flag like -l= test
-              //       probably gonna need a size check before attempting this 
-              //       to avoid weird edge case runtime errors
-
-
-              // NOTE: +2 because we must skip the equals sign
-              fmt.Println("previousFlag has param?", previousFlag.Param)
-              previousFlag.Set(argument[index+2:])
+              if flagParam := argument[index+2:]; len(flagParam) != 0 {
+                previousFlag.Set(flagParam)
+              }else{
+                previousFlag.SetDefault()
+              }
             }
           }else{
-            // TODO: Boolean short flag should use toggle in the case developer
-            //       using the library sets the default to true. 
-            fmt.Println("boolean flag, setting true, but should toggle: ", string(shortFlag))
-
-            // TODO: To catch weird edge conditions, we should skil boolean
-            // flag assignment if the default isn't "1" or "0" or nil. For
-            // example, if lanuage has default "en" then we can assume, it
-            // shouldn't be assigned 1 by default, we should assume the user
-            // has failed to give the flag the param, and we could avoid edge
-            // condition errors in software using this by checking for that.
-
-            flag := self.Context.Flags.Name(string(shortFlag))
-            if flag != nil {
-              flag.SetTrue()
-            }else{
-              fmt.Println("no flag found")
+            if flag := self.Context.Flags.Name(string(shortFlag)); flag != nil {
+              if data.IsTrue(flag.Default) || data.IsFalse(flag.Default) {
+                flag.ToggleBoolean()
+              }else{
+                flag.SetTrue()
+              }
             }
           }
         }
@@ -67,7 +56,7 @@ func (self *CLI) Parse(args []string) *Context {
         // Long flag could be boolean == "1" 
         //    || if contains = it has param
         //    || check next argument for flag or command, else assume param
-        
+
       }
     } else {
       if command, ok := self.Context.Command.Subcommand(argument); ok {

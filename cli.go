@@ -121,7 +121,7 @@ func New(app App) *CLI {
     Name:        app.Name,
     Description: app.Description,
     Subcommands: app.Commands,
-    Flags:       app.GlobalFlags.SetDefaults().Reversed(),
+    Flags:       app.GlobalFlags.SetDefaults(),
     Hidden:      true,
   }
 

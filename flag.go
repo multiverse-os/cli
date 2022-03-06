@@ -3,6 +3,8 @@ package cli
 import (
   "fmt"
 	"strings"
+
+  data "github.com/multiverse-os/cli/data"
 )
 // TODO: Provide helpers/shortcuts for accessing flag.Param.Int() directly
 // such as flag.Int()
@@ -95,6 +97,15 @@ func (self *Flag) SetDefault() *Flag {
 //       guarantee we have no edge case failrue. 
 func (self *Flag) SetTrue() *Flag { return self.Set("1") }
 func (self *Flag) SetFalse() *Flag { return self.Set("0") }
+
+func (self *Flag) ToggleBoolean() *Flag {
+  if data.IsTrue(self.Param.Value) {
+    return self.SetFalse()
+  }else{
+    return self.SetTrue()
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 type flags []*Flag 
