@@ -1,38 +1,24 @@
 package cli
 
 import (
-  "time"
-  "os"
   "fmt"
+  "os"
+  "strings"
+  "time"
 
   data "github.com/multiverse-os/cli/data"
 )
 
 func (self *CLI) Parse(args []string) *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
-  for index, argument := range os.Args[1:] {
-    fmt.Println("index: ", index)
-    fmt.Printf("determining if flag, command or param: '%v' \n", argument)
+  for _, argument := range os.Args[1:] {
     // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
-      fmt.Println("argument has flag prefix, determining if long or short")
       argument = flagType.TrimPrefix(argument)
-
-      // TODO: This loops over the flags twice, it will likely be better to
-      // combine the logic of Name() and Reversed()
-      // TODO: Implement a is() function specifically for checking against 
-      // alias or name to reduce the unncessary string comparisons
       switch flagType {
       case Short:
-        fmt.Println("stacked flag, going into loop")
         // NOTE: One or more short flags (stacked and single)
         for index, shortFlag := range argument {
-          // TODO: Still need to handle condition for flag has param and not
-          // using equals but ' ' (space) 
-          // if next major argument is not flag or command, then we should
-          // just assign that param to both the last flag, and the general
-          // params (using a single object)
-
           // NOTE: Confirm we are not last && next argument is '=' (61) &&
           if len(argument) != index + 1 && argument[index+1] == 61 { 
             if previousFlag := self.Context.Flags.Name(string(argument[index])); previousFlag != nil {
@@ -53,10 +39,24 @@ func (self *CLI) Parse(args []string) *Context {
           }
         }
       case Long:
-        // Long flag could be boolean == "1" 
-        //    || if contains = it has param
-        //    || check next argument for flag or command, else assume param
-
+        longFlagParts := strings.Split(argument, "=")
+        // When there is 1 part its a boolean type flag
+        // TODO: DRY this up, its repeated from above; should be flag method
+        if flag := self.Context.Flags.Name(string(longFlagParts[0])); flag != nil {
+          if len(longFlagParts) == 1 {
+            if data.IsTrue(flag.Default) || data.IsFalse(flag.Default) {
+              flag.ToggleBoolean()
+            }else{
+              flag.SetTrue()
+            }
+          }else if len(longFlagParts) == 2 {
+            if 0 < len(longFlagParts[1]) {
+              flag.Set(longFlagParts[1])
+            }else{
+              flag.SetDefault()
+            }
+          }
+        }
       }
     } else {
       if command, ok := self.Context.Command.Subcommand(argument); ok {
