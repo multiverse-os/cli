@@ -55,6 +55,12 @@ func (self *CLI) Parse(args []string) *Context {
               fmt.Println("equals sign found, assigning param to last flag added")
               // TODO: But this wont work yet because we are not yet actually
               // locating the defined flags and adding them to the flag chain
+
+              fmt.Println("----")
+              fmt.Println("flags in context count!:", len(self.Context.Flags))
+              fmt.Println("flags:", self.Context.Flags)
+              fmt.Println("----")
+
               flag := self.Context.Flags.Last()
               flag.Set(argument[index+1:])
               break

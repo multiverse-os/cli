@@ -85,15 +85,6 @@ type CLI struct {
   //Locale         string // Not yet implemented
 }
 
-//type Level uint8
-//
-//const (
-//	GlobalLevel Level = iota
-//	CommandLevel
-//)
-
-
-
 func (self CLI) Log(output ...string)   { self.Outputs.Log(DEBUG, output...) }
 func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
 func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
@@ -118,20 +109,13 @@ func New(app App) *CLI {
     },
   }
 
-  fmt.Println("app:", app)
-  fmt.Println("app.GlobalFlags: ", app.GlobalFlags)
-  // TODO: This doesnt actually assign the default to the value of the flag
-  // param, which may cause issues. Right now in fact there are no flags when
-  // checking after parse on the first command
   appCommand := Command{
     Name:        app.Name,
     Description: app.Description,
     Subcommands: app.Commands,
     Flags:       app.GlobalFlags,
+    Hidden:      true,
   }
-
-  fmt.Println("app:", app)
-  fmt.Println("app.GlobalFlags: ", app.GlobalFlags)
 
   cli.Context = &Context{
     CLI:     cli,
@@ -141,6 +125,9 @@ func New(app App) *CLI {
     Flags: appCommand.Flags,
     Arguments: Arguments(appCommand),
   }
+
+  fmt.Println("flags from appCommand:", appCommand.Flags)
+  fmt.Println("flags from context:", cli.Context.Flags)
 
   cli.Context.Command = cli.Context.Commands.First()
 

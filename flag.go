@@ -61,6 +61,7 @@ func (self *Flag) Set(value string) *Flag {
 }
 
 func (self *Flag) SetTrue() *Flag { return self.Set("1") }
+func (self *Flag) SetFalse() *Flag { return self.Set("0") }
 
 func ValidateFlag(flag Flag) error {
   // TODO: Validate param
@@ -103,6 +104,8 @@ func (self flags) Reversed() (reversedFlags flags) {
 // TODO: This required changing IsValid to return the error, and this must be
 // done for param and command.
 func (self flags) Add(flag *Flag) (flags, error) {
+  // TODO: Doesn't correctly handle this; default can be blank, and we need a
+  // default value. Also if value already exists, we don't overwrite it!
   flag.Param = &Param{Value: flag.Default}
   err := ValidateFlag(*flag)
   if err != nil {
@@ -142,7 +145,7 @@ func (self flags) First() *Flag {
 
 func (self flags) Last() *Flag { 
   if 0 < self.Count() {
-    return self[len(self)+1] 
+    return self[len(self)-1] 
   }
   return nil 
 }
