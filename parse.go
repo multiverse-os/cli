@@ -54,9 +54,9 @@ func (self *CLI) Parse(args []string) *Context {
         // TODO: DRY this up, its repeated from above; should be flag method
         if flag := self.Context.Flags.Name(string(longFlagParts[0])); flag != nil {
           if len(longFlagParts) == 1 {
-            if data.IsTrue(flag.Default) || data.IsFalse(flag.Default) {
+            if data.IsBoolean(flag.Default) {
               flag.ToggleBoolean()
-            }else{
+            }else if len(flag.Default) == 0 {
               flag.SetTrue()
             }
           }else if len(longFlagParts) == 2 {
@@ -87,16 +87,6 @@ func (self *CLI) Parse(args []string) *Context {
         // TODO: THIS IS THE LAST PART OF THE PARSING FUCNTION, we jsut need to
         // assign any param we locate to the PREV flag
 
-        // JUST 1 Q: how do we get the last flag?
-        //   we can use the argument chain; long as we are updating it as we go;
-        //   that will be the reference tool to pull the previous flag delcared
-        //   when running the CLI
-
-        // Also go ahead and create an output for seeing the arguments in order;
-        // essentially recreating the typed in command when running the cli.
-        // this is mostly to confirm everything is working as expected but also
-        // nice flex that the parser is working enough to start testing it
-
         // TODO: If PREV argument is type Flag (use type switch not enumerator)
         //       then also assign this param to the previous flags param 
         //       (but use same object, changing one should affect the other)
@@ -111,9 +101,16 @@ func (self *CLI) Parse(args []string) *Context {
           // if we have a flag 'cli --language=en otherparam' we dont want to
           // asign otherparam over en, we only assign it if 'cli --langauge
           // otherparam'
+
+          // TODO: flag.Param.Value != "" && flag.Param.Value != flag.Default
+          // then we assign it; but we also still assign it as a param
+          if len(flag.Param.Value) == 0 || flag.Param.Value == flag.Default {
+            fmt.Println("previous flag is eligible for assigning value")
+            flag.Param = self.Context.Params.Last()
+          }
         }
 
-
+        // TODO: When we flip this it will need to be First()
         self.Context.Arguments = self.Context.Arguments.Add(
           self.Context.Params.Last(),
         )

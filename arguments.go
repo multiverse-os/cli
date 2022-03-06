@@ -39,12 +39,12 @@ func (self arguments) Reversed() (reversedArguments arguments) {
 // TODO: This works but we would rather build the prepend function, get rid of
 // Reversed() if we don't end up using it, 
 func (self arguments) PreviousFlag() *Flag {
-  for _, argument := range self.Reversed() {
-    fmt.Println("checking argument for previous flag")
-	  switch argument.(type) {
-	  case *Flag:
-      return ToFlag(argument)
-    }
+  argument := self.Reversed()[0]
+  fmt.Println("checking argument for previous flag")
+	switch argument.(type) {
+	case *Flag:
+    return ToFlag(argument)
+  default:
+    return nil
   }
-  return nil
 }
