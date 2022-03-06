@@ -90,6 +90,7 @@ func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
 func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
 
 func New(app App) *CLI {
+  // NOTE: Sensical defaults to avoid error conditions, simplifying library use
   if data.IsBlank(app.Name) {
     app.Name = "app-cli"
   }
@@ -98,6 +99,14 @@ func New(app App) *CLI {
   }
   if data.IsZero(len(app.Outputs)) {
     app.Outputs = append(app.Outputs, TerminalOutput())
+  }
+  // NOTE: Correct alias (short) for flags if more than 1 rune
+  for _, flag := range app.GlobalFlags {
+      if 1 < len(flag.Alias) {
+        // TODO: To support localization we will need to handle two byte runes
+        // in the future
+        flag.Alias = string(flag.Alias[0])
+      }
   }
 
   cli := &CLI{
@@ -112,7 +121,7 @@ func New(app App) *CLI {
     Name:        app.Name,
     Description: app.Description,
     Subcommands: app.Commands,
-    Flags:       app.GlobalFlags.SetDefaults(),
+    Flags:       app.GlobalFlags.SetDefaults().Reversed(),
     Hidden:      true,
   }
 

@@ -46,10 +46,6 @@ func ValidateFlag(flag Flag) error {
   if 32 < len(flag.Name) {
     return errInvalidArgumentLength
   }
-  if len(flag.Alias) != 1 {
-    return errInvalidFlagShortLength
-  }
-
   for _, flagRune := range flag.Name {
     // NOTE: a = 97; z = 122; - = 45
     if (97 <= flagRune && flagRune <= 122) || flagRune == 45 {
@@ -124,6 +120,8 @@ func (self flags) Reversed() (reversedFlags flags) {
 // TODO: This required changing IsValid to return the error, and this must be
 // done for param and command.
 func (self flags) Add(flag *Flag) (flags, error) {
+  // TODO: Add should prepend, by looping thruogh and assigning to a new loop
+  // that is initiated with our new flag
   // TODO: Doesn't correctly handle this; default can be blank, and we need a
   // default value. Also if value already exists, we don't overwrite it!
   flag.Param = &Param{Value: flag.Default}
@@ -137,6 +135,8 @@ func (self flags) Add(flag *Flag) (flags, error) {
 
 func (self flags) Name(name string) *Flag {
   for _, flag := range self {
+    fmt.Println("checking flag with name:", flag.Name)
+    fmt.Println("                   alias:", flag.Alias)
     if flag.is(name) {
       return flag
     }
@@ -151,6 +151,15 @@ func (self flags) Visible() (visibleFlags flags) {
     }
   }
   return visibleFlags
+}
+
+func (self flags) Validate() error {
+  for _, flag := range self {
+    if err := ValidateFlag(*flag); err != nil {
+      return err 
+    }
+  }
+  return nil
 }
 
 func (self flags) Count() int { return len(self) }

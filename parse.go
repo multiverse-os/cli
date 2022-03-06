@@ -31,21 +31,35 @@ func (self *CLI) Parse(args []string) *Context {
           // just assign that param to both the last flag, and the general
           // params (using a single object)
 
-          // NOTE: Confirm we are not last && next argument is '=' (61)
+          // NOTE: Confirm we are not last && next argument is '=' (61) &&
           if len(argument) != index + 1 && argument[index+1] == 61 { 
-            previousFlag := self.Context.Flags.Name(string(argument[index-1]))
-            // NOTE: +2 because we must skip the equals sign
-            // TODO: Confirm this doesnt fail with empty flag like -l= test
-            //       probably gonna need a size check before attempting this 
-            //       to avoid weird edge case runtime errors
-            fmt.Println("previousFlag has param?", previousFlag.Param)
-            previousFlag.Set(argument[index+2:])
+            if previousFlag := self.Context.Flags.Name(string(argument[index])); previousFlag != nil {
+              // TODO: Confirm this doesnt fail with empty flag like -l= test
+              //       probably gonna need a size check before attempting this 
+              //       to avoid weird edge case runtime errors
+
+
+              // NOTE: +2 because we must skip the equals sign
+              fmt.Println("previousFlag has param?", previousFlag.Param)
+              previousFlag.Set(argument[index+2:])
+            }
           }else{
-            // NOTE: Every flag before the last one value is boolean and == "1"
+            // TODO: Boolean short flag should use toggle in the case developer
+            //       using the library sets the default to true. 
+            fmt.Println("boolean flag, setting true, but should toggle: ", string(shortFlag))
+
+            // TODO: To catch weird edge conditions, we should skil boolean
+            // flag assignment if the default isn't "1" or "0" or nil. For
+            // example, if lanuage has default "en" then we can assume, it
+            // shouldn't be assigned 1 by default, we should assume the user
+            // has failed to give the flag the param, and we could avoid edge
+            // condition errors in software using this by checking for that.
+
             flag := self.Context.Flags.Name(string(shortFlag))
             if flag != nil {
-              // NOTE: Working by checking after the parse function is ran
               flag.SetTrue()
+            }else{
+              fmt.Println("no flag found")
             }
           }
         }
