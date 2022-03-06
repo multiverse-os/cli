@@ -2,7 +2,7 @@ package cli
 
 import (
 	"strconv"
-	"strings"
+	//"strings"
 
 	data "github.com/multiverse-os/cli/data"
 )
@@ -64,6 +64,7 @@ func (self Param) Bool() bool {
 
 // TODO: 
 
+///////////////////////////////////////////////////////////////////////////////
 type params []*Param
 
 func Params(params ...Param) (paramPointers params) { 
@@ -108,13 +109,13 @@ func (self params) Last() *Param {
 
 func (self params) IsZero() bool { return self.Count() == 0 }
 
-func (self params) Strings() (paramStrings []string) { 
-  for _, param := range self {
-    paramStrings = append(paramStrings, param.Value)
-  }
-  return paramStrings
-}
-
-func (self params) String() string { 
-  return strings.Join(self.Strings(), " ")  
-}
+//func (self params) Strings() (paramStrings []string) { 
+//  for _, param := range self {
+//    paramStrings = append(paramStrings, param.Value)
+//  }
+//  return paramStrings
+//}
+//
+//func (self params) String() string { 
+//  return strings.Join(self.Strings(), " ")  
+//}

@@ -7,8 +7,6 @@ import (
 )
 
 type Command struct {
-  IsRoot      bool
-  Category    int
   Name        string
   Alias       string
   Description string
@@ -34,72 +32,6 @@ func ValidateCommand(command Command) error {
 }
 
 func (self Command) IsValid() bool { return ValidateCommand(self) != nil }
-
-type commands []*Command
-
-func Commands(commands ...Command) (commandPointers commands) { 
-  for index, _ := range commands {
-    commandPointers = append(commandPointers, &commands[index])
-  }
-  return commandPointers
-}
-
-func (self commands) Names() (commandNames []string) {
-  for _, command := range self {
-    commandNames = append(commandNames, command.Name)
-  }
-  return commandNames
-}
-  
-// Commands Public Methods
-func (self commands) First() *Command { return self[0] }
-func (self commands) Last() *Command { return self[self.Count()-1] }
-
-func (self commands) Count() int { return len(self) }
-func (self commands) IsZero() bool { return self.Count() == 0 }
-
-func (self commands) Name(name string) (*Command, bool) {
-  for _, subcommand := range self {
-    if subcommand.is(name) {
-      return subcommand, true
-    }
-  }
-  return nil, false
-}
-
-func (self commands) Reversed() (reversedCommands commands) {
-  for i := self.Count() - 1; i >= 0; i-- {
-    reversedCommands = append(reversedCommands, self[i])
-  }
-  return reversedCommands
-}
-
-func (self commands) Hidden() (hiddenCommands commands) {
-  for _, command := range self {
-    if command.Hidden {
-      hiddenCommands = append(hiddenCommands, command)
-    }
-  }
-  return hiddenCommands
-}
-
-func (self commands) Visible() (visibleCommands commands) {
-  for _, command := range self {
-    if !command.Hidden {
-      visibleCommands = append(visibleCommands, command)
-    }
-  }
-  return visibleCommands
-}
-
-func (self commands) Add(command *Command) commands  {
-  for _, flag := range command.Flags {
-    flag.Param = &Param{
-      Value: flag.Default,
-    }
-  }
-  return append(self, command)
-}
 
 // Command Private Methods
 func (self Command) is(name string) bool { 
@@ -172,46 +104,75 @@ func (self Command) Path() []string {
   return route
 }
 
-
-//func (self *Command) Flags() (flags map[string]*Flag) {
-//	for _, flag := range self.Flags {
-//		flags[flag.Name] = flag
-//	}
-//	return flags
-//}
-// c.Flags["port"].Int()
-
-// c.Flags.Name("port").Int() 
-
-// c.Flag("port").Int()
-
-// TODO: This can now be accomplished with 
-//
-//                  command.Subcommands.Visible()
-//
-//       which is definitely a much nicer API for developers to interact
-//       with. Commend this out and kinda keep it a bit to provide examples
-//       for this new trick we are bringing into the standard object build. 
-//
-// func (self Command) VisibleSubcommands() (subcommands []Command) {
-// 	for _, subcommand := range self.Subcommands {
-// 		if !subcommand.Hidden {
-// 			subcommands = append(subcommands, subcommand)
-// 		}
-// 	}
-// 	return subcommands
-// }
-
-// TODO: This should be obsoleted by 
-//func (self Command) VisibleFlags() (flags []*Flag) {
-//	for _, flag := range self.Flags {
-//		if !flag.Hidden {
-//			flags = append(flags, &flag)
-//		}
-//	}
-//	return flags
-//}
-
 func (self Command) HasNoAction() bool { return self.Action == nil }
 func (self Command) HasAction() bool { return !self.HasNoAction() }
+
+///////////////////////////////////////////////////////////////////////////////
+type commands []*Command
+
+func Commands(commands ...Command) (commandPointers commands) { 
+  for index, _ := range commands {
+    commandPointers = append(commandPointers, &commands[index])
+  }
+  return commandPointers
+}
+
+func (self commands) Names() (commandNames []string) {
+  for _, command := range self {
+    commandNames = append(commandNames, command.Name)
+  }
+  return commandNames
+}
+  
+// Commands Public Methods
+func (self commands) First() *Command { return self[0] }
+func (self commands) Last() *Command { return self[self.Count()-1] }
+
+func (self commands) Count() int { return len(self) }
+func (self commands) IsZero() bool { return self.Count() == 0 }
+
+func (self commands) Name(name string) (*Command, bool) {
+  for _, subcommand := range self {
+    if subcommand.is(name) {
+      return subcommand, true
+    }
+  }
+  return nil, false
+}
+
+func (self commands) Reversed() (reversedCommands commands) {
+  for i := self.Count() - 1; i >= 0; i-- {
+    reversedCommands = append(reversedCommands, self[i])
+  }
+  return reversedCommands
+}
+
+// TODO: This isnt used atm, and probably wont be needed
+//func (self commands) Hidden() (hiddenCommands commands) {
+//  for _, command := range self {
+//    if command.Hidden {
+//      hiddenCommands = append(hiddenCommands, command)
+//    }
+//  }
+//  return hiddenCommands
+//}
+
+func (self commands) Visible() (visibleCommands commands) {
+  for _, command := range self {
+    if !command.Hidden {
+      visibleCommands = append(visibleCommands, command)
+    }
+  }
+  return visibleCommands
+}
+
+func (self commands) Add(command *Command) commands  {
+  for _, flag := range command.Flags {
+    flag.Param = &Param{
+      Value: flag.Default,
+    }
+  }
+  return append(self, command)
+}
+
 

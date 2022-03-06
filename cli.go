@@ -1,6 +1,7 @@
 package cli
 
 import (
+  "fmt"
   "time"
 
   data "github.com/multiverse-os/cli/data"
@@ -29,6 +30,10 @@ import (
 // TODO: Reduce flag alias size to 1 character (rune), but command aliases can
 // be any length
 
+// TODO: Ensure there are validations on each params, flags, and commands to
+//       prevent special characters beyond basics like '-' 'a-z' (except params
+//       which should be pretty much everything
+
 ///////////////////////////////////////////////////////////////////////////////
 // TODO: Scaffolding code to hasten development.
 // https://golang.org/pkg/go/printer/
@@ -56,7 +61,9 @@ import (
 
 // TODO: Autocomplete via tab defined during initalization
 
-
+// TODO: Switch CLI to App, and get rid of New(), switch it to a more sensical
+// Chaining definitions, and make it more similar to Gin. So webframework
+// developers will have a super easy time learning this CLI framewoork
 type App struct {
   Name           string
   Description    string
@@ -70,8 +77,6 @@ type App struct {
 }
 
 type CLI struct {
-  Name           string
-  Description    string
   Version        Version
   Build          Build
   Debug          bool
@@ -80,20 +85,21 @@ type CLI struct {
   //Locale         string // Not yet implemented
 }
 
-type Level uint8
+//type Level uint8
+//
+//const (
+//	GlobalLevel Level = iota
+//	CommandLevel
+//)
 
-const (
-	GlobalLevel Level = iota
-	CommandLevel
-)
+
 
 func (self CLI) Log(output ...string)   { self.Outputs.Log(DEBUG, output...) }
 func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
 func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
 func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
 
-
-func New(app *App) *CLI {
+func New(app App) *CLI {
   if data.IsBlank(app.Name) {
     app.Name = "app-cli"
   }
@@ -105,7 +111,6 @@ func New(app *App) *CLI {
   }
 
   cli := &CLI{
-    Name:     app.Name,
     Version:  app.Version,
     Outputs:  app.Outputs,
     Build: Build{
@@ -113,22 +118,31 @@ func New(app *App) *CLI {
     },
   }
 
+  fmt.Println("app:", app)
+  fmt.Println("app.GlobalFlags: ", app.GlobalFlags)
+  // TODO: This doesnt actually assign the default to the value of the flag
+  // param, which may cause issues. Right now in fact there are no flags when
+  // checking after parse on the first command
   appCommand := Command{
     Name:        app.Name,
+    Description: app.Description,
     Subcommands: app.Commands,
     Flags:       app.GlobalFlags,
   }
+
+  fmt.Println("app:", app)
+  fmt.Println("app.GlobalFlags: ", app.GlobalFlags)
 
   cli.Context = &Context{
     CLI:     cli,
     Process: Process(),
     Commands: Commands(appCommand),
     Params: params{},
-    Flags: app.GlobalFlags,
+    Flags: appCommand.Flags,
     Arguments: Arguments(appCommand),
   }
 
-  cli.Context.Command = cli.Context.Commands.Last()
+  cli.Context.Command = cli.Context.Commands.First()
 
   // TODO: Take actions+hooks and insert them into the app psuedo-command so
   // they can be consolidated and executed in the Execute() command under

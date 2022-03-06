@@ -6,18 +6,6 @@ import (
   "fmt"
 )
 
-//type chain struct {
-//  Arguments arguments 
-//  Commands commands
-//  Flags    flags
-//  Params   params
-//  Actions  actions
-//}
-
-// TODO: We took off the error for command chaining off context
-//       for something like cli.ParseArgs().Execute() but that
-//       may prove unwise and we may add the error back
-//       Should it be returning CLI with context or Context with CLI?
 func (self *CLI) Parse(args []string) *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
   for index, argument := range os.Args[1:] {
@@ -26,7 +14,6 @@ func (self *CLI) Parse(args []string) *Context {
     // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
       fmt.Println("argument has flag prefix, determining if long or short")
-      fmt.Printf("%v\n", flagType.Name())
       argument = flagType.TrimPrefix(argument)
 
       // TODO: This loops over the flags twice, it will likely be better to
@@ -119,10 +106,15 @@ func (self *CLI) Parse(args []string) *Context {
         // Param parse
         fmt.Println("parsing param: ", argument)
         self.Context.Params, _ = self.Context.Params.Add(argument)
-        self.Context.Arguments = append(
-          self.Context.Arguments, 
-          *self.Context.Params.Last(),
+
+        self.Context.Arguments = self.Context.Arguments.Add(
+          self.Context.Params.Last(),
         )
+        // TODO: THIS WORKS, but want to try to use Add()
+        //self.Context.Arguments = append(
+        //  self.Context.Arguments, 
+        //  *self.Context.Params.Last(),
+        //)
       }
     }
   }
@@ -138,113 +130,18 @@ func (self *CLI) Parse(args []string) *Context {
   fmt.Println("params parsed:    ", len(self.Context.Params))
   fmt.Println("                  ", self.Context.Params)
   fmt.Println("---------------")
-  for index, _ := range self.Context.Arguments {
-    fmt.Println(self.Context.Arguments[index])
-  }
-  fmt.Println("---------------")
-  fmt.Println("command:          ", &self.Context.Command)
 
-
-  fmt.Println("\n\n")
-  fmt.Println("================")
-
-
-  fmt.Println("must test if changing the command affects the command stored in")
-  fmt.Println("arguments and commands. and vice versa\n")
-  fmt.Println("lets try changing a param from Context.Params, and see if it")
-  fmt.Println("affects the same pointer object in Context.Arguments\n\n")
-
-  contextParamFromParams := self.Context.Params.First()
-  fmt.Println("pulled out first param:", contextParamFromParams)
-  contextParamFromParams.Value = "changed"
-  contextParamFromParamsTwo := self.Context.Params.First()
-  fmt.Println("changed first param to changed and repulled it out: ", contextParamFromParamsTwo)
-
-  fmt.Println("that works, now time to see if arguments second paramter is what we expect 'changed' and not the original value")
-  argumentTwo := self.Context.Arguments[2]
-  fmt.Println("argument two or first param (in this test)")
-  fmt.Println("arg:", argumentTwo)
-  fmt.Println("arg value:", ToParam(argumentTwo).Value)
-  fmt.Println("THAT WORKS! OMG I FIXED IT!")
-  
-
+  firstCommand := self.Context.Commands.First()
+  fmt.Println("Command(first)")
+  fmt.Println("  Name:        ", firstCommand.Name)
+  fmt.Println("  Alias:       ", firstCommand.Alias)
+  fmt.Println("  Description: ", firstCommand.Description)
+  fmt.Println("  Hidden:      ", firstCommand.Hidden)
+  fmt.Println("  Parent:      ", firstCommand.Parent)
+  fmt.Println("  Subcommands: ", firstCommand.Subcommands)
+  fmt.Println("  Flags:       ", firstCommand.Flags)
+  fmt.Println("  Action:      ", firstCommand.Action)
+  fmt.Println("  Hooks:       ", firstCommand.Hooks)
 
   return self.Context
 }
-
-// TODO: MISSING ABILITY TO PARSE FLAGS THAT ARE USING "QUOTES TO SPACE TEXT".
-// TODO: MISSING Flags of slice types can be passed multiple times (-f one -f two -f three)
-// TODO: MISSING ability to stack flag names of any size (right now assumes only
-//       1 character size is allowed for short command names).
-// NOTE: Check if nextArgument is flag, flag is a boolean if nextArgument is
-//       either a flag or is a known command.
-//func (self *chain) ParseFlag(flagType FlagType, argument string, nextArgument string) (parsedFlag *Flag) {
-//
-//  fmt.Printf("flagType: %v \n", flagType)
-//
-//  flagParts := strings.Split(flagType.TrimPrefix(argument), "=")
-//
-//  // TODO: This assumes the flag should be created even if the flag is not
-//  // defined by in the global flags or the current commands flags at
-//  // initialization
-//  parsedFlag.Name = flagParts[0]
-//
-//  if len(flagParts) == 2 {
-//    parsedFlag.Param.Value = flagParts[1]
-//  } else if len(flagParts) == 1 {
-//    // TODO: This is wrong; currently it assumes if the next argument is a flag
-//    // then the current flag is a boolean type flag. But if the next argument is
-//    // a command, then it also a boolean type flag (also if it is a param but
-//    // the param distinction, as in if it is a flag param vs cli app param is
-//    // going to be difficult to distinguish and a fallback will need to be
-//    // implemented)
-//    if _, ok := HasFlagPrefix(nextArgument); ok {
-//      parsedFlag.Param.Value = "1"
-//    } else {
-//      parsedFlag.Param.Value = nextArgument
-//    }
-//  }
-//
-//  flagFound := false
-//  for _, command := range self.chain.Commands.First.Reversed() {
-//    // TODO: Or merge with above and do the check on next argument to see if its
-//    // a flag
-//    if data.IsBlank(nextArgument) && command.is(nextArgument) {
-//      parsedFlag.Param.Value = "1"
-//    }
-//    for _, flag := range command.Flags {
-//      if flag.is(parsedFlag.Name) {
-//        parsedFlag.Name = flag.Name
-//        flagFound = true
-//      }
-//    }
-//  }
-//
-//  if !flagFound {
-//    // TODO: This means the flag was not located; so HERE we check for the FLAG
-//    // STACKING. However, the best way to do variable short name length is
-//    // likely checking 1 2 3, throwing out 1, then again 1 2 3 etc.
-//  
-//    // stacked flags: tar -xvf param 
-//
-//    for index, stackedFlag := range parsedFlag.Name {
-//      for _, subcommand := range self.chain.Commands.First().Subcommands.Reversed() {
-//        for _, flag := range subcommand.Flags {
-//          if index == len(parsedFlag.Name)+1 {
-//            if len(flagParts) == 2 {
-//              parsedFlag.Param.Value = flagParts[1]
-//            } else {
-//              // TODO: Needs to check if nextArgument is viable, if not, then
-//              //       "1"
-//            }
-//          } else if flag.Alias == string(stackedFlag) {
-//            parsedFlag.Param.Value = "1"
-//          }
-//        }
-//
-//      }
-//    }
-//  }
-//
-//  return parsedFlag
-//}

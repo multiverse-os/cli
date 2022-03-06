@@ -8,8 +8,8 @@ import (
 
 func main() {
 
-	cmd := cli.New(&cli.App{
-		Name:        "example",
+	cmd := cli.New(cli.App{
+		Name:        "dev-cli",
 		Description: "an example cli application for scripts and full-featured applications",
 		Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
 		GlobalFlags: cli.Flags(
@@ -19,6 +19,8 @@ func main() {
 				Default:     "en",
 				Description: "Locale used when executing the program",
 			},
+      // TODO: This flag intentionally violates the validation of a flag to test
+      // if its working
 			cli.Flag{
 				Name:        "daemon",
 				Alias:       "dm",

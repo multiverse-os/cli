@@ -77,7 +77,7 @@ func (self Version) ColorString() string {
 
 func (self *CLI) RenderVersionTemplate() error {
 	err := template.StdOut(defaultVersionTemplate(), map[string]string{
-		"header":  ansi.Bold(ansi.SkyBlue(self.Name)),
+		"header":  ansi.Bold(ansi.SkyBlue(self.Context.Commands.First().Name)),
 		"version": self.Version.ColorString(),
 	})
 	//"build": table.New(BuildInformation{
