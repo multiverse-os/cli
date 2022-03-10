@@ -31,10 +31,9 @@ func ValidateParam(param Param) error {
 
 func (self Param) IsValid() bool { return ValidateParam(self) != nil }
 
-// TODO: Param.String() 
-func (self Param) String() string {
-  return self.Value
-}
+// TODO: These should more heavily rely on existing code in data subpackage
+func (self Param) String() string { return self.Value }
+func (self Param) Bool() bool { return data.IsTrue(self.Value) }
 
 func (self Param) Int() int {
   intValue, err := strconv.Atoi(self.Value[0:1])
@@ -43,15 +42,6 @@ func (self Param) Int() int {
 	} else {
 		return intValue
 	}
-}
-
-func (self Param) Bool() bool {
-	for _, trueString := range data.True.Strings() {
-    if trueString == self.Value[0:1] {
-			return true
-		}
-	}
-	return false
 }
 
 // TODO: Float 
@@ -72,24 +62,23 @@ func Params(params ...Param) (paramPointers params) {
   return paramPointers
 }
 
-func (self params) Add(paramValue string) (prepended params) {
-  newParam := &Param{Value: paramValue}
-  //err := ValidateParam(*newParam)
-  prepended = append(prepended, newParam)
+func (self params) Arguments() (arguments arguments) {
   for _, param := range self {
-    prepended = append(prepended, param)
+    arguments = append(arguments, Argument(param))
   }
-
-  return prepended
+  return arguments
 }
 
-
+func (self params) Add(paramValue string) (params params) {
+  //err := ValidateParam(*newParam)
+  return append(append(params, &Param{Value: paramValue}), self...)
+}
 
 // TODO: Add ability to output URL, and Path types, since these would be very
 //       common and the ability to validate them would be nice. For example,
 //       being able to check if a file exists easily.
 
-// TODO: Once the params have been loaded, begin loading flags again; then
+// TODO: Once the params have been loaded, begin loading params again; then
 //       apply
 
 func (self params) Count() int { return len(self) }
@@ -106,6 +95,13 @@ func (self params) Last() *Param {
     return self[self.Count()-1] 
   }
   return nil
+}
+
+func (self params) Reverse() (reversedParams params) {
+  for index := self.Count() - 1; index >= 0; index-- {
+    reversedParams = append(reversedParams, self[index])
+  }
+  return reversedParams
 }
 
 func (self params) IsZero() bool { return self.Count() == 0 }

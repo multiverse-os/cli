@@ -110,6 +110,13 @@ func Flags(flags ...Flag) (flagPointers flags) {
   return flagPointers
 }
 
+func (self flags) Arguments() (arguments arguments) {
+  for _, flag := range self {
+    arguments = append(arguments, Argument(flag))
+  }
+  return arguments
+}
+
 func (self flags) Add(newFlag *Flag) (prepended flags) { 
   newFlag.Param = &Param{Value: newFlag.Default}
   // TODO: Previously it had validation, decide if its actually necessary
@@ -117,11 +124,7 @@ func (self flags) Add(newFlag *Flag) (prepended flags) {
   //       want consistency across the different add functions. if it does go
   //       in, we need it for all of them
   //err := ValidateFlag(*flag)
-  prepended = append(prepended, newFlag)
-  for _, flag := range self {
-    prepended = append(prepended, flag)
-  }
-  return prepended
+  return append(append(prepended, newFlag), self...)
 }
 
 func (self flags) Name(name string) *Flag {
@@ -166,6 +169,13 @@ func (self flags) Last() *Flag {
     return self[len(self)-1] 
   }
   return nil 
+}
+
+func (self flags) Reverse() (reversedFlags flags) {
+  for index := self.Count() - 1; index >= 0; index-- {
+    reversedFlags = append(reversedFlags, self[index])
+  }
+  return reversedFlags
 }
 
 func (self flags) SetDefaults() flags {

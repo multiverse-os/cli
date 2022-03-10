@@ -21,17 +21,21 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // Alpha Release
 
-// TODO: Add localization support
+// TODO: Load all the all the the hooks, global/fallback, command actions in a
+// actions slice (within CLI or context) and then build a fucntion Execute() on
+// the actions. So in the end it will be 
+//      cli.Parse(os.Args).Execute()
+
+// TODO: Add localization support (we should write a library that can be used by
+// both this and the webframework
+
+// TODO: Write tests for basic functionality, specifically around the Parse()
+// function + Execute
 
 // TODO: Fix permissions (public vs private) on functions only leaving
 // explicitly the functions used by a developer using the library
 
-// TODO: Reduce flag alias size to 1 character (rune), but command aliases can
-// be any length
-
-// TODO: Ensure there are validations on each params, flags, and commands to
-//       prevent special characters beyond basics like '-' 'a-z' (except params
-//       which should be pretty much everything
+// TODO: Rewrite the README.md
 
 ///////////////////////////////////////////////////////////////////////////////
 // TODO: Scaffolding code to hasten development.

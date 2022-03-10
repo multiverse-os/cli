@@ -1,7 +1,6 @@
 package cli
 
 import (
-  "fmt"
   "os"
   "strings"
   "time"
@@ -12,11 +11,6 @@ import (
 func (self *CLI) Parse(args []string) *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
   for _, argument := range os.Args[1:] {
-
-    // TODO
-    // Right now stacked flags work fine, but a single short flag space
-    // separated will not work; but equals works 
-
     // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
       argument = flagType.TrimPrefix(argument)
@@ -85,32 +79,35 @@ func (self *CLI) Parse(args []string) *Context {
 
         self.Context.Command = self.Context.Commands.Last()
       } else {
+        // Params parse
+
+        // TODO: It appears to be putting in the params twice into either
+        // Context.Params, because it is not double under the psuedo command. So
+        // investigate the Context.Arguments in the dev-cli actions or after
+        // Parse() is called, to guarantee the object we are passing to the
+        // developer usig the library does not contain extra/unessesary variable
+        // declaration when handling spaced separated flags with params.
         self.Context.Params = self.Context.Params.Add(argument)
 
         if flag := self.Context.Arguments.PreviousFlag(); flag != nil {
-          fmt.Println("are we getting here because we like ened to be here")
-
-          fmt.Println("flag.Param.Value: ", flag.Param.Value) 
-          fmt.Println("len(flag.Param.Value) == 0", len(flag.Param.Value) == 0)
-
-          fmt.Println("...")
-          fmt.Println("flag.Default: ", flag.Default)
-
           if len(flag.Param.Value) == 0 ||
-             flag.Param.Value == flag.Default ||
-             len(flag.Default) == 0 {
-
-            flag.Param = self.Context.Params.Last()
+          flag.Param.Value == flag.Default ||
+          len(flag.Default) == 0 {
+            flag.Param = self.Context.Params.First()
           }
         }
 
-        // TODO: When we flip this it will need to be First()
         self.Context.Arguments = self.Context.Arguments.Add(
-          self.Context.Params.Last(),
+          self.Context.Params.First(),
         )
       }
     }
   }
+
+  self.Context.Arguments = Reverse(self.Context.Arguments)
+  self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
+  self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
+  self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
 
   self.Context.DevOutput()
 

@@ -23,7 +23,7 @@ func main() {
       // if its working
 			cli.Flag{
 				Name:        "daemon",
-				Alias:       "dm",
+				Alias:       "d",
 				Description: "Daemonize the program when launching",
 			},
 		),

@@ -24,7 +24,7 @@ func (self Context) HasFlag(name string) bool {
 
 // DEV
 func (self *Context) DevOutput() {
-  fmt.Println("================")
+  fmt.Println("\n\n================")
   fmt.Println("parsing COMPLETED!") 
   fmt.Println("arguments parsed: ", len(self.Arguments))
   fmt.Println("                  ", self.Arguments)

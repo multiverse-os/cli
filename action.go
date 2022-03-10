@@ -13,8 +13,8 @@ type actions []*Action
 
 func (self actions) Count() int { return len(self) }
 
-func (self Action) IsNil() bool { return self != nil }
-func (self Action) IsNotNil() bool { return self == nil }
+//func (self Action) IsNil() bool { return self != nil }
+//func (self Action) IsNotNil() bool { return self == nil }
 
 // TODO: I would like it to output if it successfully ran, and the error
 //func (self Action) Execute() error {

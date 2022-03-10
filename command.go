@@ -53,6 +53,13 @@ func Commands(commands ...Command) (commandPointers commands) {
   return commandPointers
 }
 
+func (self commands) Arguments() (arguments arguments) {
+  for _, command := range self {
+    arguments = append(arguments, Argument(command))
+  }
+  return arguments
+}
+
 func (self commands) Names() (commandNames []string) {
   for _, command := range self {
     commandNames = append(commandNames, command.Name)
@@ -76,13 +83,6 @@ func (self commands) Name(name string) (*Command, bool) {
   return nil, false
 }
 
-func (self commands) Reversed() (reversedCommands commands) {
-  for i := self.Count() - 1; i >= 0; i-- {
-    reversedCommands = append(reversedCommands, self[i])
-  }
-  return reversedCommands
-}
-
 func (self commands) Visible() (visibleCommands commands) {
   for _, command := range self {
     if !command.Hidden {
@@ -92,12 +92,14 @@ func (self commands) Visible() (visibleCommands commands) {
   return visibleCommands
 }
 
-func (self commands) Add(newCommand *Command) (prepended commands) { 
-  newCommand.Flags = newCommand.Flags.SetDefaults()
-  prepended = append(prepended, newCommand)
-  for _, command := range self {
-    prepended = append(prepended, command)
+func (self commands) Reverse() (reversedCommands commands) {
+  for index := self.Count() - 1; index >= 0; index-- {
+    reversedCommands = append(reversedCommands, self[index])
   }
-  return prepended
+  return reversedCommands
 }
 
+func (self commands) Add(command *Command) (commands commands) { 
+  command.Flags = command.Flags.SetDefaults()
+  return append(append(commands, command), self...)
+}
