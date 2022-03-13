@@ -12,6 +12,7 @@ type Context struct {
   Commands     commands
   Flags        flags
   Params       params
+  Actions      actions
 }
 
 func (self Context) Flag(name string) *Flag { 
@@ -45,6 +46,5 @@ func (self *Context) DevOutput() {
   fmt.Println("  Subcommands: ", self.Command.Subcommands)
   fmt.Println("  Flags:       ", self.Command.Flags)
   fmt.Println("  Action:      ", self.Command.Action)
-  fmt.Println("  Hooks:       ", self.Command.Hooks)
 }
 

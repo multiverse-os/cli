@@ -4,38 +4,38 @@ type Argument interface {
   IsValid() bool
 }
 
-
-
 func ToParam(param Argument) *Param { return param.(*Param) }
 
-func ToParams(paramArguments []Argument) (params params) {
+func ToParams(paramArguments []Argument) (newParams params) {
   for _, paramArgument := range paramArguments {
-    params = append(params, ToParam(paramArgument))
+    newParams = append(newParams, ToParam(paramArgument))
   }
-  return params
+  return newParams
 }
 
 func ToFlag(flag Argument) *Flag { return flag.(*Flag) }
 
-func ToFlags(flagArguments []Argument) (flags flags) {
+func ToFlags(flagArguments []Argument) (newFlags flags) {
   for _, flagArgument := range flagArguments {
-    flags = append(flags, ToFlag(flagArgument))
+    newFlags = append(newFlags, ToFlag(flagArgument))
   }
-  return flags
+  return newFlags
 }
 
 func ToCommand(command Argument) *Command { return command.(*Command) }
 
-func ToCommands(commandArguments []Argument) (commands commands) {
+func ToCommands(commandArguments []Argument) (newCommands commands) {
   for _, commandArgument := range commandArguments {
-    commands = append(commands, ToCommand(commandArgument))
+    newCommands = append(newCommands, ToCommand(commandArgument))
   }
-  return commands
+  return newCommands
 }
 
 func Reverse(arguments []Argument) (reversedArguments []Argument) {
-  for index := len(arguments) - 1; index >= 0; index-- {
-    reversedArguments = append(reversedArguments, arguments[index])
+  // TODO: Convert all for loops to this declaration format, its MUCH better
+  // than the traditional one that exists for backwards compatibility
+  for reversedIndex := len(arguments) - 1; reversedIndex >= 0; reversedIndex-- {
+    reversedArguments = append(reversedArguments, arguments[reversedIndex])
   }
   return reversedArguments
 }
@@ -59,7 +59,7 @@ func (self arguments) Add(newArgument Argument) (prepended arguments) {
   return append(append(prepended, newArgument), self...)
 }
 
-func (self arguments) PreviousFlag() *Flag {
+func (self arguments) PreviousIfFlag() *Flag {
   argument := self.First()
 	switch argument.(type) {
 	case *Flag:

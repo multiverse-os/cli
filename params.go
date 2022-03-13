@@ -1,27 +1,35 @@
 package cli
 
 import (
-	"strconv"
-	"strings"
+  "strconv"
+  "strings"
 
-	data "github.com/multiverse-os/cli/data"
+  data "github.com/multiverse-os/cli/data"
 )
 
+// TODO: Create a New() function so we can hook in validations
 type Param struct {
-	DataType data.Type
-	Value    string
+  DataType data.Type
+  value    string
+}
+
+func NewParam(argument string) *Param {
+  
+  return &Param{
+    value: argument,
+  }
 }
 
 // NOTE: Length Limit in Linux
 //         Path:     4096
 //         Filename: 256
-// TODO: *(?) Base the length on the datatype?*
 func ValidateParam(param Param) error {
-  if len(param.Value) < 4096 {
+  if len(param.value) < 4096 {
     return errInvalidArgumentLength
   }
   // TODO: Format validation should be based on data type
-  //for _, paramRune := range param.Value {
+  //       Yes, it should be based on type switch
+  //for _, paramRune := range param.value {
   //  if !unicode.IsLetter(paramRune) {
   //    return errors.New(errInvalidParamFormat)
   //  }
@@ -32,16 +40,17 @@ func ValidateParam(param Param) error {
 func (self Param) IsValid() bool { return ValidateParam(self) != nil }
 
 // TODO: These should more heavily rely on existing code in data subpackage
-func (self Param) String() string { return self.Value }
-func (self Param) Bool() bool { return data.IsTrue(self.Value) }
+func (self Param) Value() string { return self.value }
+func (self Param) String() string { return self.value }
+func (self Param) Bool() bool { return data.IsTrue(self.value) }
 
 func (self Param) Int() int {
-  intValue, err := strconv.Atoi(self.Value[0:1])
-	if err != nil {
-		return 0
-	} else {
-		return intValue
-	}
+  intValue, err := strconv.Atoi(self.value[0:1])
+  if err != nil {
+    return 0
+  } else {
+    return intValue
+  }
 }
 
 // TODO: Float 
@@ -62,25 +71,20 @@ func Params(params ...Param) (paramPointers params) {
   return paramPointers
 }
 
-func (self params) Arguments() (arguments arguments) {
+func (self params) Arguments() (newArguments arguments) {
   for _, param := range self {
-    arguments = append(arguments, Argument(param))
+    newArguments = append(newArguments, param)
   }
-  return arguments
+  return newArguments
 }
 
-func (self params) Add(paramValue string) (params params) {
-  //err := ValidateParam(*newParam)
-  return append(append(params, &Param{Value: paramValue}), self...)
+func (self params) Add(param *Param) (updatedParams params) {
+  return append(append(updatedParams, param), self...)
 }
 
 // TODO: Add ability to output URL, and Path types, since these would be very
 //       common and the ability to validate them would be nice. For example,
 //       being able to check if a file exists easily.
-
-// TODO: Once the params have been loaded, begin loading params again; then
-//       apply
-
 func (self params) Count() int { return len(self) }
 
 func (self params) First() *Param {
@@ -98,8 +102,8 @@ func (self params) Last() *Param {
 }
 
 func (self params) Reverse() (reversedParams params) {
-  for index := self.Count() - 1; index >= 0; index-- {
-    reversedParams = append(reversedParams, self[index])
+  for reversedIndex := self.Count() - 1; reversedIndex >= 0; reversedIndex-- {
+    reversedParams = append(reversedParams, self[reversedIndex])
   }
   return reversedParams
 }
@@ -109,7 +113,7 @@ func (self params) String() string { return strings.Join(self.Strings(), " ") }
 
 func (self params) Strings() (paramStrings []string) { 
   for _, param := range self {
-    paramStrings = append(paramStrings, param.Value)
+    paramStrings = append(paramStrings, param.value)
   }
   return paramStrings
 }

@@ -13,7 +13,6 @@ type Command struct {
   Subcommands commands
   Flags       flags
   Action      Action
-  Hooks       Hooks
 }
 
 func ValidateCommand(command Command) error {
@@ -53,11 +52,11 @@ func Commands(commands ...Command) (commandPointers commands) {
   return commandPointers
 }
 
-func (self commands) Arguments() (arguments arguments) {
+func (self commands) Arguments() (commandArguments arguments) {
   for _, command := range self {
-    arguments = append(arguments, Argument(command))
+    commandArguments = append(commandArguments, Argument(command))
   }
-  return arguments
+  return commandArguments
 }
 
 func (self commands) Names() (commandNames []string) {
@@ -93,13 +92,13 @@ func (self commands) Visible() (visibleCommands commands) {
 }
 
 func (self commands) Reverse() (reversedCommands commands) {
-  for index := self.Count() - 1; index >= 0; index-- {
-    reversedCommands = append(reversedCommands, self[index])
+  for reversedIndex := self.Count() - 1; reversedIndex >= 0; reversedIndex-- {
+    reversedCommands = append(reversedCommands, self[reversedIndex])
   }
   return reversedCommands
 }
 
-func (self commands) Add(command *Command) (commands commands) { 
-  command.Flags = command.Flags.SetDefaults()
-  return append(append(commands, command), self...)
+func (self commands) Add(command *Command) (updatedCommands commands) { 
+  command.Flags = command.Flags.ToDefaults()
+  return append(append(updatedCommands, command), self...)
 }

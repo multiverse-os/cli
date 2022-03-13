@@ -76,7 +76,6 @@ type App struct {
   GlobalFlags    flags
   Commands       commands
   Actions        Actions
-  GlobalHooks    Hooks
 }
 
 type CLI struct {
@@ -85,6 +84,7 @@ type CLI struct {
   Debug          bool
   Context        *Context
   Outputs        Outputs
+  Actions        Actions
   //Locale         string // Not yet implemented
 }
 
@@ -116,6 +116,7 @@ func New(app App) *CLI {
   cli := &CLI{
     Version:  app.Version,
     Outputs:  app.Outputs,
+    Actions:  app.Actions,
     Build: Build{
       CompiledAt: time.Now(),
     },
@@ -125,16 +126,16 @@ func New(app App) *CLI {
     Name:        app.Name,
     Description: app.Description,
     Subcommands: app.Commands,
-    Flags:       app.GlobalFlags.SetDefaults(),
+    Flags:       app.GlobalFlags.ToDefaults(),
     Hidden:      true,
   }
 
   cli.Context = &Context{
-    CLI:     cli,
-    Process: Process(),
-    Commands: Commands(appCommand),
-    Params: params{},
-    Flags: appCommand.Flags,
+    CLI:       cli,
+    Process:   Process(),
+    Commands:  Commands(appCommand),
+    Params:    params{},
+    Flags:     appCommand.Flags,
     Arguments: Arguments(appCommand),
   }
 

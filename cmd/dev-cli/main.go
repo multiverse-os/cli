@@ -79,31 +79,19 @@ func main() {
           c.CLI.Log("example action")
           return nil
         },
-        Hooks: cli.Hooks{
-          BeforeAction: func(c *cli.Context) error {
-            return nil
-          },
-          AfterAction: func(c *cli.Context) error {
-            return nil
-          },
-        },
 			},
 		),
-    GlobalHooks: cli.Hooks{
-      BeforeAction: func(c *cli.Context) error {
-        return nil
-      },
-      AfterAction: func(c *cli.Context) error {
-        return nil
-      },
-    },
     Actions: cli.Actions{
-      Fallback: func(c *cli.Context) error {
-        c.CLI.Log("fallback action")
+      OnStart: func(c *cli.Context) error {
+        c.CLI.Log("OnStart action")
         return nil
       },
-      Global: func(c *cli.Context) error {
-        c.CLI.Log("global action")
+      Fallback: func(c *cli.Context) error {
+        c.CLI.Log("Fallback action")
+        return nil
+      },
+      OnExit: func(c *cli.Context) error {
+        c.CLI.Log("OnExit action")
 			  c.CLI.Log("=====================================================")
 			  c.CLI.Log("====> c.Flag(\"lang\"):", c.Flag("lang").String())
 

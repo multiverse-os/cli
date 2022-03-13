@@ -62,39 +62,36 @@ func (self Flag) is(name string) bool {
   return self.Name == name || self.Alias == name
 }
 
-func (self Flag) String() string { return self.Param.Value }
+func (self Flag) String() string { return self.Param.value }
 func (self Flag) Int() int { return self.Param.Int() }
 func (self Flag) Bool() bool { return self.Param.Bool() }
 
-func (self *Flag) Set(value string) *Flag {
+func (self *Flag) To(newValue string) *Flag {
   // TODO: Validate against param's validation (or create a param set that does
   // the validation and use that function preferably)
-  self.Param.Value = value
+  self.Param.value = newValue
   return self
 }
 
-func (self *Flag) SetDefault() *Flag {
-  if len(self.Param.Value) == 0 {
+func (self *Flag) ToDefault() *Flag {
+  if len(self.Param.value) == 0 {
     if len(self.Default) != 0 {
-      self.Set(self.Default)
+      self.To(self.Default)
     }else{
-      self.SetFalse()
+      self.ToFalse()
     }
   }
   return self
 }
 
-// TODO: These should be replaced by a toggle, so if a bool is default
-//       true, and the flag sets the variable to false, toggle will 
-//       guarantee we have no edge case failrue. 
-func (self *Flag) SetTrue() *Flag { return self.Set("1") }
-func (self *Flag) SetFalse() *Flag { return self.Set("0") }
+func (self *Flag) ToTrue() *Flag { return self.To("1") }
+func (self *Flag) ToFalse() *Flag { return self.To("0") }
 
 func (self *Flag) ToggleBoolean() *Flag {
-  if data.IsTrue(self.Param.Value) {
-    return self.SetFalse()
+  if data.IsTrue(self.Param.value) {
+    return self.ToFalse()
   }else{
-    return self.SetTrue()
+    return self.ToTrue()
   }
 }
 
@@ -104,27 +101,22 @@ type flags []*Flag
 
 func Flags(flags ...Flag) (flagPointers flags) { 
   for index, _ := range flags {
-    flags[index].Param = &Param{Value: flags[index].Default}
+    flags[index].Param = &Param{value: flags[index].Default}
     flagPointers = append(flagPointers, &flags[index])
   }
   return flagPointers
 }
 
-func (self flags) Arguments() (arguments arguments) {
+func (self flags) Arguments() (flagArguments arguments) {
   for _, flag := range self {
-    arguments = append(arguments, Argument(flag))
+    flagArguments = append(flagArguments, Argument(flag))
   }
-  return arguments
+  return flagArguments
 }
 
-func (self flags) Add(newFlag *Flag) (prepended flags) { 
-  newFlag.Param = &Param{Value: newFlag.Default}
-  // TODO: Previously it had validation, decide if its actually necessary
-  //       because arguments for example doesnt have two return values; and we
-  //       want consistency across the different add functions. if it does go
-  //       in, we need it for all of them
-  //err := ValidateFlag(*flag)
-  return append(append(prepended, newFlag), self...)
+func (self flags) Add(flag *Flag) (updatedFlags flags) { 
+  flag.Param = &Param{value: flag.Default}
+  return append(append(updatedFlags, flag), self...)
 }
 
 func (self flags) Name(name string) *Flag {
@@ -172,15 +164,15 @@ func (self flags) Last() *Flag {
 }
 
 func (self flags) Reverse() (reversedFlags flags) {
-  for index := self.Count() - 1; index >= 0; index-- {
-    reversedFlags = append(reversedFlags, self[index])
+  for reversedIndex := self.Count() - 1; reversedIndex >= 0; reversedIndex-- {
+    reversedFlags = append(reversedFlags, self[reversedIndex])
   }
   return reversedFlags
 }
 
-func (self flags) SetDefaults() flags {
+func (self flags) ToDefaults() flags {
   for _, flag := range self {
-    flag.SetDefault()
+    flag.ToDefault()
   }
   return self
 }
