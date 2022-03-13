@@ -1,6 +1,7 @@
 package cli
 
 import (
+  "fmt"
   "os"
   "strings"
   "time"
@@ -17,6 +18,10 @@ import (
 
 // TODO: Have not tested subcommand flag assignment and assignment to higher
 // level commands if flag does not exist at the subcommand scope.
+// TODO: Flags now only contains assigned flags, and the commands store the
+// complete list of available flags (and the psuedo app command stores the
+// global ones) -- changes to parse will need to reflect this.
+
 func (self *CLI) Parse(args []string) *Context {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
   for _, argument := range os.Args[1:] {
@@ -30,9 +35,9 @@ func (self *CLI) Parse(args []string) *Context {
           if len(argument) != index + 1 && argument[index+1] == 61 { 
             if flag := self.Context.Flags.Name(string(flagAlias)); flag != nil {
               if flagParam := argument[index+2:]; len(flagParam) != 0 {
-                flag.To(flagParam)
+                flag.Set(flagParam)
               }else{
-                flag.ToDefault()
+                flag.SetDefault()
               }
               self.Context.Arguments = self.Context.Arguments.Add(flag)
               break
@@ -44,7 +49,7 @@ func (self *CLI) Parse(args []string) *Context {
               if data.IsBoolean(flag.Default) {
                 flag.ToggleBoolean()
               }else if len(flag.Default) == 0 {
-                flag.ToTrue()
+                flag.SetTrue()
               }
 
               self.Context.Arguments = self.Context.Arguments.Add(flag)
@@ -58,13 +63,13 @@ func (self *CLI) Parse(args []string) *Context {
             if data.IsBoolean(flag.Default) {
               flag.ToggleBoolean()
             }else if len(flag.Default) == 0 {
-              flag.ToTrue()
+              flag.SetTrue()
             }
           }else if len(longFlagParts) == 2 {
             if 0 < len(longFlagParts[1]) {
-              flag.To(longFlagParts[1])
+              flag.Set(longFlagParts[1])
             }else{
-              flag.ToDefault()
+              flag.SetDefault()
             }
           }
 
@@ -72,7 +77,7 @@ func (self *CLI) Parse(args []string) *Context {
         }
       }
     } else {
-      if command, ok := self.Context.Command.Subcommand(argument); ok {
+      if command := self.Context.Command.Subcommand(argument); command != nil {
         // Command parse
         command.Parent = self.Context.Command
 
@@ -114,17 +119,43 @@ func (self *CLI) Parse(args []string) *Context {
   // ones which will override essentially everything but OnStart and OnExit
 
   if self.Actions.OnStart != nil {
+    fmt.Println("as expected, cli.Actions.OnStart is NOT nil")
     // TODO :Add it to the action chain
-    self.Context.Actions.Add(self.Actions.OnStart)
+    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
+  fmt.Println("Number of actions after adding onStart if not nil", len(self.Context.Actions))
+  // TODO: Are the hidden command and flag currently being added? This might
+  // be needed 
+  if self.Context.Commands.HasCommand("version") || self.Context.Flags.Assigned().HasFlag("version") {
+    // TODO: Instead of just simply printing the render, we should add the
+    // function to actions to be executed when Execute() is called
+    self.RenderVersionTemplate()
+  } else if self.Context.Flags.HasFlag("help") {
+    // TODO: To simplify these help, could just always do comamnd before last
+    // **in fact it should be this! and this may mean we get rid of .Command
+    // altogether, dpending on its usefulness in the application layer**, but
+    // this will allow simplicity in this function and the most intuitive
+    // output from any given input
+    self.RenderHelpTemplate(self.Context.Command) 
+  } else if self.Context.Command.is("help") {
+    self.RenderHelpTemplate(self.Context.Commands.First())
+  } else {
+
+  }
+
   if self.Actions.Fallback != nil {
-    // TODO: Add fallback (but need a way to determine if a command action like
-    // help or version is being run (or even action flags like help or version)
-    // and only add the fallback in the condition those are not run
   }
+  // Check if the action is either version or help
+  // Then look at last command for action (we could assign fallback to psuedo
+  // command for simplicity but to be fair its not all that much simpler)
+  // TODO: Add fallback (but need a way to determine if a command action like
+  // help or version is being run (or even action flags like help or version)
+  // and only add the fallback in the condition those are not run
   if self.Actions.OnExit != nil {
     // TODO: Add it to the action chain
+    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
   }
+  fmt.Println("Number of actions after adding onExit if not nil", len(self.Context.Actions))
 
   // TODO: Need to add the action parsing, determine if both fallback and global
   // are needed, detect if hooks exist and iterate through

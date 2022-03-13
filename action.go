@@ -11,8 +11,8 @@ type Actions struct {
 type actions []Action
 
 // NOTE: The other Add() functions prepend, whereas this appends.
-func (self *actions) Add(action Action) actions {
-  return append(*self, action)
+func (self actions) Add(action Action) actions {
+  return append(self, action)
 }
 
 func (self *CLI) Execute() *CLI {

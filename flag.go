@@ -66,32 +66,33 @@ func (self Flag) String() string { return self.Param.value }
 func (self Flag) Int() int { return self.Param.Int() }
 func (self Flag) Bool() bool { return self.Param.Bool() }
 
-func (self *Flag) To(newValue string) *Flag {
+func (self *Flag) Set(newValue string) *Flag {
   // TODO: Validate against param's validation (or create a param set that does
   // the validation and use that function preferably)
   self.Param.value = newValue
   return self
 }
 
-func (self *Flag) ToDefault() *Flag {
+func (self *Flag) SetDefault() *Flag {
   if len(self.Param.value) == 0 {
     if len(self.Default) != 0 {
-      self.To(self.Default)
+      self.Set(self.Default)
     }else{
-      self.ToFalse()
+      // TODO: No, actually don't include it and skip over it. 
+      //self.ToFalse()
     }
   }
   return self
 }
 
-func (self *Flag) ToTrue() *Flag { return self.To("1") }
-func (self *Flag) ToFalse() *Flag { return self.To("0") }
+func (self *Flag) SetTrue() *Flag { return self.Set("1") }
+func (self *Flag) SetFalse() *Flag { return self.Set("0") }
 
 func (self *Flag) ToggleBoolean() *Flag {
   if data.IsTrue(self.Param.value) {
-    return self.ToFalse()
+    return self.SetFalse()
   }else{
-    return self.ToTrue()
+    return self.SetTrue()
   }
 }
 
@@ -127,6 +128,8 @@ func (self flags) Name(name string) *Flag {
   }
   return nil
 }
+
+func (self flags) HasFlag(name string) bool { return self.Name(name) != nil }
 
 func (self flags) Visible() (visibleFlags flags) {
   for _, flag := range self {
@@ -170,9 +173,30 @@ func (self flags) Reverse() (reversedFlags flags) {
   return reversedFlags
 }
 
-func (self flags) ToDefaults() flags {
+func (self flags) SetDefaults() flags {
   for _, flag := range self {
-    flag.ToDefault()
+    flag.SetDefault()
   }
   return self
+}
+
+// TODO: This will fix some issues, and make context.Flags make more sense, but
+// will result in pretty large changes to the Parse() function
+func (self flags) Assigned() (assignedFlags flags) {
+  for _, flag := range self {
+    // TODO: May need to just check param as it may never be initialized
+    if len(flag.Param.value) != 0 {
+      assignedFlags = append(assignedFlags, flag)
+    }
+  }
+  return assignedFlags
+}
+
+func (self flags) Unassigned() (unassignedFlags flags) {
+  for _, flag := range self {
+    if len(flag.Param.value) == 0 {
+      unassignedFlags = append(unassignedFlags, flag)
+    }
+  }
+  return unassignedFlags
 }

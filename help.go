@@ -12,15 +12,20 @@ import (
 // indentation, figlet font or not, and make everything here a method. then it
 // will be super easy to customize the output. be able to pass a go template or
 // definte the various aspects. 
-
-func (self Context) RenderHelpTemplate(command Command) error {
+func (self CLI) RenderHelpTemplate(command *Command) error {
+  // NOTE: This is important for localization 
 	helpOptions := map[string]string{
-		"header":            self.CLI.asciiHeader("big"),
+		"header":            self.asciiHeader("big"),
 		"usage":             "Usage",
-		"availableCommands": "Commands",
-		"availableFlags":    "Flags",
+		"commands":          "Commands",
+    "subcommands":       "Subcommands",
+		"flags":             "Global Flags",
+    "subflags":          "Flags",
+    "command":           "command",
+    "subcommand":        "subcommand",
+    "params":            "parameters",
 	}
-	return template.StdOut(self.helpTemplate(command), helpOptions)
+	return template.StdOut(self.Context.helpTemplate(*command), helpOptions)
 }
 
 // Available Banners Fonts
@@ -47,9 +52,9 @@ func (self CLI) simpleHeader() string {
 // check to add sub? something easier than this possible?
 func (self Context) expectingCommandsOrSubcommand() string {
 	if self.Commands.First().Subcommands.IsZero() {
-		return " [command]"
+		return " [{{.command}}]"
 	} else if 2 < self.Commands.Count() {
-		return " [subcommand]"
+		return " [{{.subcommand}}]"
 	} else {
 		return ""
 	}
@@ -63,10 +68,10 @@ func (self Context) helpTemplate(command Command) (t string) {
 	t += Tab() + 
        strings.ToLower(strings.Join(self.Commands.Names(), " ")) + 
        strings.ToLower(self.expectingCommandsOrSubcommand()) + 
-       " [parameters]" + 
+       " [{{.params}}]" + 
        "\n\n"
 	t += Prefix() + 
-       "{{.availableCommands}}\n"
+       "{{.commands}}\n"
 	for _, subcommand := range command.Subcommands.Visible() {
 		t += Tab() + 
          commandUsage(*subcommand) + 
@@ -80,10 +85,10 @@ func (self Context) helpTemplate(command Command) (t string) {
 		if len(command.Flags) != 0 {
 			if command.Base() {
 				t += Prefix() +
-             "{{.availableFlags}}\n"
+             "{{.subflags}}\n"
 			} else {
 				t += Prefix() + 
-             "Global {{.availableFlags}}\n"
+             "{{.flags}}\n"
 			}
 			for _, flag := range command.Flags {
 				t += flagHelp(*flag)

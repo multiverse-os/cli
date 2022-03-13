@@ -35,7 +35,7 @@ func (self Command) is(name string) bool {
   return self.Name == name || self.Alias == name
 }
 
-func (self Command) Subcommand(name string) (*Command, bool) {
+func (self Command) Subcommand(name string) *Command {
   return self.Subcommands.Name(name)
 }
 
@@ -73,13 +73,17 @@ func (self commands) Last() *Command { return self[self.Count()-1] }
 func (self commands) Count() int { return len(self) }
 func (self commands) IsZero() bool { return self.Count() == 0 }
 
-func (self commands) Name(name string) (*Command, bool) {
+func (self commands) HasCommand(name string) bool { 
+  return self.Name(name) != nil
+}
+
+func (self commands) Name(name string) *Command {
   for _, subcommand := range self {
     if subcommand.is(name) {
-      return subcommand, true
+      return subcommand
     }
   }
-  return nil, false
+  return nil
 }
 
 func (self commands) Visible() (visibleCommands commands) {
@@ -99,6 +103,6 @@ func (self commands) Reverse() (reversedCommands commands) {
 }
 
 func (self commands) Add(command *Command) (updatedCommands commands) { 
-  command.Flags = command.Flags.ToDefaults()
+  command.Flags = command.Flags.SetDefaults()
   return append(append(updatedCommands, command), self...)
 }

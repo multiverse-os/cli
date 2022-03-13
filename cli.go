@@ -29,6 +29,10 @@ import (
 // TODO: Add localization support (we should write a library that can be used by
 // both this and the webframework
 
+// TODO: Provide validation for conflicting flags and commands defined on
+// itialization (or allow overwriting existing, so for example, a developer can
+// overwrite our built in version or help commands).
+
 // TODO: Write tests for basic functionality, specifically around the Parse()
 // function + Execute
 
@@ -122,11 +126,34 @@ func New(app App) *CLI {
     },
   }
 
+  app.Commands = app.Commands.Add(&Command{
+    Name: "help",
+    Alias: "h",
+    Description: "outputs command and flag details",
+    Hidden: true,
+  }).Add(&Command{
+    Name: "version",
+    Alias: "v",
+    Description: "outputs version",
+    Hidden: true,
+  })
+  app.GlobalFlags = app.GlobalFlags.Add(&Flag{
+    Name: "help",
+    Alias: "h",
+    Description: "outputs command and flag details",
+    Hidden: false,
+  }).Add(&Flag{
+    Name: "version",
+    Alias: "v",
+    Description: "outputs version",
+    Hidden: false,
+  })
+
   appCommand := Command{
     Name:        app.Name,
     Description: app.Description,
     Subcommands: app.Commands,
-    Flags:       app.GlobalFlags.ToDefaults(),
+    Flags:       app.GlobalFlags.SetDefaults(),
     Hidden:      true,
   }
 
