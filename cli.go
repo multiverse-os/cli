@@ -149,12 +149,14 @@ func New(app App) *CLI {
     Hidden: false,
   })
 
+  // NOTE: Application psuedo-command to store globals and simplify logic
   appCommand := Command{
     Name:        app.Name,
     Description: app.Description,
     Subcommands: app.Commands,
     Flags:       app.GlobalFlags.SetDefaults(),
     Hidden:      true,
+    Action:      app.Actions.Fallback,
   }
 
   cli.Context = &Context{

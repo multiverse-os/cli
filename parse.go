@@ -84,12 +84,9 @@ func (self *CLI) Parse(args []string) *Context {
         self.Context.Commands = self.Context.Commands.Add(command)
         self.Context.Flags = append(self.Context.Flags, command.Flags...)
 
-        // TODO: It would be nice to turn these into pointer methosd so we don't
-        // need to do the reassignment
-        // TODO: Should these not be .First() since we flipped it?
-        self.Context.Arguments = self.Context.Arguments.Add(self.Context.Commands.Last())
+        self.Context.Arguments = self.Context.Arguments.Add(self.Context.Commands.First())
 
-        self.Context.Command = self.Context.Commands.Last()
+        self.Context.Command = self.Context.Commands.First()
       } else {
         // Params parse
         flag := self.Context.Arguments.PreviousIfFlag()
@@ -108,10 +105,6 @@ func (self *CLI) Parse(args []string) *Context {
     }
   }
 
-  self.Context.Arguments = Reverse(self.Context.Arguments)
-  self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
-  self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
-  self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
 
   self.Context.DevOutput()
 
@@ -126,20 +119,40 @@ func (self *CLI) Parse(args []string) *Context {
   fmt.Println("Number of actions after adding onStart if not nil", len(self.Context.Actions))
   // TODO: Are the hidden command and flag currently being added? This might
   // be needed 
-  if self.Context.Commands.HasCommand("version") || self.Context.Flags.Assigned().HasFlag("version") {
+  if self.Context.Commands.HasCommand("version") || 
+     self.Context.Flags.Assigned().HasFlag("version") {
     // TODO: Instead of just simply printing the render, we should add the
     // function to actions to be executed when Execute() is called
     self.RenderVersionTemplate()
-  } else if self.Context.Flags.HasFlag("help") {
+  } else if self.Context.Commands.HasCommand("help") || 
+            self.Context.Flags.Assigned().HasFlag("help") {
     // TODO: To simplify these help, could just always do comamnd before last
     // **in fact it should be this! and this may mean we get rid of .Command
     // altogether, dpending on its usefulness in the application layer**, but
     // this will allow simplicity in this function and the most intuitive
     // output from any given input
-    self.RenderHelpTemplate(self.Context.Command) 
-  } else if self.Context.Command.is("help") {
-    self.RenderHelpTemplate(self.Context.Commands.First())
+    // Command should be second to last that is printed help (if command help)
+    // and last if flag. 
+    self.RenderHelpTemplate(self.Context.Commands.Last()) 
+    //self.RenderHelpTemplate(self.Context.Commands.Last())
   } else {
+    // TODO: Command check here, look for last command (flipped has occured by
+    // now) then check if it has an action and iterate over each one back to the
+    // pseudo command. BUT WE NEED TO ASSURE THE THE FALLBACK HAS BEEN ASSIGNED
+    // TO THE PSUEDO COMMANDS ACTION (probably should happen in the New()
+    // fuction in cli.go
+
+    // NOTE: We iterate over the commands backwards and have the fallback in the 
+    // last position in the psuedo-command for the app. And for now we only run
+    // one command by breaking after finding the first available action. Instead 
+    // of every command in the chain (that might be a desirable option in the future).
+    for _, command := range self.Context.Commands {
+      if command.Action != nil {
+        self.Context.Actions = append(self.Context.Actions, command.Action)
+        break
+      }
+    }
+     
 
   }
 
@@ -156,6 +169,14 @@ func (self *CLI) Parse(args []string) *Context {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
   }
   fmt.Println("Number of actions after adding onExit if not nil", len(self.Context.Actions))
+
+  // NOTE: Before handing the developer using the library the context we put
+  // them in the expected left to right order, despite it being easier for us
+  // to access in this function in the reverse order.
+  self.Context.Arguments = Reverse(self.Context.Arguments)
+  self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
+  self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
+  self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
 
   // TODO: Need to add the action parsing, determine if both fallback and global
   // are needed, detect if hooks exist and iterate through
