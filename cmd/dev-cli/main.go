@@ -93,9 +93,6 @@ func main() {
       OnExit: func(c *cli.Context) error {
         c.CLI.Log("OnExit action")
 			  c.CLI.Log("=====================================================")
-			  c.CLI.Log("====> c.Flag(\"lang\"):", c.Flag("lang").String())
-
-			  c.CLI.Log("=====================================================")
         // TODO: Switch to only using these and document this log system in the
         // API better
 			  c.CLI.Log("Command.Name:         ", c.Command.Name)
