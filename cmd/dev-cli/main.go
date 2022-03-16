@@ -72,9 +72,9 @@ func main() {
 				),
 			},
 			cli.Command{
-				Name:        "example",
-				Alias:       "ex",
-				Description: "example command",
+				Name:        "show",
+				Alias:       "sh",
+				Description: "show and item in the list",
         Action: func(c *cli.Context) error {
           c.CLI.Log("example action")
           return nil
@@ -126,5 +126,5 @@ func main() {
 	// NOTE: Has the ability output context and error, this enables developers to
 	// handle their own routing or actions based on parsed context.
 	// context, _ := cmd.Parse(os.Args)
-  cmd.Parse(os.Args)
+  cmd.Parse(os.Args).Execute()
 }

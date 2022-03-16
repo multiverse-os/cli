@@ -15,10 +15,14 @@ func (self actions) Add(action Action) actions {
   return append(self, action)
 }
 
-func (self *CLI) Execute() *CLI {
-  // TODO: This is currently the router, it would be nice to be able to produce
-  // a standard URL like output (even have a URI scheme, like 
-
+func (self *Context) Execute() *Context {
+  // TODO: Should the hard-coded exceptions come here? Or does it make cleaner
+  // code to have them in parse?
+  // NOTE: Run each action
+  for _, action := range self.Actions {
+    action(self)
+  }
+  // TODO
   //  cli://user@program:/command/subcommand?params
 
   //if context.Command.is("version") || context.HasFlag("version") {

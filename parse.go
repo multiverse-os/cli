@@ -79,7 +79,7 @@ func (self *CLI) Parse(args []string) *Context {
     } else {
       if command := self.Context.Command.Subcommand(argument); command != nil {
         // Command parse
-        command.Parent = self.Context.Command
+        command.Parent = self.Context.Commands.First()
 
         self.Context.Commands = self.Context.Commands.Add(command)
         self.Context.Flags = append(self.Context.Flags, command.Flags...)
@@ -117,31 +117,23 @@ func (self *CLI) Parse(args []string) *Context {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
   fmt.Println("Number of actions after adding onStart if not nil", len(self.Context.Actions))
-  // TODO: Are the hidden command and flag currently being added? This might
-  // be needed 
-  if self.Context.Commands.HasCommand("version") || 
-     self.Context.Flags.Assigned().HasFlag("version") {
-    // TODO: Instead of just simply printing the render, we should add the
-    // function to actions to be executed when Execute() is called
-    self.RenderVersionTemplate()
-  } else if self.Context.Commands.HasCommand("help") || 
-            self.Context.Flags.Assigned().HasFlag("help") {
-    // TODO: To simplify these help, could just always do comamnd before last
-    // **in fact it should be this! and this may mean we get rid of .Command
-    // altogether, dpending on its usefulness in the application layer**, but
-    // this will allow simplicity in this function and the most intuitive
-    // output from any given input
-    // Command should be second to last that is printed help (if command help)
-    // and last if flag. 
-    self.RenderHelpTemplate(self.Context.Commands.Last()) 
-    //self.RenderHelpTemplate(self.Context.Commands.Last())
-  } else {
-    // TODO: Command check here, look for last command (flipped has occured by
-    // now) then check if it has an action and iterate over each one back to the
-    // pseudo command. BUT WE NEED TO ASSURE THE THE FALLBACK HAS BEEN ASSIGNED
-    // TO THE PSUEDO COMMANDS ACTION (probably should happen in the New()
-    // fuction in cli.go
 
+  // TODO: These hard-coded exceptions kinda drive me nuts, I feel like we
+  // might be able to handle this better but at the very least we need to check
+  // if the developer using the framework defines their own version and and help
+  // and only assign ours as defaults if they are not assigned. (in cli.go)
+  if self.Context.Flags.Assigned().HasFlag("version") {
+    self.Context.Actions = self.Context.Actions.Add(
+      RenderDefaultVersionTemplate,
+    )
+    RenderDefaultVersionTemplate(self.Context)
+  } else if self.Context.Commands.HasCommand("help") {
+    self.Context.Commands = self.Context.Commands.Delete(
+      self.Context.Commands.First(),
+    )
+  } else if self.Context.Flags.Assigned().HasFlag("help") {
+    self.Context.Actions = self.Context.Actions.Add(RenderDefaultHelpTemplate)
+  }else{
     // NOTE: We iterate over the commands backwards and have the fallback in the 
     // last position in the psuedo-command for the app. And for now we only run
     // one command by breaking after finding the first available action. Instead 
@@ -152,23 +144,17 @@ func (self *CLI) Parse(args []string) *Context {
         break
       }
     }
-     
-
   }
 
-  if self.Actions.Fallback != nil {
-  }
-  // Check if the action is either version or help
-  // Then look at last command for action (we could assign fallback to psuedo
-  // command for simplicity but to be fair its not all that much simpler)
-  // TODO: Add fallback (but need a way to determine if a command action like
-  // help or version is being run (or even action flags like help or version)
-  // and only add the fallback in the condition those are not run
   if self.Actions.OnExit != nil {
-    // TODO: Add it to the action chain
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
   }
   fmt.Println("Number of actions after adding onExit if not nil", len(self.Context.Actions))
+  // TODO: It has 3 at the end so it looks like its all in place, we just need
+  // parse (but also need to make the execptions for version flag too (but we
+  // need to consider other ways to acheive the same goal without hardcoding
+  // exceptions (we also need to check for existing declarations of version and
+  // help)
 
   // NOTE: Before handing the developer using the library the context we put
   // them in the expected left to right order, despite it being easier for us
@@ -177,16 +163,6 @@ func (self *CLI) Parse(args []string) *Context {
   self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
   self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
   self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
-
-  // TODO: Need to add the action parsing, determine if both fallback and global
-  // are needed, detect if hooks exist and iterate through
-  //
-  //  * add them in order to be executed for a very simple excute command.
-  //
-
-  // TODO: If we avoid assing any actions until here, like in CLI context. We
-  // can just simply iterate over every command including the glboal psuedo
-  // command. SO THE PSEUDO COMMAND NEEDS TO BE LOADED in New() under cli.go
 
   return self.Context
 }

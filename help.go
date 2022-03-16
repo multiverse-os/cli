@@ -1,10 +1,11 @@
 package cli
 
 import (
-	"strings"
+  "strings"
 
-	banner "github.com/multiverse-os/banner"
-	template "github.com/multiverse-os/cli/terminal/template"
+  banner "github.com/multiverse-os/banner"
+  ansi "github.com/multiverse-os/cli/terminal/ansi"
+  template "github.com/multiverse-os/cli/terminal/template"
   data "github.com/multiverse-os/cli/data"
 )
 
@@ -12,20 +13,46 @@ import (
 // indentation, figlet font or not, and make everything here a method. then it
 // will be super easy to customize the output. be able to pass a go template or
 // definte the various aspects. 
-func (self CLI) RenderHelpTemplate(command *Command) error {
+// TODO: Make render help fit the type for Action so that it can be assigned to
+// the help commands action for greater simplicity and less hard-coding.
+func RenderDefaultHelpTemplate(context *Context) error {
   // NOTE: This is important for localization 
-	helpOptions := map[string]string{
-		"header":            self.asciiHeader("big"),
-		"usage":             "Usage",
-		"commands":          "Commands",
+  helpOptions := map[string]string{
+    "header":            context.asciiHeader("big"),
+    "description":       context.Commands.Last().Description,
+    "usage":             "Usage",
+    "commands":          "Commands",
     "subcommands":       "Subcommands",
-		"flags":             "Global Flags",
+    "flags":             "Global Flags",
     "subflags":          "Flags",
     "command":           "command",
     "subcommand":        "subcommand",
     "params":            "parameters",
+  }
+  return template.StdOut(context.defaultHelpTemplate(), helpOptions)
+}
+
+func RenderDefaultVersionTemplate(context *Context) error {
+	err := template.StdOut(context.defaultVersionTemplate(), map[string]string{
+		"header":  ansi.Bold(ansi.SkyBlue(context.Commands.First().Name)),
+		"version": context.CLI.Version.ColorString(),
+	})
+	//"build": table.New(BuildInformation{
+	//	Source:     "n/a",
+	//	Commit:     "n/a",
+	//	Signature:  "n/a",
+	//	CompiledAt: "n/a",
+	//}).String(),
+	if data.NotNil(err) {
+		return err
 	}
-	return template.StdOut(self.Context.helpTemplate(*command), helpOptions)
+	return nil
+}
+
+func (self Context) defaultVersionTemplate() string {
+  // TODO: May have to assign these values from context; also that makes sense
+  // logically
+	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}\n"
 }
 
 // Available Banners Fonts
@@ -34,98 +61,109 @@ func (self CLI) RenderHelpTemplate(command *Command) error {
 // Larry3D, Letters, NancyJ, Rectangles, Relief, Small, Smisome1, Standard
 // Ticks, TicksSlant, calvins
 // TODO: Should probably make an enumerator
-func (self CLI) asciiHeader(font string) string {
-	banner := banner.New(" " + self.Context.Commands.First().Name).Font(font)
-	return banner.String() +
-         self.Version.String() + 
-         "\n"
+func (self Context) asciiHeader(font string) string {
+  banner := banner.New(" " + self.Commands.First().Name).Font(font)
+  return banner.String() +
+  self.CLI.Version.String() + 
+  "\n"
 }
 
-func (self CLI) simpleHeader() string {
-	return self.Context.Commands.First().Name + 
-         "[v" + 
-         self.Version.String() + 
-         "]\n"
+func (self Context) simpleHeader() string {
+  return self.Commands.First().Name + 
+  "[v" + 
+  self.CLI.Version.String() + 
+  "]\n"
 }
 
 // TODO: Maybe default to just having command and then doing some sort of simple
 // check to add sub? something easier than this possible?
 func (self Context) expectingCommandsOrSubcommand() string {
-	if self.Commands.First().Subcommands.IsZero() {
-		return " [{{.command}}]"
-	} else if 2 < self.Commands.Count() {
-		return " [{{.subcommand}}]"
-	} else {
-		return ""
-	}
+  // TODO: This is wrong; in help command it needs First().Parent and flag just
+  // need First()
+
+  // TODO: Maybe to get expected output we should do a check for self.CLI.Name
+  // against the commands.first and if its the same we got command, and if its
+  // not then its subcommand.
+  if !self.Commands.First().Subcommands.IsZero() {
+    return " [{{.subcommand}}]"
+  } else {
+    return ""
+  }
 }
 
 // TODO: Would be preferable to define a template and use it than have a static
 //       template like this. This could be the default fallback.
-func (self Context) helpTemplate(command Command) (t string) {
-	t += "\n{{.header}}"
-	t += Prefix() + "{{.usage}}\n"
-	t += Tab() + 
-       strings.ToLower(strings.Join(self.Commands.Names(), " ")) + 
-       strings.ToLower(self.expectingCommandsOrSubcommand()) + 
-       " [{{.params}}]" + 
-       "\n\n"
-	t += Prefix() + 
-       "{{.commands}}\n"
-	for _, subcommand := range command.Subcommands.Visible() {
-		t += Tab() + 
-         commandUsage(*subcommand) + 
-        strings.Repeat(" ", (18-len(commandUsage(*subcommand)))) +
-        subcommand.Description
-	}
-	t += "\n\n\n"
+func (self Context) defaultHelpTemplate() (t string) {
+  t += "\n{{.header}}"
+  t += "\n" + Tab() + "{{.description}}\n\n"
+  t += Prefix() + "{{.usage}}\n"
+  t += Tab() + 
+  strings.ToLower(strings.Join(self.Commands.Reverse().Names(), " ")) + 
+  // TODO: ExpectingCommandOrSubcommands doesn't really work for help
+  // because if it was a help flag it should be First() but command help
+  // would be First().Parent
+  strings.ToLower(self.expectingCommandsOrSubcommand()) + 
+  " [{{.params}}]" + 
+  "\n\n"
+  if !self.Commands.First().Subcommands.IsZero() {
+    t += Prefix() + 
+    "{{.subcommands}}\n"
+    for _, subcommand := range self.Commands.First().Subcommands.Reverse().Visible() {
+      t += Tab() + 
+      commandUsage(*subcommand) + 
+      strings.Repeat(" ", (18-len(commandUsage(*subcommand)))) +
+      subcommand.Description +
+      "\n"
+    }
+    t += "\n"
+  }
 
-	// TODO: Should the command flags be printed with global flags too?
-	for _, command := range self.Commands {
-		if len(command.Flags) != 0 {
-			if command.Base() {
-				t += Prefix() +
-             "{{.subflags}}\n"
-			} else {
-				t += Prefix() + 
-             "{{.flags}}\n"
-			}
-			for _, flag := range command.Flags {
-				t += flagHelp(*flag)
-			}
-			t += "\n"
-		}
-	}
+  // TODO: Should the command flags be printed with global flags too?
+  for _, command := range self.Commands {
+    if len(command.Flags) != 0 {
+      if command.Base() {
+        t += Prefix() +
+        "{{.flags}}\n"
+      } else {
+        t += Prefix() + 
+        "{{.subflags}}\n"
+      }
+      for _, flag := range command.Flags.Reverse() {
+        t += flagHelp(*flag)
+      }
+      t += "\n"
+    }
+  }
 
-	return t
+  return t
 }
 ///////////////////////////////////////////////////////////////////////////////
 
 func commandUsage(command Command) (output string) {
-  if data.IsBlank(command.Alias) {
+  if !data.IsBlank(command.Alias) {
     output += ", " + command.Alias
   }
   return command.Name + output
 }
 
 func flagHelp(flag Flag) string {
-	usage := Long.String() + 
-           flag.Name
-	if data.NotBlank(flag.Alias) {
-		usage += ", " +
-             Short.String() +
-             flag.Alias
-	}
-	var defaultValue string
-	if len(flag.Default) != 0 {
-		defaultValue = " [≅ " +
-                  flag.Default +
-                  "]"
-	}
-	return strings.Repeat(" ", 4) +
-         usage +
-         strings.Repeat(" ", 18-len(usage)) +
-         flag.Description + defaultValue +
-         "\n"
+  usage := Long.String() + 
+  flag.Name
+  if data.NotBlank(flag.Alias) {
+    usage += ", " +
+    Short.String() +
+    flag.Alias
+  }
+  var defaultValue string
+  if len(flag.Default) != 0 {
+    defaultValue = " [≅ " +
+    flag.Default +
+    "]"
+  }
+  return strings.Repeat(" ", 4) +
+  usage +
+  strings.Repeat(" ", 18-len(usage)) +
+  flag.Description + defaultValue +
+  "\n"
 }
 

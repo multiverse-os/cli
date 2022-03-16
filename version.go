@@ -5,9 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	data "github.com/multiverse-os/cli/data"
 	ansi "github.com/multiverse-os/cli/terminal/ansi"
-	template "github.com/multiverse-os/cli/terminal/template"
 )
 
 type VersionComponent int
@@ -78,26 +76,6 @@ func (self Version) ColorString() string {
          ansi.Light(ansi.Blue("]"))
 }
 
-func (self CLI) RenderVersionTemplate() error {
-	err := template.StdOut(defaultVersionTemplate(), map[string]string{
-		"header":  ansi.Bold(ansi.SkyBlue(self.Context.Commands.First().Name)),
-		"version": self.Version.ColorString(),
-	})
-	//"build": table.New(BuildInformation{
-	//	Source:     "n/a",
-	//	Commit:     "n/a",
-	//	Signature:  "n/a",
-	//	CompiledAt: "n/a",
-	//}).String(),
-	if data.NotNil(err) {
-		return err
-	}
-	return nil
-}
-
-func defaultVersionTemplate() string {
-	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}\n"
-}
 
 func (self Version) undefined() bool {
 	return self.Major == 0 &&

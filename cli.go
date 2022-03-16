@@ -126,16 +126,22 @@ func New(app App) *CLI {
     },
   }
 
+  // TODO: Check if the developer using the library did not assign these and
+  // like the rest of the major variables we assign when left unassigned. So
+  // these will need to be broken up and individually assigne upon checking
+  // variables for nil value
   app.Commands = app.Commands.Add(&Command{
     Name: "help",
     Alias: "h",
     Description: "outputs command and flag details",
-    Hidden: true,
+    Action: RenderDefaultHelpTemplate,
+    Hidden: false,
   }).Add(&Command{
     Name: "version",
     Alias: "v",
     Description: "outputs version",
-    Hidden: true,
+    Action: RenderDefaultVersionTemplate,
+    Hidden: false,
   })
   app.GlobalFlags = app.GlobalFlags.Add(&Flag{
     Name: "help",

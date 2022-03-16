@@ -15,6 +15,8 @@ type Command struct {
   Action      Action
 }
 
+// TODO: Make sure that no existing commands ahve the same name, and since
+// delete uses name
 func ValidateCommand(command Command) error {
   if 32 < len(command.Name) {
     return errInvalidArgumentLength
@@ -85,6 +87,17 @@ func (self commands) Name(name string) *Command {
   }
   return nil
 }
+
+func (self commands) Delete(command *Command) (newCommands commands) {
+  for index, _ := range self {
+      if self[index].Name != command.Name {
+        newCommands = newCommands.Add(self[index])
+      }
+  }
+
+  return newCommands
+}
+ 
 
 func (self commands) Visible() (visibleCommands commands) {
   for _, command := range self {
