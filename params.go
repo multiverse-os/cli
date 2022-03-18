@@ -14,7 +14,6 @@ type Param struct {
 }
 
 func NewParam(argument string) *Param {
-  
   return &Param{
     value: argument,
   }

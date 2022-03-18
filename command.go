@@ -69,6 +69,11 @@ func (self commands) Names() (commandNames []string) {
 }
   
 // Commands Public Methods
+func HelpCommand(context *Context) error {
+  context.Commands = context.Commands.Delete(context.Commands.Name("help"))
+  return RenderDefaultHelpTemplate(context)
+}
+
 func (self commands) First() *Command { return self[0] }
 func (self commands) Last() *Command { return self[self.Count()-1] }
 

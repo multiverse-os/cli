@@ -1,7 +1,6 @@
 package cli
 
 import (
-  "fmt"
   "os"
   "strings"
   "time"
@@ -84,7 +83,9 @@ func (self *CLI) Parse(args []string) *Context {
         self.Context.Commands = self.Context.Commands.Add(command)
         self.Context.Flags = append(self.Context.Flags, command.Flags...)
 
-        self.Context.Arguments = self.Context.Arguments.Add(self.Context.Commands.First())
+        self.Context.Arguments = self.Context.Arguments.Add(
+          self.Context.Commands.First(),
+        )
 
         self.Context.Command = self.Context.Commands.First()
       } else {
@@ -99,38 +100,32 @@ func (self *CLI) Parse(args []string) *Context {
         }
         if flag == nil {
           self.Context.Params = self.Context.Params.Add(NewParam(argument))
-          self.Context.Arguments = self.Context.Arguments.Add(self.Context.Params.First())
+          self.Context.Arguments = self.Context.Arguments.Add(
+            self.Context.Params.First(),
+          )
         }
       }
     }
   }
 
-
-  self.Context.DevOutput()
-
-  // TODO: Need a way to scan for commands or flags for the HELP and VERSION
-  // ones which will override essentially everything but OnStart and OnExit
-
   if self.Actions.OnStart != nil {
-    fmt.Println("as expected, cli.Actions.OnStart is NOT nil")
-    // TODO :Add it to the action chain
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
-  fmt.Println("Number of actions after adding onStart if not nil", len(self.Context.Actions))
-
   // TODO: These hard-coded exceptions kinda drive me nuts, I feel like we
   // might be able to handle this better but at the very least we need to check
   // if the developer using the framework defines their own version and and help
   // and only assign ours as defaults if they are not assigned. (in cli.go)
+  // What if we encapsualte this logic inside a higher level function and call
+  // that in an attempt to avoid hard coding
   if self.Context.Flags.Assigned().HasFlag("version") {
     self.Context.Actions = self.Context.Actions.Add(
       RenderDefaultVersionTemplate,
     )
-    RenderDefaultVersionTemplate(self.Context)
-  } else if self.Context.Commands.HasCommand("help") {
-    self.Context.Commands = self.Context.Commands.Delete(
-      self.Context.Commands.First(),
-    )
+    //RenderDefaultVersionTemplate(self.Context)
+  //} else if self.Context.Commands.HasCommand("help") {
+    //self.Context.Commands = self.Context.Commands.Delete(
+    //  self.Context.Commands.First(),
+    //)
   } else if self.Context.Flags.Assigned().HasFlag("help") {
     self.Context.Actions = self.Context.Actions.Add(RenderDefaultHelpTemplate)
   }else{
@@ -149,12 +144,6 @@ func (self *CLI) Parse(args []string) *Context {
   if self.Actions.OnExit != nil {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
   }
-  fmt.Println("Number of actions after adding onExit if not nil", len(self.Context.Actions))
-  // TODO: It has 3 at the end so it looks like its all in place, we just need
-  // parse (but also need to make the execptions for version flag too (but we
-  // need to consider other ways to acheive the same goal without hardcoding
-  // exceptions (we also need to check for existing declarations of version and
-  // help)
 
   // NOTE: Before handing the developer using the library the context we put
   // them in the expected left to right order, despite it being easier for us
