@@ -8,6 +8,9 @@ import (
   template "github.com/multiverse-os/cli/terminal/template"
   data "github.com/multiverse-os/cli/data"
 )
+// TODO: Do a lot of cleanup; like there is no more expecting subcommand concept
+// and I already did some work to make it more functional
+
 
 // TODO: Consider a help or tempalte object, then we easily asign things like
 // indentation, figlet font or not, and make everything here a method. then it
@@ -52,7 +55,7 @@ func RenderDefaultVersionTemplate(context *Context) error {
 func (self Context) defaultVersionTemplate() string {
   // TODO: May have to assign these values from context; also that makes sense
   // logically
-	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}\n"
+	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}" + NewLine()
 }
 
 // Available Banners Fonts
@@ -63,16 +66,11 @@ func (self Context) defaultVersionTemplate() string {
 // TODO: Should probably make an enumerator
 func (self Context) asciiHeader(font string) string {
   banner := banner.New(" " + self.Commands.First().Name).Font(font)
-  return banner.String() +
-  self.CLI.Version.String() + 
-  "\n"
+  return banner.String() + self.CLI.Version.String() + NewLine()
 }
 
 func (self Context) simpleHeader() string {
-  return self.Commands.First().Name + 
-  "[v" + 
-  self.CLI.Version.String() + 
-  "]\n"
+  return self.Commands.First().Name + "[v" + self.CLI.Version.String() + "]" + NewLine()
 }
 
 // TODO: Maybe default to just having command and then doing some sort of simple
@@ -91,48 +89,48 @@ func (self Context) expectingCommandsOrSubcommand() string {
   }
 }
 
+// Lol not public obvio or non existenrt
+func NewLine() string { return "\n" }
+
 // TODO: Would be preferable to define a template and use it than have a static
 //       template like this. This could be the default fallback.
 func (self Context) defaultHelpTemplate() (t string) {
-  t += "\n{{.header}}"
-  t += "\n" + Tab() + "{{.description}}\n\n"
-  t += Prefix() + "{{.usage}}\n"
+  t += NewLine() + "{{.header}}"
+  t += NewLine() + Tab() + "{{.description}}" + NewLine() + NewLine()
+  t += Prefix() + "{{.usage}}" + NewLine()
   t += Tab() + 
-  strings.ToLower(strings.Join(self.Commands.Reverse().Names(), " ")) + 
+  strings.ToLower(strings.Join(self.Commands.Names(), " ")) + 
   // TODO: ExpectingCommandOrSubcommands doesn't really work for help
   // because if it was a help flag it should be First() but command help
   // would be First().Parent
   strings.ToLower(self.expectingCommandsOrSubcommand()) + 
-  " [{{.params}}]" + 
-  "\n\n"
+  " [{{.params}}]" + NewLine() + NewLine()
+
   if !self.Commands.First().Subcommands.IsZero() {
-    t += Prefix() + 
-    "{{.subcommands}}\n"
-    for _, subcommand := range self.Commands.First().Subcommands.Reverse().Visible() {
+    t += Prefix() + "{{.subcommands}}" + NewLine()
+    for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
       t += Tab() + 
       commandUsage(*subcommand) + 
       strings.Repeat(" ", (18-len(commandUsage(*subcommand)))) +
-      subcommand.Description +
-      "\n"
+      subcommand.Description + NewLine()
     }
-    t += "\n"
+    t += NewLine()
   }
 
-  // TODO: Should the command flags be printed with global flags too?
-  for _, command := range self.Commands {
-    if len(command.Flags) != 0 {
-      if command.Base() {
-        t += Prefix() +
-        "{{.flags}}\n"
-      } else {
-        t += Prefix() + 
-        "{{.subflags}}\n"
-      }
-      for _, flag := range command.Flags.Reverse() {
-        t += flagHelp(*flag)
-      }
-      t += "\n"
+  if len(self.Commands.Last().Flags) != 0 && 1 < len(self.Commands){
+    t += Prefix() + "{{.subflags}}" + NewLine()
+    for _, flag := range self.Commands.Last().Flags.Reverse() {
+      t += flagHelp(*flag)
     }
+    t += NewLine()
+  }
+
+  if len(self.Commands.First().Flags) != 0 {
+    t += Prefix() + "{{.flags}}" + NewLine()
+    for _, flag := range self.Commands.First().Flags.Reverse() {
+      t += flagHelp(*flag)
+    }
+    t += NewLine()
   }
 
   return t
@@ -156,14 +154,9 @@ func flagHelp(flag Flag) string {
   }
   var defaultValue string
   if len(flag.Default) != 0 {
-    defaultValue = " [≅ " +
-    flag.Default +
-    "]"
+    defaultValue = " [≅ " + flag.Default + "]"
   }
-  return strings.Repeat(" ", 4) +
-  usage +
-  strings.Repeat(" ", 18-len(usage)) +
-  flag.Description + defaultValue +
-  "\n"
+  return strings.Repeat(" ", 4) + usage + strings.Repeat(" ", 18-len(usage)) +
+  flag.Description + defaultValue + NewLine()
 }
 

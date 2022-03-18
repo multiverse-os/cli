@@ -39,6 +39,7 @@ type Flag struct {
 	Description string
 	Hidden      bool
 	Default     string
+  Action      Action
   Param       *Param
 }
 

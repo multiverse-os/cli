@@ -41,7 +41,7 @@ func (self Command) Subcommand(name string) *Command {
   return self.Subcommands.Name(name)
 }
 
-func (self Command) Base() bool { return self.Parent == nil }
+func (self Command) IsRoot() bool { return self.Parent == nil }
 ///////////////////////////////////////////////////////////////////////////////
 // TODO: These should be consist with linked list even if we dont use it (and we
 // probably should)

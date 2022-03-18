@@ -26,6 +26,8 @@ import (
 // the actions. So in the end it will be 
 //      cli.Parse(os.Args).Execute()
 
+// TODO: Add 
+
 // TODO: Add localization support (we should write a library that can be used by
 // both this and the webframework
 
@@ -156,6 +158,7 @@ func New(app App) *CLI {
       Alias: "h",
       Description: "outputs command and flag details",
       Hidden: false,
+      Action: RenderDefaultHelpTemplate,
     })
   }
 
@@ -165,6 +168,7 @@ func New(app App) *CLI {
       Alias: "v",
       Description: "outputs version",
       Hidden: false,
+      Action: RenderDefaultVersionTemplate,
     })
   }
 

@@ -108,43 +108,6 @@ func (self *CLI) Parse(args []string) *Context {
     }
   }
 
-  if self.Actions.OnStart != nil {
-    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
-  }
-  // TODO: These hard-coded exceptions kinda drive me nuts, I feel like we
-  // might be able to handle this better but at the very least we need to check
-  // if the developer using the framework defines their own version and and help
-  // and only assign ours as defaults if they are not assigned. (in cli.go)
-  // What if we encapsualte this logic inside a higher level function and call
-  // that in an attempt to avoid hard coding
-  if self.Context.Flags.Assigned().HasFlag("version") {
-    self.Context.Actions = self.Context.Actions.Add(
-      RenderDefaultVersionTemplate,
-    )
-    //RenderDefaultVersionTemplate(self.Context)
-  //} else if self.Context.Commands.HasCommand("help") {
-    //self.Context.Commands = self.Context.Commands.Delete(
-    //  self.Context.Commands.First(),
-    //)
-  } else if self.Context.Flags.Assigned().HasFlag("help") {
-    self.Context.Actions = self.Context.Actions.Add(RenderDefaultHelpTemplate)
-  }else{
-    // NOTE: We iterate over the commands backwards and have the fallback in the 
-    // last position in the psuedo-command for the app. And for now we only run
-    // one command by breaking after finding the first available action. Instead 
-    // of every command in the chain (that might be a desirable option in the future).
-    for _, command := range self.Context.Commands {
-      if command.Action != nil {
-        self.Context.Actions = append(self.Context.Actions, command.Action)
-        break
-      }
-    }
-  }
-
-  if self.Actions.OnExit != nil {
-    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
-  }
-
   // NOTE: Before handing the developer using the library the context we put
   // them in the expected left to right order, despite it being easier for us
   // to access in this function in the reverse order.
@@ -152,6 +115,28 @@ func (self *CLI) Parse(args []string) *Context {
   self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
   self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
   self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
+
+  if self.Actions.OnStart != nil {
+    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
+  }
+
+  for _, command := range self.Context.Commands {
+    if command.Action != nil {
+      self.Context.Actions = append(self.Context.Actions, command.Action)
+      for _, flag := range command.Flags {
+        if data.IsTrue(flag.Param.value) && flag.Action != nil {
+          self.Context.Actions = append(self.Context.Actions, flag.Action)
+        }
+      }
+      // NOTE: Break so only first available action is used. Fallback
+      // should only run if no actions were defined by commands
+      break
+    }
+  }
+
+  if self.Actions.OnExit != nil {
+    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
+  }
 
   return self.Context
 }
