@@ -1,4 +1,4 @@
-package parse_test
+package cli_test
 
 // NOTE: Because its external we have to import the library we are testing
 import (
