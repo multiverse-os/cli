@@ -28,8 +28,8 @@ func testArgs() []testArg {
 // normal omgffg
 func Test_Parse(t *testing.T) {
   for _, arg := range testArgs() {
-    cli := cli.New().Parse(arg)
-    if cli == nil {
+    cliContext, _ := cli.New().Parse(arg)
+    if cliContext == nil {
       t.Errorf("cli failed to create with empty cli.App, returned nil cli.CLI object")
     }
   }

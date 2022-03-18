@@ -38,6 +38,7 @@ type Flag struct {
   Alias       string
 	Description string
 	Hidden      bool
+  Required    bool
 	Default     string
   Action      Action
   Param       *Param

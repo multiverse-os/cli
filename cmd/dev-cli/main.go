@@ -1,6 +1,7 @@
 package main
 
 import (
+  "fmt"
   "os"
 
 	cli "github.com/multiverse-os/cli"
@@ -123,5 +124,14 @@ func main() {
 	// NOTE: Has the ability output context and error, this enables developers to
 	// handle their own routing or actions based on parsed context.
 	// context, _ := cmd.Parse(os.Args)
-  cmd.Parse(os.Args).Execute()
+  // TODO: Hating this; hate hate ahte
+  cliContext, errs := cmd.Parse(os.Args)
+  if len(errs) != 0 {
+    fmt.Println("got ", len(errs), " errors")
+    for _, err := range errs {
+      fmt.Println("err:", err) 
+    }
+  }else{
+    cliContext.Execute()
+  }
 }

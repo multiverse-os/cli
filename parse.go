@@ -21,8 +21,15 @@ import (
 // complete list of available flags (and the psuedo app command stores the
 // global ones) -- changes to parse will need to reflect this.
 
-func (self *CLI) Parse(args []string) *Context {
+func (self *CLI) Parse(args []string) (*Context, []error) {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
+
+  // TODO: Need to add the check for required flags (new feature just thought of
+  // because seems like it would be useful no? But for this to ever occur we
+  // need to not just return error but ERRORS- this is actually nice because we
+  // would expect parse to return PARSING ERRORS no?-- which will let us have
+  // our validations OH VALIDATIONS HOW I LOVE THE
+
   for _, argument := range os.Args[1:] {
     // Flag parse
     if flagType, ok := HasFlagPrefix(argument); ok {
@@ -138,5 +145,5 @@ func (self *CLI) Parse(args []string) *Context {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
   }
 
-  return self.Context
+  return self.Context, []error{}
 }
