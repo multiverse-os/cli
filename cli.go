@@ -32,8 +32,7 @@ import (
 // both this and the webframework
 
 // TODO: Provide validation for conflicting flags and commands defined on
-// itialization (or allow overwriting existing, so for example, a developer can
-// overwrite our built in version or help commands).
+// itialization
 
 // TODO: Write tests for basic functionality, specifically around the Parse()
 // function + Execute
