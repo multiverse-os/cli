@@ -24,13 +24,13 @@ func NewParam(argument string) *Param {
 //         Filename: 256
 func ValidateParam(param Param) error {
   if len(param.value) < 4096 {
-    return errInvalidArgumentLength
+    return ErrInvalidArgumentLength
   }
   // TODO: Format validation should be based on data type
   //       Yes, it should be based on type switch
   //for _, paramRune := range param.value {
   //  if !unicode.IsLetter(paramRune) {
-  //    return errors.New(errInvalidParamFormat)
+  //    return errors.New(ErrInvalidParamFormat)
   //  }
   //}
   return nil

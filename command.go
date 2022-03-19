@@ -19,12 +19,12 @@ type Command struct {
 // delete uses name
 func ValidateCommand(command Command) error {
   if 32 < len(command.Name) {
-    return errInvalidArgumentLength
+    return ErrInvalidArgumentLength
   }
   for _, commandRune := range command.Name {
     // NOTE: a = 97; z = 122; - = 45
     if (97 <= commandRune && commandRune <= 122) || commandRune == 45 {
-      return errInvalidArgumentFormat
+      return ErrInvalidArgumentFormat
     }
   }
   return nil

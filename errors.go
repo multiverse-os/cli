@@ -5,10 +5,10 @@ import (
 )
 
 var (
-	errInvalidActionType      = errors.New("invalid default action")
-	errIndexOutOfRange        = errors.New("index out of range")
-	errFailedNameAssignment   = errors.New("failed to assign 'Name' attribute")
-  errInvalidArgumentLength  = errors.New("maximum argument length is 32")
-  errInvalidFlagShortLength = errors.New("maximum flag short length is 1")
-  errInvalidArgumentFormat  = errors.New("invalid argument format")
+	ErrInvalidActionType      = errors.New("invalid default action")
+	ErrIndexOutOfRange        = errors.New("index out of range")
+	ErrFailedNameAssignment   = errors.New("failed to assign 'Name' attribute")
+  ErrInvalidArgumentLength  = errors.New("maximum argument length is 32")
+  ErrInvalidFlagShortLength = errors.New("maximum flag short length is 1")
+  ErrInvalidArgumentFormat  = errors.New("invalid argument format")
 )

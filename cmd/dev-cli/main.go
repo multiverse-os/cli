@@ -20,8 +20,6 @@ func main() {
 				Default:     "en",
 				Description: "Locale used when executing the program",
 			},
-      // TODO: This flag intentionally violates the validation of a flag to test
-      // if its working
 			cli.Flag{
 				Name:        "daemon",
 				Alias:       "d",
@@ -84,40 +82,40 @@ func main() {
 		),
     Actions: cli.Actions{
       OnStart: func(c *cli.Context) error {
-        c.CLI.Log("OnStart action")
+        //c.CLI.Log("OnStart action")
         return nil
       },
       Fallback: func(c *cli.Context) error {
-        c.CLI.Log("Fallback action")
+        //c.CLI.Log("Fallback action")
         return nil
       },
-      OnExit: func(c *cli.Context) error {
-        c.CLI.Log("OnExit action")
-			  c.CLI.Log("=====================================================")
-        // TODO: Switch to only using these and document this log system in the
-        // API better
-			  c.CLI.Log("Command.Name:         ", c.Command.Name)
-			  c.CLI.Log("flag count [ ", string(c.Command.Flags.Count()), "] :")
-			  c.CLI.Log("=====================================================")
+      //OnExit: func(c *cli.Context) error {
+      //  c.CLI.Log("OnExit action")
+			//  c.CLI.Log("=====================================================")
+      //  // TODO: Switch to only using these and document this log system in the
+      //  // API better
+			//  c.CLI.Log("Command.Name:         ", c.Command.Name)
+			//  c.CLI.Log("flag count [ ", string(c.Command.Flags.Count()), "] :")
+			//  c.CLI.Log("=====================================================")
 
-			  for _, command := range c.Commands {
-			  	c.CLI.Log("=====================================================")
-			  	c.CLI.Log("command:", command.Name)
-          //c.CLI.Log("command:action= [", command.Action, "]")
-			  	for _, flag := range command.Flags {
-			  		c.CLI.Log("command:flag= [", command.Name, "][", flag.Name, "][", flag.String(), "]")
-			  	}
-			  }
+			//  for _, command := range c.Commands {
+			//  	c.CLI.Log("=====================================================")
+			//  	c.CLI.Log("command:", command.Name)
+      //    //c.CLI.Log("command:action= [", command.Action, "]")
+			//  	for _, flag := range command.Flags {
+			//  		c.CLI.Log("command:flag= [", command.Name, "][", flag.Name, "][", flag.String(), "]")
+			//  	}
+			//  }
 
-			  for _, flag := range c.Flags {
-			  	c.CLI.Log("=====================================================")
-			  	c.CLI.Log("flag.Name :       ", flag.Name)
-			  	c.CLI.Log("flag.Value:       ", flag.String())
-			  }
-			  c.CLI.Log("=====================================================")
+			//  for _, flag := range c.Flags {
+			//  	c.CLI.Log("=====================================================")
+			//  	c.CLI.Log("flag.Name :       ", flag.Name)
+			//  	c.CLI.Log("flag.Value:       ", flag.String())
+			//  }
+			//  c.CLI.Log("=====================================================")
 
-			  return nil
-		  },
+			//  return nil
+		  //},
     },
 	})
 

@@ -47,12 +47,12 @@ type Flag struct {
 func ValidateFlag(flag Flag) error {
   // TODO: Validate param
   if 32 < len(flag.Name) {
-    return errInvalidArgumentLength
+    return ErrInvalidArgumentLength
   }
   for _, flagRune := range flag.Name {
     // NOTE: a = 97; z = 122; - = 45
     if (97 <= flagRune && flagRune <= 122) || flagRune == 45 {
-      return errInvalidArgumentFormat
+      return ErrInvalidArgumentFormat
     }
   }
   return nil
