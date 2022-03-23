@@ -99,6 +99,11 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
   //  }
   //}
 
+  // NOTE: If a fallback is not set, we render default help template. 
+  if app.Actions.Fallback == nil {
+    app.Actions.Fallback = RenderDefaultHelpTemplate
+  }
+
   cli = &CLI{
     Version:  app.Version,
     Outputs:  app.Outputs,

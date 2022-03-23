@@ -80,15 +80,15 @@ func main() {
 		),
     Actions: cli.Actions{
       OnStart: func(c *cli.Context) error {
-        c.CLI.Log("OnStart action")
+        //c.CLI.Log("OnStart action")
         return nil
       },
-      Fallback: func(c *cli.Context) error {
-        c.CLI.Log("Fallback action")
-        return nil
-      },
+      //Fallback: func(c *cli.Context) error {
+      //  c.CLI.Log("Fallback action")
+      //  return nil
+      //},
       OnExit: func(c *cli.Context) error {
-        c.CLI.Log("OnExit action")
+        //c.CLI.Log("OnExit action")
 			//  c.CLI.Log("=====================================================")
       //  // TODO: Switch to only using these and document this log system in the
       //  // API better
