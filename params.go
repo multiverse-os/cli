@@ -58,8 +58,6 @@ func (self Param) Int() int {
 
 // TODO: URL
 
-// TODO: This all should be handled by data subpackage
-
 ///////////////////////////////////////////////////////////////////////////////
 type params []*Param
 

@@ -21,12 +21,13 @@ func ValidateCommand(command Command) error {
   if 32 < len(command.Name) {
     return ErrInvalidArgumentLength
   }
-  for _, commandRune := range command.Name {
-    // NOTE: a = 97; z = 122; - = 45
-    if (97 <= commandRune && commandRune <= 122) || commandRune == 45 {
-      return ErrInvalidArgumentFormat
-    }
-  }
+  // TODO: Fix format checking for this and flag
+  //for _, commandRune := range command.Name {
+  //  // NOTE: a = 97; z = 122; - = 45
+  //  if (97 <= commandRune && commandRune <= 122) || commandRune == 45 {
+  //    return ErrInvalidArgumentFormat
+  //  }
+  //}
   return nil
 }
 
@@ -91,6 +92,15 @@ func (self commands) Name(name string) *Command {
     }
   }
   return nil
+}
+
+func (self commands) Validate() (errs []error) {
+  for _, command := range self {
+    if err := ValidateCommand(*command); err != nil {
+      errs = append(errs, err)
+    }
+  }
+  return errs
 }
 
 func (self commands) Delete(command *Command) (newCommands commands) {

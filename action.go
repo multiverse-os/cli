@@ -1,9 +1,5 @@
 package cli
 
-import (
-  "time"
-)
-
 type Action func(context *Context) error
 
 type Actions struct {
@@ -19,12 +15,11 @@ func (self actions) Add(action Action) actions {
   return append(self, action)
 }
 
-func (self *Context) Execute() *Context {
-  // NOTE: Run each action
-  defer self.CLI.benchmark(time.Now(), "benmarking action execution")
-
-  for _, action := range self.Actions {
-    action(self)
-  }
-  return self
-}
+//func (self actions) HasAction(action Action) bool {
+//  for _, definedAction := range self {
+//    if reflect.DeepEqual(definedAction, action) {
+//      return true
+//    }
+//  }
+//  return false
+//}

@@ -1,31 +1,68 @@
 package cli_test
 
 import (
-  //"fmt"
-  //"os"
+  "fmt"
+  "reflect"
+  "runtime"
+  "strings"
   "testing"
 
   cli "github.com/multiverse-os/cli"
 )
 
-type testArg []string
+type parseTest struct {
+  Args           []string
+  ExpectedAction string
+}
 
-func testArgs() []testArg {
-  return  []testArg{
-    testArg{"h"},
-    testArg{"help"},
-    testArg{"-h"},
-    testArg{"-help"},
-    testArg{"v"},
-    testArg{"version"},
-    testArg{"-v"},
-    testArg{"-version"},
+func parseTests() []parseTest {
+  return  []parseTest{
+    parseTest{
+      Args: []string{"test-cli", "h"},
+      ExpectedAction: "HelpCommand",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "help"},
+      ExpectedAction: "HelpCommand",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "-h"},
+      ExpectedAction: "RenderDefaultHelpTemplate",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "--help"},
+      ExpectedAction: "RenderDefaultHelpTemplate",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "v"},
+      ExpectedAction: "RenderDefaultVersionTemplate",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "version"},
+      ExpectedAction: "RenderDefaultVersionTemplate",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "-v"},
+      ExpectedAction: "RenderDefaultVersionTemplate",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "--version"},
+      ExpectedAction: "RenderDefaultVersionTemplate",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "list", "--help"},
+      ExpectedAction: "RenderDefaultVersionTemplate",
+    }, 
+    parseTest{
+      Args: []string{"test-cli", "list", "help"},
+      ExpectedAction: "HelpCommand",
+    }, 
   }
 }
 
-func InitApp() cli.App {
+func initTestApp() cli.App {
   return cli.App{
-    Name:        "dev-cli",
+    Name:        "test-cli",
     Description: "an example cli application for scripts and full-featured applications",
     Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
     GlobalFlags: cli.Flags(
@@ -98,23 +135,37 @@ func InitApp() cli.App {
 
 func Test_New(t *testing.T) {
   // NOTE: Test Empty App
-  cli := cli.New()
+  _, initErrors := cli.New()
 
-  if cli == nil {
+  if len(initErrors) != 0 {
     t.Errorf("cli failed to create with empty cli.App, returned nil cli.CLI object")
   }
 }
 
 
 // TODO: Will need to define different cli objects using New() 
-
-// TODO: Some obvio problems with these tests lol, wtf if you think this is
-// normal omgffg
 func Test_Parse(t *testing.T) {
-  for _, arg := range testArgs() {
-    cliContext, _ := cli.New().Parse(arg)
-    if cliContext == nil {
-      t.Errorf("cli failed to create with empty cli.App, returned nil cli.CLI object")
+  for _, parseTest := range parseTests() {
+    // NOTE: Empty New() used, so it should only have 1 action 
+    cmd, _ := cli.New(initTestApp())
+    cmd.Parse(parseTest.Args)
+
+    for _, action := range cmd.Context.Actions {
+      actionName := strings.TrimPrefix(
+        // TODO: see if you can check against The valueOf, the Pointer
+        // or anything but the name if at all possible
+        runtime.FuncForPC(reflect.ValueOf(action).Pointer()).Name(),
+        "github.com/multiverse-os/cli.",
+      )
+      if strings.Contains(actionName, "cli_test") {
+        continue
+      }
+
+      fmt.Println("action name:", actionName)
+
+      if actionName != parseTest.ExpectedAction {
+        t.Errorf("expected action not found in action chain after parse")
+      }
     }
   }
 }

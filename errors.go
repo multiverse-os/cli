@@ -11,4 +11,6 @@ var (
   ErrInvalidArgumentLength  = errors.New("maximum argument length is 32")
   ErrInvalidFlagShortLength = errors.New("maximum flag short length is 1")
   ErrInvalidArgumentFormat  = errors.New("invalid argument format")
+  ErrInvalidCommandFormat   = errors.New("invalid command format")
+  ErrInvalidFlagFormat      = errors.New("invalid flag format")
 )

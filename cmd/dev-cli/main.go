@@ -1,15 +1,13 @@
 package main
 
 import (
-  "fmt"
   "os"
 
 	cli "github.com/multiverse-os/cli"
 )
 
 func main() {
-
-	cmd := cli.New(cli.App{
+  cmd, initErrors := cli.New(cli.App{
 		Name:        "dev-cli",
 		Description: "an example cli application for scripts and full-featured applications",
 		Version:     cli.Version{Major: 0, Minor: 1, Patch: 1},
@@ -82,15 +80,15 @@ func main() {
 		),
     Actions: cli.Actions{
       OnStart: func(c *cli.Context) error {
-        //c.CLI.Log("OnStart action")
+        c.CLI.Log("OnStart action")
         return nil
       },
       Fallback: func(c *cli.Context) error {
-        //c.CLI.Log("Fallback action")
+        c.CLI.Log("Fallback action")
         return nil
       },
-      //OnExit: func(c *cli.Context) error {
-      //  c.CLI.Log("OnExit action")
+      OnExit: func(c *cli.Context) error {
+        c.CLI.Log("OnExit action")
 			//  c.CLI.Log("=====================================================")
       //  // TODO: Switch to only using these and document this log system in the
       //  // API better
@@ -114,22 +112,12 @@ func main() {
 			//  }
 			//  c.CLI.Log("=====================================================")
 
-			//  return nil
-		  //},
+			  return nil
+		  },
     },
 	})
 
-	// NOTE: Has the ability output context and error, this enables developers to
-	// handle their own routing or actions based on parsed context.
-	// context, _ := cmd.Parse(os.Args)
-  // TODO: Hating this; hate hate ahte
-  cliContext, errs := cmd.Parse(os.Args)
-  if len(errs) != 0 {
-    fmt.Println("got ", len(errs), " errors")
-    for _, err := range errs {
-      fmt.Println("err:", err) 
-    }
-  }else{
-    cliContext.Execute()
+  if len(initErrors) == 0 { 
+    cmd.Parse(os.Args).Execute() 
   }
 }

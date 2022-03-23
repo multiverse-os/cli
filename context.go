@@ -18,3 +18,4 @@ func (self Context) Flag(name string) *Flag {
 func (self Context) HasFlag(name string) bool { 
   return self.Flag(name) != nil 
 }
+

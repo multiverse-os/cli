@@ -49,12 +49,15 @@ func ValidateFlag(flag Flag) error {
   if 32 < len(flag.Name) {
     return ErrInvalidArgumentLength
   }
-  for _, flagRune := range flag.Name {
-    // NOTE: a = 97; z = 122; - = 45
-    if (97 <= flagRune && flagRune <= 122) || flagRune == 45 {
-      return ErrInvalidArgumentFormat
-    }
-  }
+  // TODO: Validate format
+  //for _, flagRune := range flag.Name {
+  //  // NOTE: a = 97; z = 122; - = 45
+
+  //  if unicode.IsLetter(flagRune) || flagRune == 45 {
+  //    fmt.Println("flagRune:", rune(flagRune))
+  //    return ErrInvalidFlagFormat
+  //  }
+  //}
   return nil
 }
 
@@ -142,13 +145,13 @@ func (self flags) Visible() (visibleFlags flags) {
   return visibleFlags
 }
 
-func (self flags) Validate() error {
+func (self flags) Validate() (errs []error) {
   for _, flag := range self {
     if err := ValidateFlag(*flag); err != nil {
-      return err 
+      errs = append(errs, err)
     }
   }
-  return nil
+  return errs
 }
 
 func (self flags) Count() int { return len(self) }
