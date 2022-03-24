@@ -26,6 +26,12 @@ import (
 // TODO: Provide validation for conflicting flags and commands defined on
 // itialization
 
+// TODO: When using youtube-dl I noticed they had so many flags they needed
+// groupings (or categories); so to fit a wider range of use cases we should add
+// this functionality (probably minimum argmuments too).
+
+// TODO: Shouldnt render subcommands section if they dont exist
+
 // TODO: Write tests for basic functionality, specifically around the Parse()
 // function + Execute. Fix permissions (public vs private) on functions only leaving
 // explicitly the functions used by a developer using the library
@@ -63,6 +69,7 @@ func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
 func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
 
 func New(appDefinition ...App) (cli *CLI, errs []error) {
+  // TODO: Clean this up so its not as ugly
   var app App
   if len(appDefinition) == 0 {
     app = App{}
@@ -286,7 +293,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
 
-  for _, command := range self.Context.Commands.Reverse() {
+  for _, command := range self.Context.Commands {
     for _, flag := range command.Flags {
       if data.IsTrue(flag.Param.value) && flag.Action != nil {
         self.Context.Actions = append(self.Context.Actions, flag.Action)

@@ -21,7 +21,6 @@ func ValidateCommand(command Command) error {
   if 32 < len(command.Name) {
     return ErrInvalidArgumentLength
   }
-  // TODO: Fix format checking for this and flag
   //for _, commandRune := range command.Name {
   //  // NOTE: a = 97; z = 122; - = 45
   //  if (97 <= commandRune && commandRune <= 122) || commandRune == 45 {

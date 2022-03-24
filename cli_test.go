@@ -51,7 +51,7 @@ func parseTests() []parseTest {
     }, 
     parseTest{
       Args: []string{"test-cli", "list", "--help"},
-      ExpectedAction: "RenderDefaultVersionTemplate",
+      ExpectedAction: "RenderDefaultHelpTemplate",
     }, 
     parseTest{
       Args: []string{"test-cli", "list", "help"},
@@ -138,7 +138,7 @@ func Test_New(t *testing.T) {
   _, initErrors := cli.New()
 
   if len(initErrors) != 0 {
-    t.Errorf("cli failed to create with empty cli.App, returned nil cli.CLI object")
+    t.Errorf("want (0) errors, got (%v)", len(initErrors))
   }
 }
 
@@ -149,6 +149,7 @@ func Test_Parse(t *testing.T) {
     // NOTE: Empty New() used, so it should only have 1 action 
     cmd, _ := cli.New(initTestApp())
     cmd.Parse(parseTest.Args)
+    fmt.Printf("cli args (%v)", parseTest.Args)
 
     for _, action := range cmd.Context.Actions {
       actionName := strings.TrimPrefix(
@@ -164,7 +165,7 @@ func Test_Parse(t *testing.T) {
       fmt.Println("action name:", actionName)
 
       if actionName != parseTest.ExpectedAction {
-        t.Errorf("expected action not found in action chain after parse")
+        t.Errorf("want (%v) function, got (%v)", actionName, parseTest.ExpectedAction)
       }
     }
   }

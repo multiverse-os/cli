@@ -89,33 +89,33 @@ func main() {
       //},
       OnExit: func(c *cli.Context) error {
         //c.CLI.Log("OnExit action")
-			//  c.CLI.Log("=====================================================")
-      //  // TODO: Switch to only using these and document this log system in the
-      //  // API better
-			//  c.CLI.Log("Command.Name:         ", c.Command.Name)
-			//  c.CLI.Log("flag count [ ", string(c.Command.Flags.Count()), "] :")
-			//  c.CLI.Log("=====================================================")
+        //  c.CLI.Log("=====================================================")
+        //  // TODO: Switch to only using these and document this log system in the
+        //  // API better
+        //  c.CLI.Log("Command.Name:         ", c.Command.Name)
+        //  c.CLI.Log("flag count [ ", string(c.Command.Flags.Count()), "] :")
+        //  c.CLI.Log("=====================================================")
 
-			//  for _, command := range c.Commands {
-			//  	c.CLI.Log("=====================================================")
-			//  	c.CLI.Log("command:", command.Name)
-      //    //c.CLI.Log("command:action= [", command.Action, "]")
-			//  	for _, flag := range command.Flags {
-			//  		c.CLI.Log("command:flag= [", command.Name, "][", flag.Name, "][", flag.String(), "]")
-			//  	}
-			//  }
+        //  for _, command := range c.Commands {
+        //  	c.CLI.Log("=====================================================")
+        //  	c.CLI.Log("command:", command.Name)
+        //    //c.CLI.Log("command:action= [", command.Action, "]")
+        //  	for _, flag := range command.Flags {
+        //  		c.CLI.Log("command:flag= [", command.Name, "][", flag.Name, "][", flag.String(), "]")
+        //  	}
+        //  }
 
-			//  for _, flag := range c.Flags {
-			//  	c.CLI.Log("=====================================================")
-			//  	c.CLI.Log("flag.Name :       ", flag.Name)
-			//  	c.CLI.Log("flag.Value:       ", flag.String())
-			//  }
-			//  c.CLI.Log("=====================================================")
+        //  for _, flag := range c.Flags {
+        //  	c.CLI.Log("=====================================================")
+        //  	c.CLI.Log("flag.Name :       ", flag.Name)
+        //  	c.CLI.Log("flag.Value:       ", flag.String())
+        //  }
+        //  c.CLI.Log("=====================================================")
 
-			  return nil
-		  },
+        return nil
+      },
     },
-	})
+  })
 
   if len(initErrors) == 0 { 
     cmd.Parse(os.Args).Execute() 
