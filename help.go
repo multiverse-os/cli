@@ -90,13 +90,21 @@ func (self Context) expectingCommandsOrSubcommand() string {
 }
 
 // Lol not public obvio or non existenrt
-func NewLine() string { return "\n" }
+func NewLine(count ...int) string { 
+  var newLineCount int
+  if 0 < len(count) {
+    newLineCount = count[0]
+  }else{
+    newLineCount = 1
+  }
+  return strings.Repeat("\n", newLineCount)
+}
 
 // TODO: Would be preferable to define a template and use it than have a static
 //       template like this. This could be the default fallback.
 func (self Context) defaultHelpTemplate() (t string) {
   t += NewLine() + "{{.header}}"
-  t += NewLine() + Tab() + "{{.description}}" + NewLine() + NewLine()
+  t += NewLine() + Tab() + "{{.description}}" + NewLine(2)
   t += Prefix() + "{{.usage}}" + NewLine()
   t += Tab() + 
   strings.ToLower(strings.Join(self.Commands.Names(), " ")) + 
@@ -104,9 +112,9 @@ func (self Context) defaultHelpTemplate() (t string) {
   // because if it was a help flag it should be First() but command help
   // would be First().Parent
   strings.ToLower(self.expectingCommandsOrSubcommand()) + 
-  " [{{.params}}]" + NewLine() + NewLine()
+  " [{{.params}}]" + NewLine(2)
 
-  if !self.Commands.First().Subcommands.IsZero() {
+  if !self.Commands.Last().Subcommands.IsZero() {
     t += Prefix() + "{{.subcommands}}" + NewLine()
     for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
       t += Tab() + 
