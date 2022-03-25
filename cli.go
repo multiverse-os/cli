@@ -293,7 +293,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
 
-  for _, command := range self.Context.Commands {
+  for _, command := range self.Context.Commands.Reverse() {
     for _, flag := range command.Flags {
       if data.IsTrue(flag.Param.value) && flag.Action != nil {
         self.Context.Actions = append(self.Context.Actions, flag.Action)

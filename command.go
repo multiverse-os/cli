@@ -70,7 +70,7 @@ func (self commands) Names() (commandNames []string) {
   
 // Commands Public Methods
 func HelpCommand(context *Context) error {
-  context.Commands = context.Commands.Delete(context.Commands.Name("help"))
+  context.Commands = context.Commands.Delete("help")
   return RenderDefaultHelpTemplate(context)
 }
 
@@ -102,15 +102,17 @@ func (self commands) Validate() (errs []error) {
   return errs
 }
 
-func (self commands) Delete(command *Command) (newCommands commands) {
-  for index, _ := range self {
-      if self[index].Name != command.Name {
+func (self commands) Delete(name string) (newCommands commands) {
+  if len(self) != 0 {
+    for index, _ := range self {
+      if self[index].Name != name {
         newCommands = newCommands.Add(self[index])
       }
+    }
   }
   return newCommands
 }
- 
+
 
 func (self commands) Visible() (visibleCommands commands) {
   for _, command := range self {

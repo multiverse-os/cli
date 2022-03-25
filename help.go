@@ -126,8 +126,6 @@ func (self Context) defaultHelpTemplate() (t string) {
   strings.ToLower(self.expectingCommandsOrSubcommand()) + 
   Whitespace() + "[{{.params}}]" + NewLine(2)
 
-
-  fmt.Printf("command name(%v)\n", self.Commands.Last().Name)
   if !self.Commands.Last().Subcommands.IsZero() {
     t += Prefix() + "{{.subcommands}}" + NewLine()
     for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
