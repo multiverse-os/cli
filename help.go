@@ -1,6 +1,7 @@
 package cli
 
 import (
+  "fmt"
   "strings"
 
   banner "github.com/multiverse-os/banner"
@@ -89,6 +90,17 @@ func (self Context) expectingCommandsOrSubcommand() string {
   }
 }
 
+func Whitespace(count ...int) string { 
+  var newWhitespaceCount int
+  if 0 < len(count) {
+    newWhitespaceCount = count[0]
+  }else{
+    newWhitespaceCount = 1
+  }
+  return strings.Repeat(" ", newWhitespaceCount)
+}
+
+
 // Lol not public obvio or non existenrt
 func NewLine(count ...int) string { 
   var newLineCount int
@@ -112,14 +124,16 @@ func (self Context) defaultHelpTemplate() (t string) {
   // because if it was a help flag it should be First() but command help
   // would be First().Parent
   strings.ToLower(self.expectingCommandsOrSubcommand()) + 
-  " [{{.params}}]" + NewLine(2)
+  Whitespace() + "[{{.params}}]" + NewLine(2)
 
+
+  fmt.Printf("command name(%v)\n", self.Commands.Last().Name)
   if !self.Commands.Last().Subcommands.IsZero() {
     t += Prefix() + "{{.subcommands}}" + NewLine()
     for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
       t += Tab() + 
       commandUsage(*subcommand) + 
-      strings.Repeat(" ", (18-len(commandUsage(*subcommand)))) +
+      Whitespace(18-len(commandUsage(*subcommand))) +
       subcommand.Description + NewLine()
     }
     t += NewLine()
@@ -128,17 +142,38 @@ func (self Context) defaultHelpTemplate() (t string) {
   if len(self.Commands.Last().Flags) != 0 && 1 < len(self.Commands){
     t += Prefix() + "{{.subflags}}" + NewLine()
     for _, flag := range self.Commands.Last().Flags.Reverse() {
-      t += flagHelp(*flag)
+      if !flag.HasCategory() {
+        t += flagHelp(*flag)
+      }
     }
     t += NewLine()
+    for _, category := range self.Commands.Last().Flags.Categories() {
+      t += fmt.Sprintf("%v", category) + NewLine()
+      for _, flag := range self.Commands.Last().Flags.Category(category) {
+        t += flagHelp(*flag)
+      }
+      t += NewLine()
+    }
   }
+
+
 
   if len(self.Commands.First().Flags) != 0 {
     t += Prefix() + "{{.flags}}" + NewLine()
     for _, flag := range self.Commands.First().Flags.Reverse() {
-      t += flagHelp(*flag)
+      if !flag.HasCategory() {
+        t += flagHelp(*flag)
+      }
     }
     t += NewLine()
+    for _, category := range self.Commands.First().Flags.Categories() {
+      t += Whitespace(2) + fmt.Sprintf("%v", category) + Whitespace() + "{{.subflags}}" + NewLine()
+      for _, flag := range self.Commands.First().Flags.Category(category) {
+        t += flagHelp(*flag)
+      }
+      t += NewLine() 
+    }
+
   }
 
   return t
@@ -147,7 +182,7 @@ func (self Context) defaultHelpTemplate() (t string) {
 
 func commandUsage(command Command) (output string) {
   if !data.IsBlank(command.Alias) {
-    output += ", " + command.Alias
+    output += "," + Whitespace() + command.Alias
   }
   return command.Name + output
 }
@@ -156,15 +191,15 @@ func flagHelp(flag Flag) string {
   usage := Long.String() + 
   flag.Name
   if data.NotBlank(flag.Alias) {
-    usage += ", " +
+    usage += "," + Whitespace() +
     Short.String() +
     flag.Alias
   }
   var defaultValue string
   if len(flag.Default) != 0 {
-    defaultValue = " [≅ " + flag.Default + "]"
+    defaultValue = Whitespace() + "[≅ " + flag.Default + "]"
   }
-  return strings.Repeat(" ", 4) + usage + strings.Repeat(" ", 18-len(usage)) +
+  return Whitespace(4) + usage + Whitespace(18-len(usage)) +
   flag.Description + defaultValue + NewLine()
 }
 

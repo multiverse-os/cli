@@ -18,7 +18,21 @@ func main() {
 				Default:     "en",
 				Description: "Locale used when executing the program",
 			},
+      cli.Flag{
+        Category:    "Server",
+        Name:        "port",
+        Alias:       "p",
+        Default:     "3000",
+        Description: "Port the server will listen on",
+      },
+      cli.Flag{
+        Category:    "Server",
+        Name:        "address",
+        Alias:       "a",
+        Description: "Host address the server will listen on",
+      },
 			cli.Flag{
+        Category:    "Server", 
 				Name:        "daemon",
 				Alias:       "d",
 				Description: "Daemonize the program when launching",

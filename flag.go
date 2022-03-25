@@ -5,6 +5,7 @@ import (
 
   data "github.com/multiverse-os/cli/data"
 )
+
 // TODO: Provide helpers/shortcuts for accessing flag.Param.Int() directly
 // such as flag.Int()
 type FlagType int
@@ -37,6 +38,7 @@ type Flag struct {
 	Name        string
   Alias       string
 	Description string
+  Category    string
 	Hidden      bool
   Required    bool
 	Default     string
@@ -66,6 +68,8 @@ func (self Flag) IsValid() bool {  return ValidateFlag(self) != nil }
 func (self Flag) is(name string) bool { 
   return self.Name == name || self.Alias == name
 }
+
+func (self Flag) HasCategory() bool { return len(self.Category) != 0 }
 
 func (self Flag) String() string { return self.Param.value }
 func (self Flag) Int() int { return self.Param.Int() }
@@ -100,7 +104,6 @@ func (self *Flag) ToggleBoolean() *Flag {
     return self.SetTrue()
   }
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 
 type flags []*Flag 
@@ -134,6 +137,16 @@ func (self flags) Name(name string) *Flag {
   return nil
 }
 
+func (self flags) Category(name string) (flagsInCategory flags) {
+  for _, flag := range self {
+    // TODO: I hate string comparisons, maybe length check before
+    if len(flag.Category) == len(name) && flag.Category == name {
+      flagsInCategory = append(flagsInCategory, flag)
+    }
+  }
+  return flagsInCategory
+}
+
 func (self flags) HasFlag(name string) bool { return self.Name(name) != nil }
 
 func (self flags) Visible() (visibleFlags flags) {
@@ -143,6 +156,25 @@ func (self flags) Visible() (visibleFlags flags) {
     }
   }
   return visibleFlags
+}
+
+func (self flags) Categories() (categories []string) {
+  for _, flag := range self {
+    if flag.HasCategory() {
+      var categoryExists bool
+      for _, category := range categories {
+        if len(category) == len(flag.Category) && category == flag.Category {
+          categoryExists = true
+          break
+        }
+      }
+      
+      if !categoryExists {
+        categories = append(categories, flag.Category)
+      }
+    }
+  }
+  return categories
 }
 
 func (self flags) Validate() (errs []error) {

@@ -108,7 +108,6 @@ func (self commands) Delete(command *Command) (newCommands commands) {
         newCommands = newCommands.Add(self[index])
       }
   }
-
   return newCommands
 }
  
