@@ -23,15 +23,6 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // Alpha Release
 
-// TODO: Provide validation for conflicting flags and commands defined on
-// itialization
-
-// TODO: When using youtube-dl I noticed they had so many flags they needed
-// groupings (or categories); so to fit a wider range of use cases we should add
-// this functionality (probably minimum argmuments too).
-
-// TODO: Shouldnt render subcommands section if they dont exist
-
 // TODO: Write tests for basic functionality, specifically around the Parse()
 // function + Execute. Fix permissions (public vs private) on functions only leaving
 // explicitly the functions used by a developer using the library

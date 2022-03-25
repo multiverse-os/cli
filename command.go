@@ -17,6 +17,9 @@ type Command struct {
 
 // TODO: Make sure that no existing commands ahve the same name, and since
 // delete uses name
+// TODO: Will need to be from CLI to it can get access to the context in order
+// to validate uniquness of command but that may just be a waste for checking
+// against bad developer knowledge using the library
 func ValidateCommand(command Command) error {
   if 32 < len(command.Name) {
     return ErrInvalidArgumentLength
@@ -34,7 +37,8 @@ func (self Command) IsValid() bool { return ValidateCommand(self) != nil }
 
 func (self Command) is(name string) bool { 
   name = strings.ToLower(name)
-  return self.Name == name || self.Alias == name
+  return (len(self.Name) == len(name) && self.Name == name) || 
+    (len(self.Alias) == len(name) && self.Alias == name)
 }
 
 func (self Command) Subcommand(name string) *Command {
@@ -79,6 +83,15 @@ func (self commands) Last() *Command { return self[self.Count()-1] }
 
 func (self commands) Count() int { return len(self) }
 func (self commands) IsZero() bool { return self.Count() == 0 }
+
+func (self commands) Exists(name string) bool {
+  for _, command := range self {
+    if len(command.Name) == len(name) && command.Name == name {
+      return true
+    }
+  }
+  return false
+}
 
 func (self commands) HasCommand(name string) bool { 
   return self.Name(name) != nil
