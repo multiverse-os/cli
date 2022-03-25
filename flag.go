@@ -72,7 +72,14 @@ func (self Flag) is(name string) bool {
 
 func (self Flag) HasCategory() bool { return len(self.Category) != 0 }
 
-func (self Flag) String() string { return self.Param.value }
+func (self *Flag) String() string { 
+  if self != nil {
+    return self.Param.value 
+  }else{
+    return "0"
+  }
+}
+
 func (self Flag) Int() int { return self.Param.Int() }
 func (self Flag) Bool() bool { return self.Param.Bool() }
 
@@ -169,7 +176,7 @@ func (self flags) Categories() (categories []string) {
           break
         }
       }
-      
+
       if !categoryExists {
         categories = append(categories, flag.Category)
       }

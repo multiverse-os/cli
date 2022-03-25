@@ -245,6 +245,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
         command.Parent = self.Context.Commands.First()
 
         self.Context.Commands = self.Context.Commands.Add(command)
+        fmt.Printf("adding self.Context.Flags(%v) to command.Flags(%v)\n", len(self.Context.Flags), len(command.Flags))
         self.Context.Flags = append(self.Context.Flags, command.Flags...)
 
         self.Context.Arguments = self.Context.Arguments.Add(
@@ -276,6 +277,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
 
+  fmt.Printf("len of self.Context.Flags(%v)\n", len(self.Context.Flags))
   var skipCommandAction bool
   for _, command := range self.Context.Commands {
     for _, flag := range command.Flags {
@@ -298,6 +300,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
       command := self.Context.Commands.First()
       fmt.Printf("  command.Name(%v)\n", command.Name)
       if command.Action != nil {
+        fmt.Printf("action adding for command(%v)\n", command.Name)
         self.Context.Actions = append(self.Context.Actions, command.Action)
       }
     }

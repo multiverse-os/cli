@@ -1,6 +1,7 @@
 package main
 
 import (
+  "fmt"
   "os"
 
 	cli "github.com/multiverse-os/cli"
@@ -60,8 +61,9 @@ func main() {
 						Name:        "add",
 						Description: "lists all of something",
 						Action: func(c *cli.Context) error {
+              fmt.Printf("how many flags does context have (%v)\n", len(c.Flags))
 							c.CLI.Log("=====================================================")
-							c.CLI.Log("====> c.Flag(\"lang\"):", c.Flag("lang").String())
+							c.CLI.Log("====> c.Flag(\"l\"):", c.Flag("l").String())
 							c.CLI.Log("add a thing to the list")
 							for _, command := range c.Commands {
 								c.CLI.Log("=====================================================")
