@@ -66,7 +66,8 @@ func ValidateFlag(flag Flag) error {
 func (self Flag) IsValid() bool {  return ValidateFlag(self) != nil }
 
 func (self Flag) is(name string) bool { 
-  return self.Name == name || self.Alias == name
+  return (len(self.Name) == len(name) && self.Name == name) || 
+          (len(self.Alias) == len(name) && self.Alias == name)
 }
 
 func (self Flag) HasCategory() bool { return len(self.Category) != 0 }

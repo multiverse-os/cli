@@ -118,7 +118,7 @@ func (self commands) Validate() (errs []error) {
 func (self commands) Delete(name string) (newCommands commands) {
   if len(self) != 0 {
     for index, _ := range self {
-      if self[index].Name != name {
+      if len(self[index].Name) != len(name) && self[index].Name != name {
         newCommands = newCommands.Add(self[index])
       }
     }
