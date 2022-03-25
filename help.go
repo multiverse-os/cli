@@ -27,8 +27,8 @@ func RenderDefaultHelpTemplate(context *Context) error {
     "usage":             "Usage",
     "commands":          "Commands",
     "subcommands":       "Subcommands",
-    "flags":             "Global Flags",
-    "subflags":          "Flags",
+    "global":            "Global",
+    "flags":             "Flags",
     "command":           "command",
     "subcommand":        "subcommand",
     "params":            "parameters",
@@ -137,27 +137,8 @@ func (self Context) defaultHelpTemplate() (t string) {
     t += NewLine()
   }
 
-  if len(self.Commands.Last().Flags) != 0 && 1 < len(self.Commands){
-    t += Prefix() + "{{.subflags}}" + NewLine()
-    for _, flag := range self.Commands.Last().Flags.Reverse() {
-      if !flag.HasCategory() {
-        t += flagHelp(*flag)
-      }
-    }
-    t += NewLine()
-    for _, category := range self.Commands.Last().Flags.Categories() {
-      t += fmt.Sprintf("%v", category) + NewLine()
-      for _, flag := range self.Commands.Last().Flags.Category(category) {
-        t += flagHelp(*flag)
-      }
-      t += NewLine()
-    }
-  }
-
-
-
   if len(self.Commands.First().Flags) != 0 {
-    t += Prefix() + "{{.flags}}" + NewLine()
+    t += Prefix() + "{{.global}}" + NewLine()
     for _, flag := range self.Commands.First().Flags.Reverse() {
       if !flag.HasCategory() {
         t += flagHelp(*flag)
@@ -165,7 +146,7 @@ func (self Context) defaultHelpTemplate() (t string) {
     }
     t += NewLine()
     for _, category := range self.Commands.First().Flags.Categories() {
-      t += Whitespace(2) + fmt.Sprintf("%v", category) + Whitespace() + "{{.subflags}}" + NewLine()
+      t += Whitespace(2) + fmt.Sprintf("%v", category) + Whitespace() + "{{.flags}}" + NewLine()
       for _, flag := range self.Commands.First().Flags.Category(category) {
         t += flagHelp(*flag)
       }
