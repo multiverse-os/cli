@@ -296,9 +296,11 @@ func (self *CLI) Parse(arguments []string) *CLI {
         }
       }
     }
+  }
 
-    if command.Action != nil {
-      if !skipCommandAction {
+  if !skipCommandAction {
+    for _, command := range self.Context.Commands.Reverse() {
+      if command.Action != nil {
         self.Context.Actions = append(self.Context.Actions, command.Action)
         // NOTE: Break so only first available action is used. Fallback
         // should only run if no actions were defined by commands
