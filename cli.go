@@ -33,6 +33,8 @@ import (
 // (TUI) tools from actions.
 //          context.CLI.Spinner() 
 
+// TODO: Ability to use ansii via CLI.Screen.Clear(), or CLI.Text.Blue("test")
+
 type App struct {
   Name           string
   Description    string
@@ -277,7 +279,6 @@ func (self *CLI) Parse(arguments []string) *CLI {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
 
-  fmt.Printf("len of self.Context.Flags(%v)\n", len(self.Context.Flags))
   var skipCommandAction bool
   for _, command := range self.Context.Commands {
     for _, flag := range command.Flags {
@@ -290,17 +291,10 @@ func (self *CLI) Parse(arguments []string) *CLI {
     }
   }
 
-  fmt.Printf("self.Context.Commands(%v) len(%v)\n", self.Context.Commands, len(self.Context.Commands))
-  for _, command := range self.Context.Commands {
-    fmt.Printf("command.Name(%v)\n", command.Name)
-  }
-
   if !skipCommandAction {
     if 0 < len(self.Context.Commands) {
       command := self.Context.Commands.First()
-      fmt.Printf("  command.Name(%v)\n", command.Name)
       if command.Action != nil {
-        fmt.Printf("action adding for command(%v)\n", command.Name)
         self.Context.Actions = append(self.Context.Actions, command.Action)
       }
     }

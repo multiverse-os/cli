@@ -53,6 +53,7 @@ func parseTests() []parseTest {
       Args: []string{"test-cli", "list", "--help"},
       ExpectedAction: "RenderDefaultHelpTemplate",
     }, 
+    // TODO: This should be failing
     parseTest{
       Args: []string{"test-cli", "list", "help"},
       ExpectedAction: "HelpCommand",
@@ -138,7 +139,7 @@ func Test_New(t *testing.T) {
   _, initErrors := cli.New()
 
   if len(initErrors) != 0 {
-    t.Errorf("want (0) errors, got (%v)", len(initErrors))
+    t.Errorf("want (0) errors, got (%v)\n", len(initErrors))
   }
 }
 
@@ -149,9 +150,13 @@ func Test_Parse(t *testing.T) {
     // NOTE: Empty New() used, so it should only have 1 action 
     cmd, _ := cli.New(initTestApp())
     cmd.Parse(parseTest.Args)
-    fmt.Printf("cli args (%v)", parseTest.Args)
-
+    fmt.Printf("cli args (%v)\n", parseTest.Args)
+    fmt.Printf("expecting action name (%v)\n", parseTest.ExpectedAction)
+    var foundAction bool
     for _, action := range cmd.Context.Actions {
+
+      fmt.Printf("found function name (%v)\n", runtime.FuncForPC(reflect.ValueOf(action).Pointer()).Name())
+
       actionName := strings.TrimPrefix(
         // TODO: see if you can check against The valueOf, the Pointer
         // or anything but the name if at all possible
@@ -164,9 +169,14 @@ func Test_Parse(t *testing.T) {
 
       fmt.Println("action name:", actionName)
 
-      if actionName != parseTest.ExpectedAction {
-        t.Errorf("want (%v) function, got (%v)", actionName, parseTest.ExpectedAction)
+      if actionName == parseTest.ExpectedAction {
+        foundAction = true
       }
     }
+
+    if !foundAction {
+      t.Errorf("want(true) got(%v)\n", foundAction)
+    }
+
   }
 }

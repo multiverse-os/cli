@@ -69,7 +69,7 @@ func main() {
 								c.CLI.Log("=====================================================")
 								c.CLI.Log("[COMMAND:" + command.Name + "]")
 								for _, flag := range command.Flags {
-									c.CLI.Log("       `'==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.String() + "][DEFAULT:" + flag.Default + "]")
+									c.CLI.Log("  '==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.String() + "][DEFAULT:" + flag.Default + "]")
 								}
 							}
 							for _, flag := range c.Flags {
