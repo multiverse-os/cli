@@ -27,6 +27,11 @@ import (
 // function + Execute. Fix permissions (public vs private) on functions only leaving
 // explicitly the functions used by a developer using the library
 
+// TODO: Expand range of the tests so it test more possible conditions to
+// guarantee it works when changes are made
+
+// TODO: change receiver variable names on methods from self to the convention
+
 // TODO: Rewrite the README.md
 
 // TODO: Add ability to access Banner/Spinner (and others) text user interface 
