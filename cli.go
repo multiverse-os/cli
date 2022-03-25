@@ -23,6 +23,8 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // Alpha Release
 
+// TODO: With default fallback we get two help outputs with flags
+
 // TODO: Write tests for basic functionality, specifically around the Parse()
 // function + Execute. Fix permissions (public vs private) on functions only leaving
 // explicitly the functions used by a developer using the library
@@ -284,18 +286,24 @@ func (self *CLI) Parse(arguments []string) *CLI {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
 
+  var skipCommandAction bool
   for _, command := range self.Context.Commands.Reverse() {
     for _, flag := range command.Flags {
       if data.IsTrue(flag.Param.value) && flag.Action != nil {
         self.Context.Actions = append(self.Context.Actions, flag.Action)
+        if flag.Name == "help" {
+          skipCommandAction = true
+        }
       }
     }
 
     if command.Action != nil {
-      self.Context.Actions = append(self.Context.Actions, command.Action)
-      // NOTE: Break so only first available action is used. Fallback
-      // should only run if no actions were defined by commands
-      break
+      if !skipCommandAction {
+        self.Context.Actions = append(self.Context.Actions, command.Action)
+        // NOTE: Break so only first available action is used. Fallback
+        // should only run if no actions were defined by commands
+        break
+      }
     }
   }
 
