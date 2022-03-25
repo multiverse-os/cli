@@ -138,17 +138,19 @@ func (self Context) defaultHelpTemplate() (t string) {
   }
 
   if len(self.Commands.First().Flags) != 0 {
-    t += Prefix() + "{{.global}}" + NewLine()
+    t += Whitespace(2) + "{{.flags}}" + NewLine()
+
+    t += Whitespace(4) + "{{.global}} {{.flags}}" + NewLine()
     for _, flag := range self.Commands.First().Flags.Reverse() {
       if !flag.HasCategory() {
-        t += flagHelp(*flag)
+        t += Whitespace(2) + flagHelp(*flag)
       }
     }
     t += NewLine()
     for _, category := range self.Commands.First().Flags.Categories() {
-      t += Whitespace(2) + fmt.Sprintf("%v", category) + Whitespace() + "{{.flags}}" + NewLine()
+      t += Whitespace(4) + fmt.Sprintf("%v", category) + Whitespace() + "{{.flags}}" + NewLine()
       for _, flag := range self.Commands.First().Flags.Category(category) {
-        t += flagHelp(*flag)
+        t += Whitespace(2) + flagHelp(*flag)
       }
       t += NewLine() 
     }
