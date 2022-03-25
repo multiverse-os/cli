@@ -1,6 +1,7 @@
 package cli
 
 import (
+  "fmt"
   "strings"
 )
 
@@ -74,7 +75,10 @@ func (self commands) Names() (commandNames []string) {
   
 // Commands Public Methods
 func HelpCommand(context *Context) error {
-  context.Commands = context.Commands.Delete("help")
+  //context.Commands = context.Commands.Delete("help")
+  fmt.Printf("len of context.Commands(%v)\n", len(context.Commands))
+  context.Commands = context.Commands[0:len(context.Commands)-1]
+  fmt.Printf("len of context.Commands(%v)\n", len(context.Commands))
   return RenderDefaultHelpTemplate(context)
 }
 

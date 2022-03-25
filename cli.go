@@ -256,20 +256,40 @@ func (self *CLI) Parse(arguments []string) *CLI {
 
         self.Context.Command = self.Context.Commands.First()
       } else {
-        // Params parse
-        flag := self.Context.Arguments.PreviousIfFlag()
-        if flag != nil {
-          if flag.Param.value == flag.Default {
-            flag.Param = NewParam(argument)
-          }else{
-            flag = nil
+        // TODO: Because using help on a subcommand doesnt parse because help is
+        // global. And thats how it should work. Version doesn't need this.
+        // But I really hate this hardcoding
+        if (len(argument) == 4 && argument == "help") || 
+        (len(argument) == 1 && argument == "h") {
+          helpCommand := self.Context.Commands.Last().Subcommand("help")
+          if helpCommand != nil {
+            helpCommand.Parent = self.Context.Commands.First()
+
+            self.Context.Commands = self.Context.Commands.Add(helpCommand)
+            self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
+
+            self.Context.Arguments = self.Context.Arguments.Add(
+              self.Context.Commands.First(),
+            )
+
+            self.Context.Command = self.Context.Commands.First()
           }
-        }
-        if flag == nil {
-          self.Context.Params = self.Context.Params.Add(NewParam(argument))
-          self.Context.Arguments = self.Context.Arguments.Add(
-            self.Context.Params.First(),
-          )
+        }else{
+          // Params parse
+          flag := self.Context.Arguments.PreviousIfFlag()
+          if flag != nil {
+            if flag.Param.value == flag.Default {
+              flag.Param = NewParam(argument)
+            }else{
+              flag = nil
+            }
+          }
+          if flag == nil {
+            self.Context.Params = self.Context.Params.Add(NewParam(argument))
+            self.Context.Arguments = self.Context.Arguments.Add(
+              self.Context.Params.First(),
+            )
+          }
         }
       }
     }
@@ -294,6 +314,9 @@ func (self *CLI) Parse(arguments []string) *CLI {
   if !skipCommandAction {
     if 0 < len(self.Context.Commands) {
       command := self.Context.Commands.First()
+      fmt.Printf("c.Commands len(%v)\n", len(self.Context.Commands))
+      fmt.Printf("c.Commands.First() is(%v)\n", self.Context.Commands.First())
+      fmt.Printf("c.Commands.Last() is(%v)\n", self.Context.Commands.Last())
       if command.Action != nil {
         self.Context.Actions = append(self.Context.Actions, command.Action)
       }
