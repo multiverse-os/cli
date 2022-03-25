@@ -80,9 +80,7 @@ func HelpCommand(context *Context) error {
   return RenderDefaultHelpTemplate(context)
 }
 
-func (self commands) First() *Command { 
-  return self[0] 
-}
+func (self commands) First() *Command { return self[0] }
 
 func (self commands) Last() *Command { return self[self.Count()-1] }
 
