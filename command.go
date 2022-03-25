@@ -1,7 +1,6 @@
 package cli
 
 import (
-  "fmt"
   "strings"
 )
 
@@ -75,10 +74,7 @@ func (self commands) Names() (commandNames []string) {
   
 // Commands Public Methods
 func HelpCommand(context *Context) error {
-  //context.Commands = context.Commands.Delete("help")
-  fmt.Printf("len of context.Commands(%v)\n", len(context.Commands))
   context.Commands = context.Commands[0:len(context.Commands)-1]
-  fmt.Printf("len of context.Commands(%v)\n", len(context.Commands))
   return RenderDefaultHelpTemplate(context)
 }
 
@@ -118,18 +114,6 @@ func (self commands) Validate() (errs []error) {
   }
   return errs
 }
-
-func (self commands) Delete(name string) (newCommands commands) {
-  if len(self) != 0 {
-    for index, _ := range self {
-      if len(self[index].Name) != len(name) && self[index].Name != name {
-        newCommands = newCommands.Add(self[index])
-      }
-    }
-  }
-  return newCommands
-}
-
 
 func (self commands) Visible() (visibleCommands commands) {
   for _, command := range self {

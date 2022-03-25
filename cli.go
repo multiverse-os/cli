@@ -252,7 +252,6 @@ func (self *CLI) Parse(arguments []string) *CLI {
         command.Parent = self.Context.Commands.First()
 
         self.Context.Commands = self.Context.Commands.Add(command)
-        fmt.Printf("adding self.Context.Flags(%v) to command.Flags(%v)\n", len(self.Context.Flags), len(command.Flags))
         self.Context.Flags = append(self.Context.Flags, command.Flags...)
 
         self.Context.Arguments = self.Context.Arguments.Add(
@@ -260,12 +259,11 @@ func (self *CLI) Parse(arguments []string) *CLI {
         )
 
         self.Context.Command = self.Context.Commands.First()
-      } else {
+      } else if (len(argument) == 4 && argument == "help") || 
+        (len(argument) == 1 && argument == "h") {
         // TODO: Because using help on a subcommand doesnt parse because help is
         // global. And thats how it should work. Version doesn't need this.
         // But I really hate this hardcoding
-        if (len(argument) == 4 && argument == "help") || 
-        (len(argument) == 1 && argument == "h") {
           helpCommand := self.Context.Commands.Last().Subcommand("help")
           if helpCommand != nil {
             helpCommand.Parent = self.Context.Commands.First()
@@ -298,56 +296,52 @@ func (self *CLI) Parse(arguments []string) *CLI {
         }
       }
     }
-  }
 
-  if self.Actions.OnStart != nil {
-    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
-  }
+    if self.Actions.OnStart != nil {
+      self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
+    }
 
-  var skipCommandAction bool
-  for _, command := range self.Context.Commands {
-    for _, flag := range command.Flags {
-      if flag.Action != nil && data.IsTrue(flag.Param.value) {
-        self.Context.Actions = append(self.Context.Actions, flag.Action)
-        if flag.Name == "help" {
-          skipCommandAction = true
+    var skipCommandAction bool
+    for _, command := range self.Context.Commands {
+      for _, flag := range command.Flags {
+        if flag.Action != nil && data.IsTrue(flag.Param.value) {
+          self.Context.Actions = append(self.Context.Actions, flag.Action)
+          if flag.Name == "help" {
+            skipCommandAction = true
+          }
         }
       }
     }
-  }
 
-  if !skipCommandAction {
-    if 0 < len(self.Context.Commands) {
-      command := self.Context.Commands.First()
-      fmt.Printf("c.Commands len(%v)\n", len(self.Context.Commands))
-      fmt.Printf("c.Commands.First() is(%v)\n", self.Context.Commands.First())
-      fmt.Printf("c.Commands.Last() is(%v)\n", self.Context.Commands.Last())
-      if command.Action != nil {
-        self.Context.Actions = append(self.Context.Actions, command.Action)
+    if !skipCommandAction {
+      if 0 < len(self.Context.Commands) {
+        command := self.Context.Commands.First()
+        if command.Action != nil {
+          self.Context.Actions = append(self.Context.Actions, command.Action)
+        }
       }
     }
+
+    if self.Actions.OnExit != nil {
+      self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
+    }
+
+
+    // NOTE: Before handing the developer using the library the context we put
+    // them in the expected left to right order, despite it being easier for us
+    // to access in this function in the reverse order.
+    self.Context.Arguments = Reverse(self.Context.Arguments)
+    self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
+    self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
+
+
+
+    return self
   }
 
-  if self.Actions.OnExit != nil {
-    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
+  func (self *CLI) Execute() {
+    defer self.benchmark(time.Now(), "benmarking action execution")
+    for _, action := range self.Context.Actions {
+      action(self.Context)
+    }
   }
-
-
-  // NOTE: Before handing the developer using the library the context we put
-  // them in the expected left to right order, despite it being easier for us
-  // to access in this function in the reverse order.
-  self.Context.Arguments = Reverse(self.Context.Arguments)
-  self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
-  self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
-
-
-
-  return self
-}
-
-func (self *CLI) Execute() {
-  defer self.benchmark(time.Now(), "benmarking action execution")
-  for _, action := range self.Context.Actions {
-    action(self.Context)
-  }
-}
