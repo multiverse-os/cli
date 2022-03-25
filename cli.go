@@ -58,7 +58,8 @@ type CLI struct {
   Context        *Context
   Outputs        Outputs
   Actions        Actions
-  //Locale         string // Not yet implemented
+  MinimumArgs    int
+  Locale         string
 }
 
 func (self CLI) Log(output ...string)   { self.Outputs.Log(DEBUG, output...) }
@@ -68,10 +69,8 @@ func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
 
 func New(appDefinition ...App) (cli *CLI, errs []error) {
   // TODO: Clean this up so its not as ugly
-  var app App
-  if len(appDefinition) == 0 {
-    app = App{}
-  }else{
+  app := App{}
+  if len(appDefinition) != 0 {
     app = appDefinition[0]
   }
   

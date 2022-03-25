@@ -74,11 +74,16 @@ func (self commands) Names() (commandNames []string) {
   
 // Commands Public Methods
 func HelpCommand(context *Context) error {
-  context.Commands = context.Commands[0:len(context.Commands)-1]
+  if context.Commands[(len(context.Commands)-1)].Name == "help" {
+    context.Commands = context.Commands[0:len(context.Commands)-1]
+  }
   return RenderDefaultHelpTemplate(context)
 }
 
-func (self commands) First() *Command { return self[0] }
+func (self commands) First() *Command { 
+  return self[0] 
+}
+
 func (self commands) Last() *Command { return self[self.Count()-1] }
 
 func (self commands) Count() int { return len(self) }
