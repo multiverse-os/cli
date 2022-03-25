@@ -23,8 +23,6 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // Alpha Release
 
-// TODO: With default fallback we get two help outputs with flags
-
 // TODO: Write tests for basic functionality, specifically around the Parse()
 // function + Execute. Fix permissions (public vs private) on functions only leaving
 // explicitly the functions used by a developer using the library
@@ -274,22 +272,15 @@ func (self *CLI) Parse(arguments []string) *CLI {
     }
   }
 
-  // NOTE: Before handing the developer using the library the context we put
-  // them in the expected left to right order, despite it being easier for us
-  // to access in this function in the reverse order.
-  self.Context.Arguments = Reverse(self.Context.Arguments)
-  self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
-  self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
-  self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
 
   if self.Actions.OnStart != nil {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
 
   var skipCommandAction bool
-  for _, command := range self.Context.Commands.Reverse() {
+  for _, command := range self.Context.Commands {
     for _, flag := range command.Flags {
-      if data.IsTrue(flag.Param.value) && flag.Action != nil {
+      if flag.Action != nil && data.IsTrue(flag.Param.value) {
         self.Context.Actions = append(self.Context.Actions, flag.Action)
         if flag.Name == "help" {
           skipCommandAction = true
@@ -299,7 +290,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
   }
 
   if !skipCommandAction {
-    for _, command := range self.Context.Commands.Reverse() {
+    for _, command := range self.Context.Commands {
       if command.Action != nil {
         self.Context.Actions = append(self.Context.Actions, command.Action)
         // NOTE: Break so only first available action is used. Fallback
@@ -312,6 +303,15 @@ func (self *CLI) Parse(arguments []string) *CLI {
   if self.Actions.OnExit != nil {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
   }
+
+  // NOTE: Before handing the developer using the library the context we put
+  // them in the expected left to right order, despite it being easier for us
+  // to access in this function in the reverse order.
+  self.Context.Arguments = Reverse(self.Context.Arguments)
+  self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
+  self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
+  self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
+
 
   return self
 }
