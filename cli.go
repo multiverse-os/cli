@@ -272,7 +272,6 @@ func (self *CLI) Parse(arguments []string) *CLI {
     }
   }
 
-
   if self.Actions.OnStart != nil {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
   }
@@ -289,13 +288,17 @@ func (self *CLI) Parse(arguments []string) *CLI {
     }
   }
 
+  fmt.Printf("self.Context.Commands(%v) len(%v)\n", self.Context.Commands, len(self.Context.Commands))
+  for _, command := range self.Context.Commands {
+    fmt.Printf("command.Name(%v)\n", command.Name)
+  }
+
   if !skipCommandAction {
-    for _, command := range self.Context.Commands {
+    if 0 < len(self.Context.Commands) {
+      command := self.Context.Commands.First()
+      fmt.Printf("  command.Name(%v)\n", command.Name)
       if command.Action != nil {
         self.Context.Actions = append(self.Context.Actions, command.Action)
-        // NOTE: Break so only first available action is used. Fallback
-        // should only run if no actions were defined by commands
-        break
       }
     }
   }
@@ -304,13 +307,14 @@ func (self *CLI) Parse(arguments []string) *CLI {
     self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
   }
 
+
   // NOTE: Before handing the developer using the library the context we put
   // them in the expected left to right order, despite it being easier for us
   // to access in this function in the reverse order.
   self.Context.Arguments = Reverse(self.Context.Arguments)
   self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
-  self.Context.Flags = ToFlags(Reverse(self.Context.Flags.Arguments()))
   self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
+
 
 
   return self
