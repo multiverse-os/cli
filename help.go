@@ -29,6 +29,7 @@ func RenderDefaultHelpTemplate(context *Context) error {
     "subcommands":       "Subcommands",
     "global":            "Global",
     "flags":             "Flags",
+    "options":           "options",
     "command":           "command",
     "subcommand":        "subcommand",
     "params":            "parameters",
@@ -54,8 +55,6 @@ func RenderDefaultVersionTemplate(context *Context) error {
 }
 
 func (self Context) defaultVersionTemplate() string {
-  // TODO: May have to assign these values from context; also that makes sense
-  // logically
 	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}" + NewLine()
 }
 
@@ -66,28 +65,12 @@ func (self Context) defaultVersionTemplate() string {
 // Ticks, TicksSlant, calvins
 // TODO: Should probably make an enumerator
 func (self Context) asciiHeader(font string) string {
-  banner := banner.New(" " + self.Commands.First().Name).Font(font)
-  return banner.String() + self.CLI.Version.String() + NewLine()
+  return banner.New(" " + self.Commands.First().Name).Font(font).String() + 
+         self.CLI.Version.String()
 }
 
 func (self Context) simpleHeader() string {
-  return self.Commands.First().Name + "[v" + self.CLI.Version.String() + "]" + NewLine()
-}
-
-// TODO: Maybe default to just having command and then doing some sort of simple
-// check to add sub? something easier than this possible?
-func (self Context) expectingCommandsOrSubcommand() string {
-  // TODO: This is wrong; in help command it needs First().Parent and flag just
-  // need First()
-
-  // TODO: Maybe to get expected output we should do a check for self.CLI.Name
-  // against the commands.first and if its the same we got command, and if its
-  // not then its subcommand.
-  if !self.Commands.First().Subcommands.IsZero() {
-    return " [{{.subcommand}}]"
-  } else {
-    return ""
-  }
+  return self.Commands.First().Name + "[v" + self.CLI.Version.String() + "]"
 }
 
 func Whitespace(count ...int) string { 
@@ -115,19 +98,14 @@ func NewLine(count ...int) string {
 // TODO: Would be preferable to define a template and use it than have a static
 //       template like this. This could be the default fallback.
 func (self Context) defaultHelpTemplate() (t string) {
-  t += NewLine() + "{{.header}}"
-  t += NewLine() + Tab() + "{{.description}}" + NewLine(2)
+  t += "\n{{.header}}"
+  t += NewLine() + "  {{.description}}" + NewLine(2)
   t += Prefix() + "{{.usage}}" + NewLine()
-  t += Tab() + 
-  strings.ToLower(strings.Join(self.Commands.Names(), " ")) + 
-  // TODO: ExpectingCommandOrSubcommands doesn't really work for help
-  // because if it was a help flag it should be First() but command help
-  // would be First().Parent
-  strings.ToLower(self.expectingCommandsOrSubcommand()) + 
-  Whitespace() + "[{{.params}}]" + NewLine(2)
+  t += Tab() + strings.Join(self.Commands.Names(), " ") + 
+       Whitespace() + "[{{.params}}]" + NewLine(2)
 
   if !self.Commands.Last().Subcommands.IsZero() {
-    t += Prefix() + "{{.subcommands}}" + NewLine()
+    t += Prefix() + "{{.commands}}" + NewLine()
     for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
       t += Tab() + 
       commandUsage(*subcommand) + 
@@ -138,19 +116,17 @@ func (self Context) defaultHelpTemplate() (t string) {
   }
 
   if len(self.Commands.First().Flags) != 0 {
-    t += Whitespace(2) + "{{.flags}}" + NewLine()
-
-    t += Whitespace(4) + "{{.global}} {{.flags}}" + NewLine()
-    for _, flag := range self.Commands.First().Flags.Reverse() {
+    t += "  {{.flags}}\n   Global options\n"
+    for _, flag := range self.Commands.First().Flags.Reverse().Visible() {
       if !flag.HasCategory() {
-        t += Whitespace(2) + flagHelp(*flag)
+        t += flagHelp(*flag)
       }
     }
     t += NewLine()
     for _, category := range self.Commands.First().Flags.Categories() {
-      t += Whitespace(4) + fmt.Sprintf("%v", category) + Whitespace() + "{{.flags}}" + NewLine()
-      for _, flag := range self.Commands.First().Flags.Category(category) {
-        t += Whitespace(2) + flagHelp(*flag)
+      t += fmt.Sprintf("   %v options\n", category)
+      for _, flag := range self.Commands.First().Flags.Category(category).Visible() {
+        t += flagHelp(*flag)
       }
       t += NewLine() 
     }
@@ -162,25 +138,24 @@ func (self Context) defaultHelpTemplate() (t string) {
 ///////////////////////////////////////////////////////////////////////////////
 
 func commandUsage(command Command) (output string) {
-  if !data.IsBlank(command.Alias) {
-    output += "," + Whitespace() + command.Alias
+  output += command.Name
+  if len(command.Alias) != 0 {
+    output += ", " + command.Alias
   }
-  return command.Name + output
+  return output
 }
 
 func flagHelp(flag Flag) string {
-  usage := Long.String() + 
-  flag.Name
-  if data.NotBlank(flag.Alias) {
-    usage += "," + Whitespace() +
-    Short.String() +
-    flag.Alias
+  var usage string
+  if len(flag.Alias) != 0 {
+    usage += Short.String() + flag.Alias + ", "
   }
+  usage += Long.String() + flag.Name
   var defaultValue string
   if len(flag.Default) != 0 {
-    defaultValue = Whitespace() + "[≅ " + flag.Default + "]"
+    defaultValue = " [≅ " + flag.Default + "]"
   }
-  return Whitespace(4) + usage + Whitespace(18-len(usage)) +
-  flag.Description + defaultValue + NewLine()
+  return "    " + usage + Whitespace(18-len(usage)) +
+  flag.Description + defaultValue + "\n"
 }
 

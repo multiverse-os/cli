@@ -30,6 +30,8 @@ import (
 // TODO: Expand range of the tests so it test more possible conditions to
 // guarantee it works when changes are made
 
+// TODO: Dont render categories if only global flags
+
 // TODO: change receiver variable names on methods from self to the convention
 
 // TODO: Rewrite the README.md
@@ -67,20 +69,23 @@ func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
 func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
 func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
 
+// TODO: Get rid of flag actions by simply catching version or help in a generic
+// fallback that looks for these flags. This should also help resolve issues
+// requiring hardcoding
 func New(appDefinition ...App) (cli *CLI, errs []error) {
   // TODO: Clean this up so its not as ugly
   app := App{}
   if len(appDefinition) != 0 {
     app = appDefinition[0]
   }
-  
+
   // Validation
   errs = append(errs, app.Commands.Validate()...)
   errs = append(errs, app.GlobalFlags.Validate()...)
 
   if len(errs) != 0 {
-     fmt.Println("number of validation errors for flags and commands:", len(errs))
-     return cli, errs
+    fmt.Println("number of validation errors for flags and commands:", len(errs))
+    return cli, errs
   }
 
   // NOTE: Sensical defaults to avoid error conditions, simplifying library use
@@ -93,15 +98,6 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
   if len(app.Outputs) == 0 {
     app.Outputs = append(app.Outputs, TerminalOutput())
   }
-
-  // NOTE: Correct alias (short) for flags if more than 1 rune
-  //for _, flag := range app.GlobalFlags {
-  //  if 1 < len(flag.Alias) {
-  //    // TODO: To support localization we will need to handle two byte runes
-  //    // in the future
-  //    flag.Alias = string(flag.Alias[0])
-  //  }
-  //}
 
   // NOTE: If a fallback is not set, we render default help template. 
   if app.Actions.Fallback == nil {
@@ -124,7 +120,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
       Alias: "h",
       Description: "outputs command and flag details",
       Action: HelpCommand,
-      Hidden: false,
+      Hidden: true,
     })
   }
 
@@ -153,7 +149,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
       Name: "version",
       Alias: "v",
       Description: "outputs version",
-      Hidden: false,
+      Hidden: true,
       Action: RenderDefaultVersionTemplate,
     })
   }
@@ -259,88 +255,85 @@ func (self *CLI) Parse(arguments []string) *CLI {
 
         self.Context.Command = self.Context.Commands.First()
       } else if (len(argument) == 4 && argument == "help") || 
-        (len(argument) == 1 && argument == "h") {
+      (len(argument) == 1 && argument == "h") {
         // TODO: Because using help on a subcommand doesnt parse because help is
         // global. And thats how it should work. Version doesn't need this.
         // But I really hate this hardcoding
-          helpCommand := self.Context.Commands.Last().Subcommand("help")
-          if helpCommand != nil {
-            helpCommand.Parent = self.Context.Commands.First()
+        helpCommand := self.Context.Commands.Last().Subcommand("help")
+        if helpCommand != nil {
+          helpCommand.Parent = self.Context.Commands.First()
 
-            self.Context.Commands = self.Context.Commands.Add(helpCommand)
-            self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
+          self.Context.Commands = self.Context.Commands.Add(helpCommand)
+          self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
 
-            self.Context.Arguments = self.Context.Arguments.Add(
-              self.Context.Commands.First(),
-            )
+          self.Context.Arguments = self.Context.Arguments.Add(
+            self.Context.Commands.First(),
+          )
 
-            self.Context.Command = self.Context.Commands.First()
+          self.Context.Command = self.Context.Commands.First()
+        }
+      }else{
+        // Params parse
+        flag := self.Context.Arguments.PreviousIfFlag()
+        if flag != nil {
+          if flag.Param.value == flag.Default {
+            flag.Param = NewParam(argument)
+          }else{
+            flag = nil
           }
-        }else{
-          // Params parse
-          flag := self.Context.Arguments.PreviousIfFlag()
-          if flag != nil {
-            if flag.Param.value == flag.Default {
-              flag.Param = NewParam(argument)
-            }else{
-              flag = nil
-            }
-          }
-          if flag == nil {
-            self.Context.Params = self.Context.Params.Add(NewParam(argument))
-            self.Context.Arguments = self.Context.Arguments.Add(
-              self.Context.Params.First(),
-            )
-          }
+        }
+        if flag == nil {
+          self.Context.Params = self.Context.Params.Add(NewParam(argument))
+          self.Context.Arguments = self.Context.Arguments.Add(
+            self.Context.Params.First(),
+          )
         }
       }
     }
-
-    if self.Actions.OnStart != nil {
-      self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
-    }
-
-    var skipCommandAction bool
-    for _, command := range self.Context.Commands {
-      for _, flag := range command.Flags {
-        if flag.Action != nil && data.IsTrue(flag.Param.value) {
-          self.Context.Actions = append(self.Context.Actions, flag.Action)
-          if flag.Name == "help" {
-            skipCommandAction = true
-          }
-        }
-      }
-    }
-
-    if !skipCommandAction {
-      if 0 < len(self.Context.Commands) {
-        command := self.Context.Commands.First()
-        if command.Action != nil {
-          self.Context.Actions = append(self.Context.Actions, command.Action)
-        }
-      }
-    }
-
-    if self.Actions.OnExit != nil {
-      self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
-    }
-
-
-    // NOTE: Before handing the developer using the library the context we put
-    // them in the expected left to right order, despite it being easier for us
-    // to access in this function in the reverse order.
-    self.Context.Arguments = Reverse(self.Context.Arguments)
-    self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
-    self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
-
-
-
-    return self
   }
 
-  func (self *CLI) Execute() {
-    defer self.benchmark(time.Now(), "benmarking action execution")
-    for _, action := range self.Context.Actions {
-      action(self.Context)
+  if self.Actions.OnStart != nil {
+    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
+  }
+
+  var skipCommandAction bool
+  for _, command := range self.Context.Commands {
+    for _, flag := range command.Flags {
+      if flag.Action != nil && data.IsTrue(flag.Param.value) {
+        self.Context.Actions = append(self.Context.Actions, flag.Action)
+        if flag.Name == "help" {
+          skipCommandAction = true
+        }
+      }
     }
   }
+
+  if !skipCommandAction {
+    if 0 < len(self.Context.Commands) {
+      command := self.Context.Commands.First()
+      if command.Action != nil {
+        self.Context.Actions = append(self.Context.Actions, command.Action)
+      }
+    }
+  }
+
+  if self.Actions.OnExit != nil {
+    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
+  }
+
+  // NOTE: Before handing the developer using the library the context we put
+  // them in the expected left to right order, despite it being easier for us
+  // to access in this function in the reverse order.
+  self.Context.Arguments = Reverse(self.Context.Arguments)
+  self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
+  self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
+
+  return self
+}
+
+func (self *CLI) Execute() {
+  defer self.benchmark(time.Now(), "benmarking action execution")
+  for _, action := range self.Context.Actions {
+    action(self.Context)
+  }
+}
