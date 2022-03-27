@@ -115,7 +115,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 
   // TODO: This is going to be troublesome come localization
   if !app.Commands.HasCommand("help") {
-    app.Commands = app.Commands.Add(&Command{
+    app.Commands.Add(&Command{
       Name: "help",
       Alias: "h",
       Description: "outputs command and flag details",
@@ -125,7 +125,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
   }
 
   if !app.Commands.HasCommand("version") {
-    app.Commands = app.Commands.Add(&Command{
+    app.Commands.Add(&Command{
       Name: "version",
       Alias: "v",
       Description: "outputs version",
@@ -179,6 +179,10 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
   return cli, errs
 }
 
+// TODO: We could use the BeforeAction hook to convert version and help flags
+// into commands. Or rather convert trailing help commands into a flag? Don't
+// fallback though on the concepts; just find better solutions 
+
 func (self *CLI) Parse(arguments []string) *CLI {
   defer self.benchmark(time.Now(), "benmarking argument parsing")
 
@@ -200,9 +204,6 @@ func (self *CLI) Parse(arguments []string) *CLI {
             if flag := self.Context.Flag(string(shortFlag)); flag != nil {
               if flagParam := argument[index+2:]; len(flagParam) != 0 {
                 flag.Set(flagParam)
-              }else{
-                // TODO: Is this necessary or redundant?
-                flag.SetDefault()
               }
               self.Context.Arguments = self.Context.Arguments.Add(flag)
               break
@@ -246,7 +247,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
         // Command parse
         command.Parent = self.Context.Commands.First()
 
-        self.Context.Commands = self.Context.Commands.Add(command)
+        self.Context.Commands.Add(command)
         self.Context.Flags = append(self.Context.Flags, command.Flags...)
 
         self.Context.Arguments = self.Context.Arguments.Add(
@@ -263,7 +264,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
         if helpCommand != nil {
           helpCommand.Parent = self.Context.Commands.First()
 
-          self.Context.Commands = self.Context.Commands.Add(helpCommand)
+          self.Context.Commands.Add(helpCommand)
           self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
 
           self.Context.Arguments = self.Context.Arguments.Add(
@@ -292,10 +293,10 @@ func (self *CLI) Parse(arguments []string) *CLI {
     }
   }
 
-  if self.Actions.OnStart != nil {
-    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnStart)
-  }
+  self.Context.Actions.Add(self.Actions.OnStart)
 
+  // TODO: This all fell apart when we had to hard-code 'help' flag AND
+  // requiring a skip action assignment for commands 
   var skipCommandAction bool
   for _, command := range self.Context.Commands {
     for _, flag := range command.Flags {
@@ -317,9 +318,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
     }
   }
 
-  if self.Actions.OnExit != nil {
-    self.Context.Actions = self.Context.Actions.Add(self.Actions.OnExit)
-  }
+  self.Context.Actions.Add(self.Actions.OnExit)
 
   // NOTE: Before handing the developer using the library the context we put
   // them in the expected left to right order, despite it being easier for us

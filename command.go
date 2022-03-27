@@ -134,7 +134,7 @@ func (self commands) Reverse() (reversedCommands commands) {
   return reversedCommands
 }
 
-func (self commands) Add(command *Command) (updatedCommands commands) { 
+func (self *commands) Add(command *Command) { 
   command.Flags = command.Flags.SetDefaults()
-  return append(append(updatedCommands, command), self...)
+  *self = append(append(commands{}, command), *self...)
 }

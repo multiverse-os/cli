@@ -12,7 +12,6 @@ import (
 // TODO: Do a lot of cleanup; like there is no more expecting subcommand concept
 // and I already did some work to make it more functional
 
-
 // TODO: Consider a help or tempalte object, then we easily asign things like
 // indentation, figlet font or not, and make everything here a method. then it
 // will be super easy to customize the output. be able to pass a go template or
@@ -22,7 +21,7 @@ import (
 func RenderDefaultHelpTemplate(context *Context) error {
   // NOTE: This is important for localization 
   helpOptions := map[string]string{
-    "header":            context.asciiHeader("big"),
+    "header":            context.asciiHeader("chunky"),
     "description":       context.Commands.Last().Description,
     "usage":             "Usage",
     "commands":          "Commands",
@@ -55,7 +54,7 @@ func RenderDefaultVersionTemplate(context *Context) error {
 }
 
 func (self Context) defaultVersionTemplate() string {
-	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}" + NewLine()
+	return "{{.header}}" + ansi.SkyBlue(ansi.Light(" version ")) + "{{.version}}\n"
 }
 
 // Available Banners Fonts
@@ -73,48 +72,25 @@ func (self Context) simpleHeader() string {
   return self.Commands.First().Name + "[v" + self.CLI.Version.String() + "]"
 }
 
-func Whitespace(count ...int) string { 
-  var newWhitespaceCount int
-  if 0 < len(count) {
-    newWhitespaceCount = count[0]
-  }else{
-    newWhitespaceCount = 1
-  }
-  return strings.Repeat(" ", newWhitespaceCount)
-}
-
-
-// Lol not public obvio or non existenrt
-func NewLine(count ...int) string { 
-  var newLineCount int
-  if 0 < len(count) {
-    newLineCount = count[0]
-  }else{
-    newLineCount = 1
-  }
-  return strings.Repeat("\n", newLineCount)
-}
-
 // TODO: Would be preferable to define a template and use it than have a static
 //       template like this. This could be the default fallback.
 func (self Context) defaultHelpTemplate() (t string) {
-  t += "\n{{.header}}"
-  t += NewLine() + "  {{.description}}" + NewLine(2)
-  t += Prefix() + "{{.usage}}" + NewLine()
-  t += Tab() + strings.Join(self.Commands.Names(), " ") + 
-       Whitespace() + "[{{.params}}]" + NewLine(2)
+  t += "\n{{.header}}\n  {{.description}}\n\n  {{.usage}}\n"
+  // TODO: Usage needs to be fixed, after we minimized it a bit
+  t += "    " + strings.Join(self.Commands.Names(), " ") + " [{{.params}}]\n\n"
 
   if !self.Commands.Last().Subcommands.IsZero() {
-    t += Prefix() + "{{.commands}}" + NewLine()
+    t += "  {{.commands}}\n"
     for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
-      t += Tab() + 
-      commandUsage(*subcommand) + 
-      Whitespace(18-len(commandUsage(*subcommand))) +
-      subcommand.Description + NewLine()
+      t += "    " + commandUsage(*subcommand) + 
+      strings.Repeat(" ", 18-len(commandUsage(*subcommand))) +
+      subcommand.Description + "\n"
     }
-    t += NewLine()
+    t += "\n"
   }
 
+  // TODO: This method will not ever print command flags, and so this has been
+  // broken fundamentally
   if len(self.Commands.First().Flags) != 0 {
     t += "  {{.flags}}\n   Global options\n"
     for _, flag := range self.Commands.First().Flags.Reverse().Visible() {
@@ -122,13 +98,13 @@ func (self Context) defaultHelpTemplate() (t string) {
         t += flagHelp(*flag)
       }
     }
-    t += NewLine()
+    t += "\n"
     for _, category := range self.Commands.First().Flags.Categories() {
       t += fmt.Sprintf("   %v options\n", category)
       for _, flag := range self.Commands.First().Flags.Category(category).Visible() {
         t += flagHelp(*flag)
       }
-      t += NewLine() 
+      t += "\n"
     }
 
   }
@@ -155,7 +131,7 @@ func flagHelp(flag Flag) string {
   if len(flag.Default) != 0 {
     defaultValue = " [≅ " + flag.Default + "]"
   }
-  return "    " + usage + Whitespace(18-len(usage)) +
+  return "    " + usage + strings.Repeat(" ", 18-len(usage)) +
   flag.Description + defaultValue + "\n"
 }
 
