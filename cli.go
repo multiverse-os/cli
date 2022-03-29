@@ -272,6 +272,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
           )
 
           self.Context.Command = self.Context.Commands.First()
+          break
         }
       }else{
         // Params parse
