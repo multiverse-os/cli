@@ -22,9 +22,8 @@ func RenderDefaultHelpTemplate(context *Context) error {
   // NOTE: This is important for localization 
   helpOptions := map[string]string{
     "header":            context.asciiHeader("chunky"),
-    "description":       context.Commands.Last().Description,
+    "description":       context.Commands.First().Description,
     "usage":             "Usage",
-    "commands":          "Commands",
     "subcommands":       "Subcommands",
     "global":            "Global",
     "flags":             "Flags",
@@ -75,12 +74,18 @@ func (self Context) simpleHeader() string {
 // TODO: Would be preferable to define a template and use it than have a static
 //       template like this. This could be the default fallback.
 func (self Context) defaultHelpTemplate() (t string) {
-  t += "\n{{.header}}\n  {{.description}}\n\n  {{.usage}}\n"
+  t += "\n{{.header}}\n  {{.description}}\n\n  "
+  t += ansi.Bold("{{.usage}}\n")
   // TODO: Usage needs to be fixed, after we minimized it a bit
-  t += "    " + strings.Join(self.Commands.Names(), " ") + " [{{.params}}]\n\n"
+  t += "    " + strings.Join(self.Commands.Names(), " ") 
+  t += " [{{.options}}]"
+  if !self.Commands.Last().Subcommands.IsZero() {
+    t += " [{{.subcommand}}]"
+  }
+  t += " [{{.params}}]\n\n"
 
   if !self.Commands.Last().Subcommands.IsZero() {
-    t += "  {{.commands}}\n"
+    t += ansi.Bold("  {{.subcommands}}\n")
     for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
       t += "    " + commandUsage(*subcommand) + 
       strings.Repeat(" ", 18-len(commandUsage(*subcommand))) +
@@ -92,15 +97,25 @@ func (self Context) defaultHelpTemplate() (t string) {
   // TODO: This method will not ever print command flags, and so this has been
   // broken fundamentally
   if len(self.Commands.First().Flags) != 0 {
-    t += "  {{.flags}}\n   Global options\n"
-    for _, flag := range self.Commands.First().Flags.Reverse().Visible() {
+    t += ansi.Bold("  {{.flags}}\n")
+    if !self.Commands.Last().Flags.IsZero() {
+      t += ansi.Bold("   Command options\n")
+      for _, flag := range self.Commands.Last().Flags.Visible().Reverse() {
+        if !flag.HasCategory() {
+          t += flagHelp(*flag)
+        }
+      }
+      t += "\n"
+    }
+    t += ansi.Bold("   Global options\n")
+    for _, flag := range self.Commands.First().Flags.Visible().Reverse() {
       if !flag.HasCategory() {
         t += flagHelp(*flag)
       }
     }
     t += "\n"
     for _, category := range self.Commands.First().Flags.Categories() {
-      t += fmt.Sprintf("   %v options\n", category)
+      t += ansi.Bold(fmt.Sprintf("   %v options\n", category))
       for _, flag := range self.Commands.First().Flags.Category(category).Visible() {
         t += flagHelp(*flag)
       }

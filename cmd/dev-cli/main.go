@@ -60,6 +60,14 @@ func main() {
 					cli.Command{
 						Name:        "add",
 						Description: "lists all of something",
+            Flags: cli.Flags(
+              cli.Flag{
+                Name:        "test",
+                Alias:       "t",
+                Default:     "what",
+                Description: "A test filter",
+              },
+            ),
 						Action: func(c *cli.Context) error {
               fmt.Printf("how many flags does context have (%v)\n", len(c.Flags))
 							c.CLI.Log("=====================================================")
