@@ -75,14 +75,14 @@ func (self Context) simpleHeader() string {
 //       template like this. This could be the default fallback.
 func (self Context) defaultHelpTemplate() (t string) {
   t += "\n{{.header}}\n  {{.description}}\n\n  "
-  t += ansi.Bold("{{.usage}}\n")
+  t += ansi.Bold("{{.usage}}")
   // TODO: Usage needs to be fixed, after we minimized it a bit
-  t += "    " + strings.Join(self.Commands.Names(), " ") 
-  t += " [{{.options}}]"
+  t += ansi.Light(" " + strings.Join(self.Commands.Names(), " "))
+  t += ansi.Gray(" [{{.options}}]")
   if !self.Commands.Last().Subcommands.IsZero() {
-    t += " [{{.subcommand}}]"
+    t += ansi.Gray(" [{{.subcommand}}]")
   }
-  t += " [{{.params}}]\n\n"
+  t += ansi.Gray(" [{{.params}}]\n\n")
 
   if !self.Commands.Last().Subcommands.IsZero() {
     t += ansi.Bold("  {{.subcommands}}\n")
