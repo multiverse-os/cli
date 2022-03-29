@@ -295,6 +295,8 @@ func (self *CLI) Parse(arguments []string) *CLI {
 
   self.Context.Actions.Add(self.Actions.OnStart)
 
+  // TODO: No what should happen is we go through the global flags and run those
+  // actions first
   // TODO: This all fell apart when we had to hard-code 'help' flag AND
   // requiring a skip action assignment for commands 
   var skipCommandAction bool
@@ -302,9 +304,8 @@ func (self *CLI) Parse(arguments []string) *CLI {
     for _, flag := range command.Flags {
       if flag.Action != nil && data.IsTrue(flag.Param.value) {
         self.Context.Actions = append(self.Context.Actions, flag.Action)
-        if flag.Name == "help" {
-          skipCommandAction = true
-        }
+        skipCommandAction = true
+        break
       }
     }
   }
