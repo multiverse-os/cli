@@ -147,6 +147,6 @@ func flagHelp(flag Flag) string {
     defaultValue = " [≅ " + flag.Default + "]"
   }
   return "    " + usage + strings.Repeat(" ", 18-len(usage)) +
-  flag.Description + defaultValue + "\n"
+  ani.Gray(flag.Description) + ansi.Bold(defaultValue) + "\n"
 }
 
