@@ -98,7 +98,7 @@ func (self Context) defaultHelpTemplate() (t string) {
   // broken fundamentally
   if len(self.Commands.First().Flags) != 0 {
     t += ansi.Bold("  {{.flags}}\n")
-    if !self.Commands.Last().Flags.IsZero() {
+    if !self.Commands.Last().Flags.IsZero() && self.Commands.Count() != 1 {
       t += ansi.Bold("   Command options\n")
       for _, flag := range self.Commands.Last().Flags.Visible().Reverse() {
         if !flag.HasCategory() {
