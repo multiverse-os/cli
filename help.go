@@ -87,9 +87,7 @@ func (self Context) defaultHelpTemplate() (t string) {
   if !self.Commands.Last().Subcommands.IsZero() {
     t += ansi.Bold("  {{.subcommands}}\n")
     for _, subcommand := range self.Commands.Last().Subcommands.Reverse().Visible() {
-      t += "    " + commandUsage(*subcommand) + 
-      strings.Repeat(" ", 18-len(commandUsage(*subcommand))) +
-      subcommand.Description + "\n"
+      t += commandUsage(*subcommand)
     }
     t += "\n"
   }
@@ -128,12 +126,13 @@ func (self Context) defaultHelpTemplate() (t string) {
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-func commandUsage(command Command) (output string) {
-  output += command.Name
+func commandUsage(command Command) string {
+  usage := command.Name
   if len(command.Alias) != 0 {
-    output += ", " + command.Alias
+    usage += ", " + command.Alias
   }
-  return output
+  return "    " + usage + strings.Repeat(" ", 18-len(usage)) +
+  ansi.Gray(command.Description) + "\n"
 }
 
 func flagHelp(flag Flag) string {
@@ -147,6 +146,6 @@ func flagHelp(flag Flag) string {
     defaultValue = " [≅ " + flag.Default + "]"
   }
   return "    " + usage + strings.Repeat(" ", 18-len(usage)) +
-  ani.Gray(flag.Description) + ansi.Bold(defaultValue) + "\n"
+  ansi.Gray(flag.Description) + ansi.Bold(defaultValue) + "\n"
 }
 

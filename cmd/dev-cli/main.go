@@ -3,9 +3,18 @@ package main
 import (
   "fmt"
   "os"
+  "time"
+  "math/rand"
 
 	cli "github.com/multiverse-os/cli"
+
+	rectangles "github.com/multiverse-os/cli/terminal/loading/bars/rectangles"
+	circle "github.com/multiverse-os/cli/terminal/loading/spinners/circle"
 )
+
+func randomWait() {
+	time.Sleep(time.Duration(rand.Intn(2)+2) * time.Second)
+}
 
 func main() {
   cmd, initErrors := cli.New(cli.App{
@@ -45,21 +54,37 @@ func main() {
 				Alias:       "l",
 				Description: "complete a task on the list",
         Action: func(c *cli.Context) error {
+          spinner := c.CLI.Spinner().Animation(circle.Animation)
+
+          spinner.Start() 
+          spinner.Message("Water, Dirt & Grass")
+          randomWait() 
+          spinner.Message("Trees, Debris & Hideouts")
+          randomWait()
+          spinner.Message("Wildlife, Werewolves & Bandits")
+          randomWait()
+          spinner.Message("Sounds of wildlife & trees waving in the wind")
+          randomWait()
+          spinner.Message("Hiding treasure in the haunted woods...")
+          randomWait()
+          spinner.Complete("Completed")
+          randomWait()
+
           c.CLI.Log("list!")
           return nil
         },
-				Flags: cli.Flags(
-					cli.Flag{
-						Name:        "filter",
-						Alias:       "f",
-						Default:     "all",
-						Description: "filter all the things",
-					},
-				),
-				Subcommands: cli.Commands(
-					cli.Command{
-						Name:        "add",
-						Description: "lists all of something",
+        Flags: cli.Flags(
+          cli.Flag{
+            Name:        "filter",
+            Alias:       "f",
+            Default:     "all",
+            Description: "filter all the things",
+          },
+        ),
+        Subcommands: cli.Commands(
+          cli.Command{
+            Name:        "add",
+            Description: "lists all of something",
             Flags: cli.Flags(
               cli.Flag{
                 Name:        "test",
@@ -68,40 +93,57 @@ func main() {
                 Description: "A test filter",
               },
             ),
-						Action: func(c *cli.Context) error {
-              fmt.Printf("how many flags does context have (%v)\n", len(c.Flags))
-							c.CLI.Log("=====================================================")
-							c.CLI.Log("====> c.Flag(\"l\"):", c.Flag("l").String())
-							c.CLI.Log("add a thing to the list")
-							for _, command := range c.Commands {
-								c.CLI.Log("=====================================================")
-								c.CLI.Log("[COMMAND:" + command.Name + "]")
-								for _, flag := range command.Flags {
-									c.CLI.Log("  '==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.String() + "][DEFAULT:" + flag.Default + "]")
-								}
-							}
-							for _, flag := range c.Flags {
-								c.CLI.Log("=====================================================")
-								c.CLI.Log("flag.Name :       ", flag.Name)
-								c.CLI.Log("flag.Value:       ", flag.String())
-							}
-							c.CLI.Log("=====================================================")
+            Action: func(c *cli.Context) error {
+              loadingBar := c.CLI.LoadingBar().Animation(rectangles.Animation)
 
-							return nil
-						},
-					},
-				),
-			},
-			cli.Command{
-				Name:        "show",
-				Alias:       "sh",
-				Description: "show and item in the list",
+
+
+              loadingBar.Start()
+              for i := 0; i < 100; i++ {
+                time.Sleep(time.Duration(rand.Intn(135)+22) * time.Millisecond)
+                if loadingBar.Increment(1) {
+                  break
+                }
+              }
+              loadingBar.End()
+
+              //// NOTE: run code between two start and stop
+              //c.Cli.LoadingBar(squards.Style).Stop()
+
+
+              fmt.Printf("how many flags does context have (%v)\n", len(c.Flags))
+              c.CLI.Log("=====================================================")
+              c.CLI.Log("====> c.Flag(\"l\"):", c.Flag("l").String())
+              c.CLI.Log("add a thing to the list")
+              for _, command := range c.Commands {
+                c.CLI.Log("=====================================================")
+                c.CLI.Log("[COMMAND:" + command.Name + "]")
+                for _, flag := range command.Flags {
+                  c.CLI.Log("  '==>[FLAG][NAME:" + flag.Name + "][VALUE:" + flag.String() + "][DEFAULT:" + flag.Default + "]")
+                }
+              }
+              for _, flag := range c.Flags {
+                c.CLI.Log("=====================================================")
+                c.CLI.Log("flag.Name :       ", flag.Name)
+                c.CLI.Log("flag.Value:       ", flag.String())
+              }
+              c.CLI.Log("=====================================================")
+
+              return nil
+            },
+          },
+        ),
+      },
+      cli.Command{
+        Name:        "show",
+        Alias:       "sh",
+        Description: "show and item in the list",
         Action: func(c *cli.Context) error {
           c.CLI.Log("example action")
           return nil
         },
-			},
-		),
+      },
+    ),
     Actions: cli.Actions{
       OnStart: func(c *cli.Context) error {
         //c.CLI.Log("OnStart action")

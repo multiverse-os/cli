@@ -6,6 +6,9 @@ import (
   "strings"
 
   data "github.com/multiverse-os/cli/data"
+	loading "github.com/multiverse-os/cli/terminal/loading"
+	squares "github.com/multiverse-os/cli/terminal/loading/bars/squares"
+	moon "github.com/multiverse-os/cli/terminal/loading/spinners/moon"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,14 +26,8 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // Alpha Release
 
-// TODO: Write tests for basic functionality, specifically around the Parse()
-// function + Execute. Fix permissions (public vs private) on functions only leaving
-// explicitly the functions used by a developer using the library
-
 // TODO: Expand range of the tests so it test more possible conditions to
 // guarantee it works when changes are made
-
-// TODO: Dont render categories if only global flags
 
 // TODO: change receiver variable names on methods from self to the convention
 
@@ -60,14 +57,64 @@ type CLI struct {
   Context        *Context
   Outputs        Outputs
   Actions        Actions
-  MinimumArgs    int
-  Locale         string
+  MinimumArgs    int // TODO: Not yet implemented
+  Locale         string // TODO: Not yet implented
 }
 
-func (self CLI) Log(output ...string)   { self.Outputs.Log(DEBUG, output...) }
-func (self CLI) Warn(output ...string)  { self.Outputs.Log(WARN, output...) }
-func (self CLI) Error(output ...string) { self.Outputs.Log(ERROR, output...) }
-func (self CLI) Fatal(output ...string) { self.Outputs.Log(FATAL, output...) }
+func (c CLI) Log(output ...string)   { c.Outputs.Log(DEBUG, output...) }
+func (c CLI) Warn(output ...string)  { c.Outputs.Log(WARN, output...) }
+func (c CLI) Error(output ...string) { c.Outputs.Log(ERROR, output...) }
+func (c CLI) Fatal(output ...string) { c.Outputs.Log(FATAL, output...) }
+
+type loaderType int
+
+const (
+  Bar loaderType = iota
+  Spinner
+)
+
+func (self loaderType) String() string {
+  switch self {
+  case Spinner: 
+    return "spinner"
+  case Bar:
+    return "bar"
+  default: // UndefinedLoaderType
+    return ""
+  }
+}
+
+func MarshalLoaderType(lType string) loaderType {
+  switch lType {
+  case Spinner.String():
+    return Spinner
+  default: // Bar
+    return Bar
+  }
+}
+
+// bar  := cli.Loader(cli.Bar)
+// loading.LoadnigSpinner
+// spinner := loading.Spinner(type)
+
+func (c CLI) LoadingBar() *loading.Bar { return loading.ToBar(c.Loader(Bar)) }
+
+// TODO: 
+func (c CLI) Spinner() *loading.Spinner { 
+  return loading.ToSpinner(c.Loader(Spinner)) 
+} 
+
+func (c CLI) Loader(loader loaderType) loading.Loader {
+  switch loader {
+  case Spinner:
+    return loading.NewSpinner(moon.Animation)
+  case Bar:
+    return loading.NewBar(squares.Animation).Width(80)
+  default:
+    return nil
+  }
+  //loadingBar.Status(color.Green("Completed!")).Complete()
+}
 
 // TODO: Get rid of flag actions by simply catching version or help in a generic
 // fallback that looks for these flags. This should also help resolve issues
