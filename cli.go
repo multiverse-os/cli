@@ -9,7 +9,6 @@ import (
 	loading "github.com/multiverse-os/cli/terminal/loading"
 	squares "github.com/multiverse-os/cli/terminal/loading/bars/squares"
 	moon "github.com/multiverse-os/cli/terminal/loading/spinners/moon"
-  text "github.com/multierse-os/cli/terminal/text"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,10 +113,11 @@ func (c CLI) Loader(loader loaderType) loading.Loader {
   //loadingBar.Status(color.Green("Completed!")).Complete()
 }
 
-
-func (c CLI) Box(message string) string {
-  return text.Box(message)
-}
+// TODO: Submodule problem need to resolve to get this working, but tis
+// advisable to eventually get this
+//func (c CLI) Box(message string) string {
+//  return text.Box(message)
+//}
 
 // TODO: Get rid of flag actions by simply catching version or help in a generic
 // fallback that looks for these flags. This should also help resolve issues
