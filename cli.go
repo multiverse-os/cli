@@ -9,6 +9,7 @@ import (
 	loading "github.com/multiverse-os/cli/terminal/loading"
 	squares "github.com/multiverse-os/cli/terminal/loading/bars/squares"
 	moon "github.com/multiverse-os/cli/terminal/loading/spinners/moon"
+  text "github.com/multierse-os/cli/terminal/text"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,33 +74,30 @@ const (
   Spinner
 )
 
-func (self loaderType) String() string {
-  switch self {
-  case Spinner: 
-    return "spinner"
-  case Bar:
-    return "bar"
-  default: // UndefinedLoaderType
-    return ""
-  }
-}
-
-func MarshalLoaderType(lType string) loaderType {
-  switch lType {
-  case Spinner.String():
-    return Spinner
-  default: // Bar
-    return Bar
-  }
-}
-
-// bar  := cli.Loader(cli.Bar)
-// loading.LoadnigSpinner
-// spinner := loading.Spinner(type)
+//func (self loaderType) String() string {
+//  switch self {
+//  case Spinner: 
+//    return "spinner"
+//  case Bar:
+//    return "bar"
+//  default: // UndefinedLoaderType
+//    return ""
+//  }
+//}
+//
+//func MarshalLoaderType(lType string) loaderType {
+//  switch lType {
+//  case Spinner.String():
+//    return Spinner
+//  default: // Bar
+//    return Bar
+//  }
+//}
 
 func (c CLI) LoadingBar() *loading.Bar { return loading.ToBar(c.Loader(Bar)) }
 
-// TODO: 
+// TODO: It would be nice to be able to pass the animation to this spinner or
+// loading bar via this and through ToSpinner() 
 func (c CLI) Spinner() *loading.Spinner { 
   return loading.ToSpinner(c.Loader(Spinner)) 
 } 
@@ -114,6 +112,11 @@ func (c CLI) Loader(loader loaderType) loading.Loader {
     return nil
   }
   //loadingBar.Status(color.Green("Completed!")).Complete()
+}
+
+
+func (c CLI) Box(message string) string {
+  return text.Box(message)
 }
 
 // TODO: Get rid of flag actions by simply catching version or help in a generic
