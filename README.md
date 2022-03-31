@@ -6,6 +6,14 @@
 
 **URL** [multiverse-os.org](https://multiverse-os.org)
 
+*This library is still pre-alpha, but as of March 2022, it is very quickly
+nearing alpha release. Which means we will freeze the API, and no changes will
+be made to the API until at least first release candidate. So at that point you
+can safely create applications and have no worry they will break from our
+changes. We will soon be going over public and private functions, types and
+fields to limit it exactly to what should be available for developers to use the
+library and that will finalize the process of freezing the API.*
+
 The `cli` framework aims to provide a security focused, and easy-to-use
 toolbox for creating command-line interfaces for simple scripts, to full
 featured TUI applications. Not just the standard command-processor model
