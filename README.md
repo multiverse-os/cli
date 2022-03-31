@@ -19,6 +19,13 @@ toolbox for creating command-line interfaces for simple scripts, to full
 featured TUI applications. Not just the standard command-processor model
 (commands, flags, params) but also shell interfaces.
 
+Many other `cli` frameworks try to be minimal as possible, so much so as they
+leave out basic functionality like stacked flags, or flag categories (see
+youtube-dl or even git to see why software would expect flag categories). `cli`
+is mean to be minimal and encapsulate its features into sub-packages so that it
+can be reasonably be used for simple scripts, and tries to break from
+established expectations and provide full-featured `cli` framework. 
+
 This framework also seeks to establish precedent that `cli` frameworks 
 should not just provide a help output, and register commands and flags
 but provide the tools necessary actually building a full-featured
