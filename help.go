@@ -18,6 +18,12 @@ import (
 // definte the various aspects. 
 // TODO: Make render help fit the type for Action so that it can be assigned to
 // the help commands action for greater simplicity and less hard-coding.
+
+
+// TODO: Can we rebuild this with a matrix grid like? https://github.com/sh0rez/asciimatrix/blob/master/asciimatrix.go
+// I bet we can get 100x cleaner code, end up with smaller code, and maximum
+// customability easily
+
 func RenderDefaultHelpTemplate(context *Context) error {
   // NOTE: This is important for localization 
   helpOptions := map[string]string{
