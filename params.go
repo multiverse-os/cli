@@ -44,7 +44,7 @@ func (self Param) String() string { return self.value }
 func (self Param) Bool() bool { return data.IsTrue(self.value) }
 
 func (self Param) Int() int {
-  intValue, err := strconv.Atoi(self.value[0:1])
+  intValue, err := strconv.Atoi(self.value)
   if err != nil {
     return 0
   } else {
