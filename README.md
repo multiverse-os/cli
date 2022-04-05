@@ -19,6 +19,35 @@ toolbox for creating command-line interfaces for simple scripts, to full
 featured TUI applications. Not just the standard command-processor model
 (commands, flags, params) but also shell interfaces.
 
+Example output from application using the `cli` framework: 
+
+```
+[DEBUG][Benchmark] benmarking argument parsing [ 4.1µs ]
+
+　 █▀▀ ▀▀█▀▀ █▀▀█ █▀▀█ █▀▀ █  █  ▀  █▀▀█ █  █ █▀▀█ █▀▀█ █▀▀▄ 
+　 ▀▀█   █   █▄▄█ █▄▄▀ ▀▀█ █▀▀█ ▀█▀ █  █ █▄▄█ █▄▄█ █▄▄▀ █  █ 
+　 ▀▀▀   ▀   ▀  ▀ ▀ ▀▀ ▀▀▀ ▀  ▀ ▀▀▀ █▀▀▀ ▄▄▄█ ▀  ▀ ▀ ▀▀ ▀▀▀  0.1.1
+  A command-line tool for controling the starshipyard server, scaffolding boilerplate code, and executing developer defined commands
+
+  Usage starshipyard [options] [subcommand] [parameters]
+
+  Subcommands
+    console, c        Start the starship yard console interface
+    new, n            Create a new starship project
+    generate, g       Generate new go source code for models, controllers, and views
+    server, s         Options for controlling starshipyard HTTP server
+    version, v        outputs version
+
+  Flags
+   Global options
+    -h, --help        outputs command and flag details
+
+   Server options
+    -e, --env         Specify the server environment [≅ development]
+    -a, --address     Specify the address for the HTTP server to listen [≅ 0.0.0.0]
+    -p, --port        Specify the listening port for the HTTP server [≅ 3000]
+```
+
 Many other `cli` frameworks try to be minimal as possible, so much so as they
 leave out basic functionality like stacked flags, or flag categories (see
     youtube-dl or even git to see why software would expect flag categories). `cli`
