@@ -48,22 +48,19 @@ Example output from application using the `cli` framework:
     -p, --port        Specify the listening port for the HTTP server [≅ 3000]
 ```
 
-Many other `cli` frameworks try to be minimal as possible, so much so as they
-leave out basic functionality like stacked flags, or flag categories (see
-    youtube-dl or even git to see why software would expect flag categories). `cli`
-is mean to be minimal and encapsulate its features into sub-packages so that it
-can be reasonably be used for simple scripts, and tries to break from
-established expectations and provide full-featured `cli` framework. 
+In contrast to other cli frameworks that try to be minimal as possible, so much so as to
+leave out basic functionality like *stacked flags*, or *flag categories* (see git to see 
+why developers might expect flag categories). `cli` is acheives a minimalist code-footprint
+by encapsulating its features into optional sub-packages instead of leaving out
+functionality that allows developers using the library to focus on what makes
+their program unique instead of code common to other cli programs. The aim is
+for `cli` to be reasonably small for use in simple scripts, and all the tools
+needed for a modern full-featured cli application. 
 
-This framework also seeks to establish precedent that `cli` frameworks 
-should not just provide a help output, and register commands and flags
-but provide the tools necessary actually building a full-featured
-command-line application. 
+This means providing not just secure user input, but a variety of rich user
+inputs. And tools to actually create user interfaces beyond the help output.
 
-This means providing not just secure user input, but also rich user input. 
-And tools to actually create user interfaces beyond the help output! 
-
-Like high-quality and customizable ascii/text generation for tables when
+`cli` provides multiple ways to generate ascii/text generation for tables when
 and application needs to show the user data. And symbols to enrich the output
 or create lists of data to present to the user. Banners, using figlet fonts, to
 emphasize text, and what we use to improve the default help output. Sparkline 
