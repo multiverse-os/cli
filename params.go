@@ -75,6 +75,8 @@ func (self params) Arguments() (newArguments arguments) {
   return newArguments
 }
 
+// TODO: COnvert to *params method I laid out in other data types that lets us
+// do .Add without reassigning to itself
 func (self params) Add(param *Param) (updatedParams params) {
   return append(append(updatedParams, param), self...)
 }

@@ -51,6 +51,7 @@ type App struct {
 }
 
 type CLI struct {
+  Name           string
   Version        Version
   Build          Build
   Debug          bool
@@ -155,6 +156,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
   }
 
   cli = &CLI{
+    Name:     app.Name,
     Version:  app.Version,
     Outputs:  app.Outputs,
     Actions:  app.Actions,
