@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	ansi "terminal/ansi"
-
 	data "github.com/multiverse-os/cli/data"
+	ansi "github.com/multiverse-os/cli/terminal/ansi"
 	template "github.com/multiverse-os/cli/terminal/template"
 	banner "github.com/multiverse-os/cli/terminal/text/banner"
 )

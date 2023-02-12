@@ -219,9 +219,8 @@ func (self Outputs) Log(level LogLevel, output ...string) {
 	self.Write(ansi.Bold(ansi.White("[")) + levelOutput + ansi.Bold(ansi.White("]")) + strings.Join(output, " "))
 }
 
-//
 // Ultra Minimal Multiple Output Logging System
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // Basic Levels, Debug Mode, Errors, Warnings, Fatals that exit, and flexible
 // access so it doesn't get in the way.
 //
