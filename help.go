@@ -5,9 +5,12 @@ import (
 	"strings"
 
 	data "github.com/multiverse-os/cli/data"
+
 	ansi "github.com/multiverse-os/cli/terminal/ansi"
+
 	template "github.com/multiverse-os/cli/terminal/template"
-	banner "github.com/multiverse-os/cli/terminal/text/banner"
+
+	banner "github.com/multiverse-os/banner"
 )
 
 // TODO: Do a lot of cleanup; like there is no more expecting subcommand concept

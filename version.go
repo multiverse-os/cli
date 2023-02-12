@@ -70,37 +70,36 @@ func (self Version) ColorString() string {
 			colorVersion = append(colorVersion, ansi.Bold(ansi.Purple(versionComponent)))
 		}
 	}
-	return ansi.Light(ansi.Blue("[")) + 
-         ansi.Light(ansi.Blue("v")) + 
-         strings.Join(colorVersion, ansi.White(".")) +
-         ansi.Light(ansi.Blue("]"))
+	return ansi.Light(ansi.Blue("[")) +
+		ansi.Light(ansi.Blue("v")) +
+		strings.Join(colorVersion, ansi.White(".")) +
+		ansi.Light(ansi.Blue("]"))
 }
-
 
 func (self Version) undefined() bool {
 	return self.Major == 0 &&
-         self.Minor == 0 &&
-         self.Patch == 0
+		self.Minor == 0 &&
+		self.Patch == 0
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // TODO: Add sorting
 func (self Version) IsSame(v Version) bool {
-	return self.Major == v.Major && 
-         self.Minor == v.Minor &&
-         self.Patch == v.Patch
+	return self.Major == v.Major &&
+		self.Minor == v.Minor &&
+		self.Patch == v.Patch
 }
 
 func (self Version) IsOlderThan(v Version) bool {
 	return self.Major < v.Major ||
-		     (self.Major == v.Major && (self.Minor < v.Minor ||
-         (self.Minor == v.Minor && self.Patch < v.Patch)))
+		(self.Major == v.Major && (self.Minor < v.Minor ||
+			(self.Minor == v.Minor && self.Patch < v.Patch)))
 }
 
 func (self Version) IsNewerThan(v Version) bool {
 	return self.Major > v.Major ||
-		     (self.Major == v.Major && (self.Minor > v.Minor || 
-         (self.Minor == v.Minor && self.Patch > v.Patch)))
+		(self.Major == v.Major && (self.Minor > v.Minor ||
+			(self.Minor == v.Minor && self.Patch > v.Patch)))
 }
 
 func (self Version) String() string {

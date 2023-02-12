@@ -1,0 +1,8 @@
+github.com/multiverse-os/ansi v0.0.0-20230122075550-10efed87b9d4 h1:p+XBNkUPCBHf3fxTvcxGNZWNKIvBlTyVI33bgn/mBaw=
+github.com/multiverse-os/ansi v0.0.0-20230122075550-10efed87b9d4/go.mod h1:PD6H6rUJ4GvsipdGr0+zxn2pxLA7NCXOLDhPt7mnd/E=
+github.com/multiverse-os/ansi v0.0.0-20230212052241-9cb347d4b2c9 h1:x4PPjeZTViaxMan3sgHPFpsXw0hshTj/Xfai5g3Cz+Q=
+github.com/multiverse-os/ansi v0.0.0-20230212052241-9cb347d4b2c9/go.mod h1:PD6H6rUJ4GvsipdGr0+zxn2pxLA7NCXOLDhPt7mnd/E=
+github.com/multiverse-os/banner v0.0.0-20230122081958-39bc0e2a3c54 h1:XTPa/8woBxT03a+zhkKFeMIscKcEdeX7shffveWcxjE=
+github.com/multiverse-os/banner v0.0.0-20230122081958-39bc0e2a3c54/go.mod h1:iKsSBKiFih4XCe4D3z4W/USY/q1ZKCMSaUFWkU/F6j4=
+github.com/multiverse-os/loading v0.0.0-20230205140225-67dcaf84ca47 h1:1Q+zcWmKXEy8UmUKolgQN2WyFxFdaTb8jQVnX6/6NEk=
+github.com/multiverse-os/loading v0.0.0-20230205140225-67dcaf84ca47/go.mod h1:MHfsgTzzFt3DbzPhiDfxrMK0PNaG2JWt55CK8KkPXDU=
