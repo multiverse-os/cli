@@ -1,12 +1,12 @@
 [submodule "ansi"]
 	path = terminal/ansi
-  url = https://github.com/multiverse-os/ansi
+  url = git@github.com:multiverse-os/ansi.git
 
 [submodule "loading"]
 	path = terminal/loading
-  url = https://github.com/multiverse-os/loading
+  url = git@github.com:multiverse-os/loading.git
 
 [submodule "text"]
 	path = terminal/text
-  url = https://github.com/multiverse-os/text
+  url = git@github.com:multiverse-os/text.git
 
