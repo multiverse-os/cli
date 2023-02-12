@@ -2,7 +2,7 @@ module github.com/multiverse-os/cli
 
 go 1.19
 
-replace github.com/multiverse-os/cli/terminal/ansi => github.com/multiverse-os/ansi v0.0.0-20230212052241-9cb347d4b2c9
+replace github.com/multiverse-os/cli/terminal/ansi => github.com/multiverse-os/ansi v0.0.0-20230212053502-2711fc61f14d
 
 require (
 	github.com/multiverse-os/banner v0.0.0-20230122081958-39bc0e2a3c54

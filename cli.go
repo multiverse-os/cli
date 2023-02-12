@@ -16,12 +16,12 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 //
 //            global flag    command flag             parameters (params)
-//              __|___        ____|_____             ____|_____
-//             /      \      /          \           /          \
+//              __|___         __|__             __________|____________
+//             /      \       /     \           /                       \
 //     app-cli --flag=2 open -f thing template /path/to/file /path/to-file
-//     \_____/          \__/              \______/
-//        |              |                   |
-//   application       command             subcommand
+//     \_____/          \__/           \____/
+//        |              |                |
+//   application       command        subcommand
 //
 ///////////////////////////////////////////////////////////////////////////////
 // Alpha Release
