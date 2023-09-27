@@ -167,7 +167,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 
 	// TODO: This is going to be troublesome come localization
 	if !app.Commands.HasCommand("help") {
-		app.Commands.Add(&Command{
+		app.Commands.Add(Command{
 			Name:        "help",
 			Alias:       "h",
 			Description: "outputs command and flag details",
@@ -177,32 +177,12 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 	}
 
 	if !app.Commands.HasCommand("version") {
-		app.Commands.Add(&Command{
+		app.Commands.Add(Command{
 			Name:        "version",
 			Alias:       "v",
 			Description: "outputs version",
 			Action:      RenderDefaultVersionTemplate,
 			Hidden:      false,
-		})
-	}
-
-	if !app.GlobalFlags.HasFlag("help") {
-		app.GlobalFlags = app.GlobalFlags.Add(&Flag{
-			Name:        "help",
-			Alias:       "h",
-			Description: "outputs command and flag details",
-			Hidden:      false,
-			Action:      RenderDefaultHelpTemplate,
-		})
-	}
-
-	if !app.GlobalFlags.HasFlag("version") {
-		app.GlobalFlags = app.GlobalFlags.Add(&Flag{
-			Name:        "version",
-			Alias:       "v",
-			Description: "outputs version",
-			Hidden:      true,
-			Action:      RenderDefaultVersionTemplate,
 		})
 	}
 
@@ -211,9 +191,37 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 		Name:        app.Name,
 		Description: app.Description,
 		Subcommands: app.Commands,
-		Flags:       app.GlobalFlags.SetDefaults(),
+		Flags:       app.GlobalFlags,
 		Hidden:      true,
 		Action:      app.Actions.Fallback,
+	}
+
+	if !app.GlobalFlags.HasFlag("help") {
+		fmt.Printf("adding help global flag\n")
+		hFlag := Flag{
+			Command:     &appCommand,
+			Name:        "help",
+			Alias:       "h",
+			Description: "outputs command and flag details",
+			Hidden:      false,
+			Action:      RenderDefaultHelpTemplate,
+		}
+		app.GlobalFlags.Add(hFlag)
+	}
+
+	if !app.GlobalFlags.HasFlag("version") {
+		fmt.Printf("adding help version flag\n")
+		// TODO: Should this not add Command and that
+		// one being the app command?
+		vFlag := Flag{
+			Command:     &appCommand,
+			Name:        "version",
+			Alias:       "v",
+			Description: "outputs version",
+			Hidden:      true,
+			Action:      RenderDefaultVersionTemplate,
+		}
+		app.GlobalFlags.Add(vFlag)
 	}
 
 	cli.Context = &Context{
@@ -248,6 +256,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
 		// Flag parse
 		if flagType, ok := HasFlagPrefix(argument); ok {
 			argument = flagType.TrimPrefix(argument)
+			fmt.Printf("argument(%v)\n", argument)
 			switch flagType {
 			case Short:
 				for index, shortFlag := range argument {
@@ -265,7 +274,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
 							// NOTE: If the default value is not boolean or blank, no
 							// assignment occurs to avoid input failures.
 							if data.IsBoolean(flag.Default) {
-								flag.ToggleBoolean()
+								flag.Toggle()
 							} else if len(flag.Default) == 0 {
 								flag.SetTrue()
 							}
@@ -275,31 +284,76 @@ func (self *CLI) Parse(arguments []string) *CLI {
 					}
 				}
 			case Long:
+				// TODO: SO WE HAVE IT WORKING WITH --name=Exit          // but we
+				// expect any arguments/params coming after to be assigned to the last
+				// flag, and probably be params
+
+				var flagName string
+				var flagValue string
 				longFlagParts := strings.Split(argument, "=")
-				if flag := self.Context.Flag(string(longFlagParts[0])); flag != nil {
+
+				flagName = longFlagParts[0]
+				if len(longFlagParts) == 2 {
+					flagValue = longFlagParts[1]
+				} else {
+					flagValue = "1"
+				}
+
+				// TODO: AT THIS POINT ITS WORKING, SO BELOW DURING FLAG CONSTRUCTION WE
+				// ARE LOSING IT!
+				fmt.Printf("longFlagParts[0](%v)\n", longFlagParts[0])
+
+				flag := self.Context.Flag(string(longFlagParts[0]))
+				if flag != nil {
 					if len(longFlagParts) == 1 {
 						if data.IsBoolean(flag.Default) {
-							flag.ToggleBoolean()
+							flag.Toggle()
 						} else if len(flag.Default) == 0 {
-							flag.SetTrue()
+							// TODO: ITS ALMOST CERTIANLY THIS!
+							//flag.SetTrue()
 						}
 					} else if len(longFlagParts) == 2 {
 						if 0 < len(longFlagParts[1]) {
 							flag.Set(longFlagParts[1])
 						} else {
-							flag.SetDefault()
+							// TODO: is this needed or does line 139 in command.go cover it?
+							//flag.SetDefault()
 						}
 					}
 
-					self.Context.Arguments = self.Context.Arguments.Add(flag)
+					// TODO: I BET THIS IS WHERE OUR PROBLEM IS, TURNS INTO 1 SOMEHOW
+
+					// NOTE TODO NOTE TODO!!!!
+					// The problem was we were passing in the
+					// CONTEXT flag through, which is not a flag
+					// for use as an argument but the template
+					// with the default, and descriptions
+					// WHY NOT JUST SET THE VALUE BASED ON IF THE INDEX IS LEN(arguments)
+					// -1? INSTEAD OF THIS BULLSHIT?
+					newFlag := Flag{
+						Command: flag.Command,
+						Name:    flagName,
+						Param: &Param{
+							value: flagValue,
+						},
+					}
+					fmt.Printf("flag(%v) before adding...\n", newFlag)
+
+					self.Context.Arguments.Add(newFlag)
+
+					fmt.Printf("and now flag by pulling first argument(%v)\n", self.Context.Arguments.First())
 				}
 			}
+
+			// TODO: Okay for all flags we need to check if
+			// its required and throw an array of errors
 		} else {
 			if command := self.Context.Command.Subcommand(argument); command != nil {
 				// Command parse
 				command.Parent = self.Context.Commands.First()
 
-				self.Context.Commands.Add(command)
+				self.Context.Commands.Add(*command)
+				// TODO: don't we do add here? otherwise what was the poiint?
 				self.Context.Flags = append(self.Context.Flags, command.Flags...)
 
 				self.Context.Arguments = self.Context.Arguments.Add(
@@ -316,7 +370,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
 				if helpCommand != nil {
 					helpCommand.Parent = self.Context.Commands.First()
 
-					self.Context.Commands.Add(helpCommand)
+					self.Context.Commands.Add(*helpCommand)
 					self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
 
 					self.Context.Arguments = self.Context.Arguments.Add(
@@ -328,7 +382,16 @@ func (self *CLI) Parse(arguments []string) *CLI {
 				}
 			} else {
 				// Params parse
+
+				fmt.Printf("params(%v)\n", argument)
+				// TODO: SO THIS IS WHERE OUR ISSUE IS RIGHT NOW
+				//       THIS PARAM MUST BE SET TO LAST FLAG!
+
 				flag := self.Context.Arguments.PreviousIfFlag()
+
+				// THIS RETURNS WRONG TYPE OF OBJECT, WE EXPECT what we had above
+
+				fmt.Printf("previous if flag: (%v)\n", flag)
 				if flag != nil {
 					if flag.Param.value == flag.Default {
 						flag.Param = NewParam(argument)
@@ -337,7 +400,9 @@ func (self *CLI) Parse(arguments []string) *CLI {
 					}
 				}
 				if flag == nil {
-					self.Context.Params = self.Context.Params.Add(NewParam(argument))
+					self.Context.Params = self.Context.Params.Add(
+						NewParam(argument),
+					)
 					self.Context.Arguments = self.Context.Arguments.Add(
 						self.Context.Params.First(),
 					)
@@ -384,9 +449,9 @@ func (self *CLI) Parse(arguments []string) *CLI {
 	return self
 }
 
-func (self *CLI) Execute() {
-	defer self.benchmark(time.Now(), "benmarking action execution")
-	for _, action := range self.Context.Actions {
-		action(self.Context)
+func (cli *CLI) Execute() {
+	defer cli.benchmark(time.Now(), "benmarking action execution")
+	for _, action := range cli.Context.Actions {
+		action(cli.Context)
 	}
 }
