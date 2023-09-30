@@ -33,23 +33,23 @@ func ValidateCommand(command Command) error {
 	return nil
 }
 
-func (self Command) IsValid() bool { return ValidateCommand(self) != nil }
+func (cmd Command) IsValid() bool { return ValidateCommand(cmd) != nil }
 
-func (self Command) is(name string) bool {
+func (cmd Command) is(name string) bool {
 	name = strings.ToLower(name)
-	return (len(self.Name) == len(name) && self.Name == name) ||
-		(len(self.Alias) == len(name) && self.Alias == name)
+	return (len(cmd.Name) == len(name) && cmd.Name == name) ||
+		(len(cmd.Alias) == len(name) && cmd.Alias == name)
 }
 
-func (self Command) Subcommand(name string) *Command {
-	return self.Subcommands.Name(name)
+func (cmd Command) Subcommand(name string) *Command {
+	return cmd.Subcommands.Name(name)
 }
 
-func (self Command) Flag(name string) *Flag {
-	return self.Flags.Name(name)
+func (cmd Command) Flag(name string) *Flag {
+	return cmd.Flags.Name(name)
 }
 
-func (self Command) IsRoot() bool { return self.Parent == nil }
+func (cmd Command) IsRoot() bool { return cmd.Parent == nil }
 
 // /////////////////////////////////////////////////////////////////////////////
 // TODO: These should be consist with linked list even if we dont use it (and we
@@ -63,15 +63,15 @@ func Commands(commands ...Command) (commandPointers commands) {
 	return commandPointers
 }
 
-func (self commands) Arguments() (commandArguments arguments) {
-	for _, command := range self {
+func (cmds commands) Arguments() (commandArguments arguments) {
+	for _, command := range cmds {
 		commandArguments = append(commandArguments, Argument(command))
 	}
 	return commandArguments
 }
 
-func (self commands) Names() (commandNames []string) {
-	for _, command := range self {
+func (cmds commands) Names() (commandNames []string) {
+	for _, command := range cmds {
 		commandNames = append(commandNames, command.Name)
 	}
 	return commandNames
@@ -79,10 +79,8 @@ func (self commands) Names() (commandNames []string) {
 
 // Commands Public Methods
 func HelpCommand(context *Context) error {
-	if context.Commands[(len(context.Commands)-1)].Name == "help" ||
-		context.Commands[(len(context.Commands)-1)].Alias == "h" {
-		context.Commands = context.Commands[0 : len(context.Commands)-1]
-	}
+	context.Commands = context.Commands.Remove("help")
+	//context.Commands = context.Commands.Reverse()
 	return RenderDefaultHelpTemplate(context)
 }
 
@@ -90,23 +88,21 @@ func VersionCommand(context *Context) error {
 	return RenderDefaultVersionTemplate(context)
 }
 
-func (self commands) First() *Command { return self[0] }
-
-func (self commands) Last() *Command { return self[self.Count()-1] }
-
-func (self commands) Count() int   { return len(self) }
-func (self commands) IsZero() bool { return self.Count() == 0 }
+func (cmds commands) First() *Command { return cmds[0] }
+func (cmds commands) Last() *Command  { return cmds[cmds.Count()-1] }
+func (cmds commands) Count() int      { return len(cmds) }
+func (cmds commands) IsZero() bool    { return cmds.Count() == 0 }
 
 // TODO: Exists() should just be
-func (self commands) HasCommand(name string) bool {
-	return self.Name(name) != nil
+func (cmds commands) HasCommand(name string) bool {
+	return cmds.Name(name) != nil
 }
 
 // TODO: Do we need this aliasing?
-func (self commands) Exists(name string) bool { return self.HasCommand(name) }
+func (cmds commands) Exists(name string) bool { return cmds.HasCommand(name) }
 
-func (self commands) Name(name string) *Command {
-	for _, subcommand := range self {
+func (cmds commands) Name(name string) *Command {
+	for _, subcommand := range cmds {
 		if subcommand.is(name) {
 			return subcommand
 		}
@@ -114,8 +110,26 @@ func (self commands) Name(name string) *Command {
 	return nil
 }
 
-func (self commands) Validate() (errs []error) {
-	for _, command := range self {
+func (cmds commands) Index(name string) int {
+	for index, subcommand := range cmds {
+		if subcommand.is(name) {
+			return index
+		}
+	}
+	return -1
+}
+
+func (cmds commands) Remove(name string) (newCommands commands) {
+	for _, subcommand := range cmds {
+		if !subcommand.is(name) {
+			newCommands = append(newCommands, subcommand)
+		}
+	}
+	return newCommands
+}
+
+func (cmds commands) Validate() (errs []error) {
+	for _, command := range cmds {
 		if err := ValidateCommand(*command); err != nil {
 			errs = append(errs, err)
 		}
@@ -123,8 +137,8 @@ func (self commands) Validate() (errs []error) {
 	return errs
 }
 
-func (self commands) Visible() (visibleCommands commands) {
-	for _, command := range self {
+func (cmds commands) Visible() (visibleCommands commands) {
+	for _, command := range cmds {
 		if !command.Hidden {
 			visibleCommands = append(visibleCommands, command)
 		}
@@ -132,9 +146,9 @@ func (self commands) Visible() (visibleCommands commands) {
 	return visibleCommands
 }
 
-func (self commands) Reverse() (reversedCommands commands) {
-	for reversedIndex := self.Count() - 1; reversedIndex >= 0; reversedIndex-- {
-		reversedCommands = append(reversedCommands, self[reversedIndex])
+func (cmds commands) Reverse() (reversedCommands commands) {
+	for reversedIndex := cmds.Count() - 1; reversedIndex >= 0; reversedIndex-- {
+		reversedCommands = append(reversedCommands, cmds[reversedIndex])
 	}
 	return reversedCommands
 }

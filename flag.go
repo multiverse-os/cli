@@ -16,8 +16,11 @@ const (
 	Long
 )
 
-func (self FlagType) TrimPrefix(flag string) string { return flag[int(self):] }
-func (self FlagType) String() string                { return strings.Repeat("-", int(self)) }
+func (ft FlagType) TrimPrefix(flag string) string { return flag[int(ft):] }
+
+func (ft FlagType) String() string {
+	return strings.Repeat("-", int(ft))
+}
 
 func HasFlagPrefix(flag string) (FlagType, bool) {
 	// NOTE: It is unnecessary to do the len(flag) != 0 check since arguments by
@@ -136,9 +139,9 @@ func (fs flags) Arguments() (flagArguments arguments) {
 }
 
 // TODO: We add three 1 for help 1 for version 1 for our name
-func (fs *flags) Add(flag Flag) {
+func (fs *flags) Add(flag *Flag) {
 	// TODO: Probably verify here???
-	*fs = append(append(flags{}, &flag), *fs...)
+	*fs = append(append(flags{}, flag), *fs...)
 }
 
 func (fs flags) Name(name string) *Flag {
@@ -204,41 +207,41 @@ func (fs flags) Validate() (errs []error) {
 	return errs
 }
 
-func (self flags) Count() int   { return len(self) }
-func (self flags) IsZero() bool { return self.Count() == 0 }
+func (fs flags) Count() int   { return len(fs) }
+func (fs flags) IsZero() bool { return fs.Count() == 0 }
 
-func (self flags) First() *Flag {
-	if 0 < self.Count() {
-		return self[0]
+func (fs flags) First() *Flag {
+	if 0 < fs.Count() {
+		return fs[0]
 	}
 	return nil
 }
 
-func (self flags) Last() *Flag {
-	if 0 < self.Count() {
-		return self[len(self)-1]
+func (fs flags) Last() *Flag {
+	if 0 < fs.Count() {
+		return fs[len(fs)-1]
 	}
 	return nil
 }
 
-func (self flags) Reverse() (reversedFlags flags) {
-	for reversedIndex := self.Count() - 1; reversedIndex >= 0; reversedIndex-- {
-		reversedFlags = append(reversedFlags, self[reversedIndex])
+func (fs flags) Reverse() (reversedFlags flags) {
+	for reversedIndex := fs.Count() - 1; reversedIndex >= 0; reversedIndex-- {
+		reversedFlags = append(reversedFlags, fs[reversedIndex])
 	}
 	return reversedFlags
 }
 
-func (self flags) SetDefaults() flags {
-	for _, flag := range self {
+func (fs flags) SetDefaults() flags {
+	for _, flag := range fs {
 		flag.SetDefault()
 	}
-	return self
+	return fs
 }
 
 // TODO: This will fix some issues, and make context.Flags make more sense, but
 // will result in pretty large changes to the Parse() function
-func (self flags) Assigned() (assignedFlags flags) {
-	for _, flag := range self {
+func (fs flags) Assigned() (assignedFlags flags) {
+	for _, flag := range fs {
 		// TODO: May need to just check param as it may never be initialized
 		if len(flag.Param.value) != 0 {
 			assignedFlags = append(assignedFlags, flag)
@@ -247,8 +250,8 @@ func (self flags) Assigned() (assignedFlags flags) {
 	return assignedFlags
 }
 
-func (self flags) Unassigned() (unassignedFlags flags) {
-	for _, flag := range self {
+func (fs flags) Unassigned() (unassignedFlags flags) {
+	for _, flag := range fs {
 		if len(flag.Param.value) == 0 {
 			unassignedFlags = append(unassignedFlags, flag)
 		}

@@ -43,15 +43,15 @@ type BuildInformation struct {
 	CompiledAt string
 }
 
-func (self Build) AddDeveloper(name, email string) {
-	self.Developers = append(self.Developers, Developer{
+func (b Build) AddDeveloper(name, email string) {
+	b.Developers = append(b.Developers, Developer{
 		Name:  name,
 		Email: email,
 	})
 }
 
-func (self VersionComponent) String() string {
-	switch self {
+func (vc VersionComponent) String() string {
+	switch vc {
 	case Major:
 		return "Major"
 	case Minor:
@@ -61,9 +61,9 @@ func (self VersionComponent) String() string {
 	}
 }
 
-func (self Version) ColorString() string {
+func (v Version) ColorString() string {
 	var colorVersion []string
-	for _, versionComponent := range strings.Split(self.String(), ".") {
+	for _, versionComponent := range strings.Split(v.String(), ".") {
 		if versionComponent == "0" {
 			colorVersion = append(colorVersion, ansi.Light(ansi.SkyBlue(versionComponent)))
 		} else {
@@ -76,32 +76,32 @@ func (self Version) ColorString() string {
 		ansi.Light(ansi.Blue("]"))
 }
 
-func (self Version) undefined() bool {
-	return self.Major == 0 &&
-		self.Minor == 0 &&
-		self.Patch == 0
+func (v Version) undefined() bool {
+	return v.Major == 0 &&
+		v.Minor == 0 &&
+		v.Patch == 0
 }
 
 // /////////////////////////////////////////////////////////////////////////////
 // TODO: Add sorting
-func (self Version) IsSame(v Version) bool {
-	return self.Major == v.Major &&
-		self.Minor == v.Minor &&
-		self.Patch == v.Patch
+func (v Version) IsSame(version Version) bool {
+	return v.Major == version.Major &&
+		v.Minor == version.Minor &&
+		v.Patch == version.Patch
 }
 
-func (self Version) IsOlderThan(v Version) bool {
-	return self.Major < v.Major ||
-		(self.Major == v.Major && (self.Minor < v.Minor ||
-			(self.Minor == v.Minor && self.Patch < v.Patch)))
+func (v Version) IsOlderThan(version Version) bool {
+	return v.Major < version.Major ||
+		(v.Major == version.Major && (v.Minor < version.Minor ||
+			(v.Minor == version.Minor && v.Patch < version.Patch)))
 }
 
-func (self Version) IsNewerThan(v Version) bool {
-	return self.Major > v.Major ||
-		(self.Major == v.Major && (self.Minor > v.Minor ||
-			(self.Minor == v.Minor && self.Patch > v.Patch)))
+func (v Version) IsNewerThan(version Version) bool {
+	return v.Major > version.Major ||
+		(v.Major == version.Major && (v.Minor > version.Minor ||
+			(v.Minor == version.Minor && v.Patch > version.Patch)))
 }
 
-func (self Version) String() string {
-	return fmt.Sprintf("%v.%v.%v", self.Major, self.Minor, self.Patch)
+func (v Version) String() string {
+	return fmt.Sprintf("%v.%v.%v", v.Major, v.Minor, v.Patch)
 }

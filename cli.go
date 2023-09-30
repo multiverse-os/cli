@@ -169,25 +169,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 
 	// TODO: Why is Command, Flag
 	// TODO: This is going to be troublesome come localization
-	if !app.Commands.HasCommand("help") {
-		app.Commands.Add(&Command{
-			Name:        "help",
-			Alias:       "h",
-			Description: "outputs command and flag details",
-			Action:      HelpCommand,
-			Hidden:      true,
-		})
-	}
-
-	if !app.Commands.HasCommand("version") {
-		app.Commands.Add(&Command{
-			Name:        "version",
-			Alias:       "v",
-			Description: "outputs version",
-			Action:      RenderDefaultVersionTemplate,
-			Hidden:      false,
-		})
-	}
+	// TODO: Need
 	// NOTE: Application psuedo-command to store globals
 	//       and simplify logic
 	appCommand := Command{
@@ -199,8 +181,30 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 		Action:      app.Actions.Fallback,
 	}
 
+	if !app.Commands.HasCommand("help") {
+		appCommand.Subcommands.Add(&Command{
+			Name:        "help",
+			Alias:       "h",
+			Description: "outputs command and flag details",
+			Action:      HelpCommand,
+			Hidden:      true,
+		})
+	}
+
+	if !app.Commands.HasCommand("version") {
+		appCommand.Subcommands.Add(&Command{
+			Name:        "version",
+			Alias:       "v",
+			Description: "outputs version",
+			Action:      VersionCommand,
+			Hidden:      false,
+		})
+	}
+
+	// TODO: Lets create a VersionFlag and CommandFlag for correcting output
+	//       we want drop the help flag
 	if !app.GlobalFlags.HasFlag("help") {
-		hFlag := Flag{
+		hFlag := &Flag{
 			Command:     &appCommand,
 			Name:        "help",
 			Alias:       "h",
@@ -208,11 +212,11 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 			Hidden:      false,
 			Action:      RenderDefaultHelpTemplate,
 		}
-		app.GlobalFlags.Add(hFlag)
+		appCommand.Flags.Add(hFlag)
 	}
 
 	if !app.GlobalFlags.HasFlag("version") {
-		vFlag := Flag{
+		vFlag := &Flag{
 			Command:     &appCommand,
 			Name:        "version",
 			Alias:       "v",
@@ -220,7 +224,7 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 			Hidden:      true,
 			Action:      RenderDefaultVersionTemplate,
 		}
-		app.GlobalFlags.Add(vFlag)
+		appCommand.Flags.Add(vFlag)
 	}
 
 	cli.Context = &Context{
@@ -398,31 +402,31 @@ func (self *CLI) Parse(arguments []string) *CLI {
 				self.Context.Command = self.FirstCommand()
 
 				// TODO: Should not be
-				//} else if (len(argument) == 4 && argument == "help") ||
-				//	(len(argument) == 1 && argument == "h") {
+			} else if (len(argument) == 4 && argument == "help") ||
+				(len(argument) == 1 && argument == "h") {
 				// TODO: Because using help on a subcommand doesnt parse because help is
 				// global. And thats how it should work. Version doesn't need this.
 				// But I really hate this hardcoding
-				//helpCommand := self.LastCommand().Subcommand("help")
-				//if helpCommand != nil {
-				//	// TODO: Why is this the parent? What if we are dealing with
-				//	//       a subcommand of a subcommand? we would want the subcommand
-				//	//       not the first command
-				//	helpCommand.Parent = self.FirstCommand()
+				helpCommand := self.LastCommand().Subcommand("help")
+				if helpCommand != nil {
+					// TODO: Why is this the parent? What if we are dealing with
+					//       a subcommand of a subcommand? we would want the subcommand
+					//       not the first command
+					helpCommand.Parent = self.FirstCommand()
 
-				//	self.Context.Commands.Add(*helpCommand)
-				//	self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
+					self.Context.Commands.Add(helpCommand)
+					self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
 
-				//	self.Context.Arguments = self.Context.Arguments.Add(
-				//		self.FirstCommand(),
-				//	)
+					self.Context.Arguments = self.Context.Arguments.Add(
+						self.FirstCommand(),
+					)
 
-				//	// TODO: Wait wtf whattt we are setting parent to the same thing
-				//	//       as we are setting the fucking command this makes no fucking
-				//	//       sense
-				//	self.Context.Command = self.FirstCommand()
-				//	break
-				//}
+					// TODO: Wait wtf whattt we are setting parent to the same thing
+					//       as we are setting the fucking command this makes no fucking
+					//       sense
+					self.Context.Command = self.FirstCommand()
+					break
+				}
 			} else {
 				// Params parse
 				fmt.Printf("params(%v)\n", argument)
@@ -454,9 +458,9 @@ func (self *CLI) Parse(arguments []string) *CLI {
 
 	// for the purpose of making it easier to use
 	// to access in this function in the reverse order.
-	//self.Context.Arguments = Reverse(self.Context.Arguments)
-	//self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
-	//self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
+	self.Context.Arguments = Reverse(self.Context.Arguments)
+	self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
+	self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
 
 	//return self
 
