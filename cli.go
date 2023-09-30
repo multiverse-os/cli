@@ -258,13 +258,6 @@ func (cli *CLI) LastCommand() *Command {
 	return cli.Context.Commands.Last()
 }
 
-func (cli *CLI) IsLastArgumentCommand() bool {
-	lastArgument := cli.LastArgument()
-	fmt.Printf("lastArgument(%v)\n", lastArgument)
-
-	return false
-}
-
 func (cli *CLI) Parse(arguments []string) *CLI {
 	defer cli.benchmark(time.Now(), "benmarking argument parsing")
 
@@ -278,7 +271,6 @@ func (cli *CLI) Parse(arguments []string) *CLI {
 		// Flag
 		if flagType, ok := HasFlagPrefix(argument); ok {
 			argument = flagType.TrimPrefix(argument)
-			fmt.Printf("argument(%v)\n", argument)
 			switch flagType {
 			case Short:
 				for index, shortFlag := range argument {
@@ -305,11 +297,6 @@ func (cli *CLI) Parse(arguments []string) *CLI {
 				}
 			case Long:
 				longFlagParts := strings.Split(argument, "=")
-				fmt.Printf(
-					"longFlagParts[0](%v) + len(%v)\n",
-					longFlagParts[0],
-					len(longFlagParts),
-				)
 				flag := cli.Context.Flag(longFlagParts[0])
 				//// TODO: Validate (which probably should be setting default)
 				if flag != nil {
@@ -332,12 +319,10 @@ func (cli *CLI) Parse(arguments []string) *CLI {
 							// We don't need to know if it is a valid flag, just that it is a
 							// flag
 							if _, ok := HasFlagPrefix(arguments[index+2]); ok {
-								fmt.Printf("Next argument is flag\n")
 								flag.SetTrue()
 							}
 
 							if cli.LastCommand().Subcommands.HasCommand(arguments[index+2]) {
-								fmt.Printf("Next Argument is subcommand of previous command\n")
 								// NOTE
 								// In this condition we are talking about a boolean
 								flag.SetTrue()
@@ -353,7 +338,6 @@ func (cli *CLI) Parse(arguments []string) *CLI {
 						}
 
 					}
-					fmt.Printf("flag(%v) before adding...\n", flag)
 					cli.Context.Arguments.Add(flag)
 				} else {
 					// TODO: There are conditions that land here
@@ -399,7 +383,6 @@ func (cli *CLI) Parse(arguments []string) *CLI {
 				}
 			} else {
 				// Params parse
-				fmt.Printf("params(%v)\n", argument)
 				cli.Context.Params = cli.Context.Params.Add(
 					NewParam(argument),
 				)
@@ -417,9 +400,6 @@ func (cli *CLI) Parse(arguments []string) *CLI {
 	cli.Context.Commands = ToCommands(Reverse(cli.Context.Commands.Arguments()))
 	cli.Context.Params = ToParams(Reverse(cli.Context.Params.Arguments()))
 
-	//return self
-
-	fmt.Printf("self.Context.Arguments ... len(%v)\n", len(cli.Context.Arguments))
 	return cli
 }
 
@@ -436,7 +416,6 @@ func (cli *CLI) Execute() {
 			if flag.Action != nil && flag.Param != nil {
 				cli.Context.Actions = append(cli.Context.Actions, flag.Action)
 				skipCommandAction = true
-				fmt.Printf("Skipping Command Action, since flag action ran!")
 				break
 			}
 		}
@@ -445,7 +424,6 @@ func (cli *CLI) Execute() {
 	if !skipCommandAction {
 		if 0 < len(cli.Context.Commands) {
 			command := cli.Context.Commands.Last()
-			fmt.Printf("running command action(%v)\n", command)
 			if command.Action != nil {
 				cli.Context.Actions = append(cli.Context.Actions, command.Action)
 			}

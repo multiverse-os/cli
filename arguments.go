@@ -1,9 +1,5 @@
 package cli
 
-import (
-	"fmt"
-)
-
 type Argument interface {
 	IsValid() bool
 }
@@ -69,38 +65,4 @@ func (self arguments) HasNext(index int) bool {
 
 func (args arguments) Add(newArgument Argument) arguments {
 	return append(append(arguments{}, newArgument), args...)
-	//return args - in case just returning it doesnt work
-}
-
-// TODO: Are args here are wrong, we have literally
-// 1 and a pointer and then a full object, this is crazy shit
-
-// This would let us check for previous argument, but would require
-// position or the current argument
-//func (args arguments) Previous() Argument {
-//	return Argument{}
-//}
-
-// AND fucking adding flags should be done as pointers again~!
-func (args arguments) PreviousIfFlag() *Flag {
-	fmt.Printf("arguments:(%v); len(%v)\n", args, len(args))
-	for index, arg := range args {
-		fmt.Printf("index(%v)=arg(%v)\n", index, arg)
-		switch arg.(type) {
-		case *Flag:
-			fmt.Printf("is *Flag(%v)\n", arg)
-		default:
-			fmt.Printf("is nil\n")
-		}
-	}
-	argument := args.First()
-	switch argument.(type) {
-	case *Flag:
-		fmt.Printf("PREVIOUS ARGUMENT WAS A FLAG! arg(%v)\n", argument)
-		return argument.(*Flag)
-		//return ToFlag(argument)
-
-	default:
-		return nil
-	}
 }
