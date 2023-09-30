@@ -370,16 +370,11 @@ func (cli *CLI) Parse(arguments []string) *CLI {
 			if command := cli.Context.Command.Subcommand(argument); command != nil {
 				// Command parse
 				command.Parent = cli.FirstCommand()
-
 				cli.Context.Commands.Add(command)
 				// TODO: don't we do add here? otherwise what was the poiint?
 				cli.Context.Flags = append(cli.Context.Flags, command.Flags...)
-
 				cli.Context.Arguments = cli.Context.Arguments.Add(cli.FirstCommand())
-
 				cli.Context.Command = cli.FirstCommand()
-
-				// TODO: Should not be
 			} else if (len(argument) == 4 && argument == "help") ||
 				(len(argument) == 1 && argument == "h") {
 				helpCommand := cli.LastCommand().Subcommand("help")

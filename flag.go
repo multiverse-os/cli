@@ -75,50 +75,50 @@ func ValidateFlag(flag *Flag) error {
 	return nil
 }
 
-func (fl *Flag) IsValid() bool { return ValidateFlag(fl) != nil }
+func (f *Flag) IsValid() bool { return ValidateFlag(f) != nil }
 
-func (fl Flag) is(name string) bool {
-	return (len(fl.Name) == len(name) && fl.Name == name) ||
-		(len(fl.Alias) == len(name) && fl.Alias == name)
+func (f Flag) is(name string) bool {
+	return (len(f.Name) == len(name) && f.Name == name) ||
+		(len(f.Alias) == len(name) && f.Alias == name)
 }
 
-func (fl Flag) HasCategory() bool { return len(fl.Category) != 0 }
+func (f Flag) HasCategory() bool { return len(f.Category) != 0 }
 
-func (fl *Flag) String() string {
-	if fl != nil && fl.Param != nil {
-		return fl.Param.value
+func (f *Flag) String() string {
+	if f != nil && f.Param != nil {
+		return f.Param.value
 	} else {
 		return "0"
 	}
 }
 
-func (fl Flag) Int() int   { return fl.Param.Int() }
-func (fl Flag) Bool() bool { return fl.Param.Bool() }
+func (f Flag) Int() int   { return f.Param.Int() }
+func (f Flag) Bool() bool { return f.Param.Bool() }
 
-func (fl *Flag) Set(newValue string) *Flag {
+func (f *Flag) Set(newValue string) *Flag {
 	// TODO: Validate against param's validation (or create a param set that does
 	// the validation and use that function preferably)
-	fl.Param = &Param{
+	f.Param = &Param{
 		value: newValue,
 	}
-	return fl
+	return f
 }
 
-func (fl *Flag) SetDefault() *Flag {
-	if fl.Param == nil && len(fl.Param.value) == 0 && len(fl.Default) != 0 {
-		fl.Param = &Param{value: fl.Default}
+func (f *Flag) SetDefault() *Flag {
+	if f.Param == nil && len(f.Param.value) == 0 && len(f.Default) != 0 {
+		f.Param = &Param{value: f.Default}
 	}
-	return fl
+	return f
 }
 
-func (fl *Flag) SetTrue() *Flag  { return fl.Set("1") }
-func (fl *Flag) SetFalse() *Flag { return fl.Set("0") }
+func (f *Flag) SetTrue() *Flag  { return f.Set("1") }
+func (f *Flag) SetFalse() *Flag { return f.Set("0") }
 
-func (fl *Flag) Toggle() *Flag {
-	if data.IsTrue(fl.Param.value) {
-		return fl.SetFalse()
+func (f *Flag) Toggle() *Flag {
+	if data.IsTrue(f.Param.value) {
+		return f.SetFalse()
 	} else {
-		return fl.SetTrue()
+		return f.SetTrue()
 	}
 }
 
