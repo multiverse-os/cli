@@ -92,8 +92,13 @@ func (f *Flag) String() string {
 	}
 }
 
-func (f Flag) Int() int   { return f.Param.Int() }
-func (f Flag) Bool() bool { return f.Param.Bool() }
+func (f Flag) Int() int         { return f.Param.Int() }
+func (f Flag) Bool() bool       { return f.Param.Bool() }
+func (f Flag) Float64() float64 { return f.Param.Float64() }
+
+// TODO
+// Path / File
+// URL
 
 func (f *Flag) Set(newValue string) *Flag {
 	// TODO: Validate against param's validation (or create a param set that does

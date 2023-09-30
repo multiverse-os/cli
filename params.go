@@ -45,15 +45,20 @@ func (p Param) String() string { return p.value }
 func (p Param) Bool() bool     { return data.IsTrue(p.value) }
 
 func (p Param) Int() int {
-	intValue, err := strconv.Atoi(p.value)
-	if err != nil {
+	if intValue, err := strconv.Atoi(p.value); err != nil {
 		return 0
 	} else {
 		return intValue
 	}
 }
 
-// TODO: Float
+func (p Param) Float64() float64 {
+	if floatValue, err := strconv.ParseFloat(p.value, 64); err != nil {
+		return float64(0)
+	} else {
+		return floatValue
+	}
+}
 
 // TODO: Path / Filename
 
