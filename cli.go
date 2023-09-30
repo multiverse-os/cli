@@ -246,27 +246,27 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 // into commands. Or rather convert trailing help commands into a flag? Don't
 // fallback though on the concepts; just find better solutions
 
-func (self *CLI) LastArgument() Argument {
-	return self.Context.Arguments.Last()
+func (cli *CLI) LastArgument() Argument {
+	return cli.Context.Arguments.Last()
 }
 
-func (self *CLI) FirstCommand() *Command {
-	return self.Context.Commands.First()
+func (cli *CLI) FirstCommand() *Command {
+	return cli.Context.Commands.First()
 }
 
-func (self *CLI) LastCommand() *Command {
-	return self.Context.Commands.Last()
+func (cli *CLI) LastCommand() *Command {
+	return cli.Context.Commands.Last()
 }
 
-func (self *CLI) IsLastArgumentCommand() bool {
-	lastArgument := self.LastArgument()
+func (cli *CLI) IsLastArgumentCommand() bool {
+	lastArgument := cli.LastArgument()
 	fmt.Printf("lastArgument(%v)\n", lastArgument)
 
 	return false
 }
 
-func (self *CLI) Parse(arguments []string) *CLI {
-	defer self.benchmark(time.Now(), "benmarking argument parsing")
+func (cli *CLI) Parse(arguments []string) *CLI {
+	defer cli.benchmark(time.Now(), "benmarking argument parsing")
 
 	// NOTE
 	// Skip one because we treat the application a command so it
@@ -284,26 +284,22 @@ func (self *CLI) Parse(arguments []string) *CLI {
 				for index, shortFlag := range argument {
 					// NOTE: Confirm we are not last && next argument is '=' (61) &&
 					if len(argument) != index+1 && argument[index+1] == 61 {
-						if flag := self.Context.Flag(string(shortFlag)); flag != nil {
+						if flag := cli.Context.Flag(string(shortFlag)); flag != nil {
 							if flagParam := argument[index+2:]; len(flagParam) != 0 {
 								flag.Set(flagParam)
 							}
-							self.Context.Arguments = self.Context.Arguments.Add(flag)
+							cli.Context.Arguments = cli.Context.Arguments.Add(flag)
 							break
 						}
 					} else {
-						if flag := self.Context.Flag(string(shortFlag)); flag != nil {
+						if flag := cli.Context.Flag(string(shortFlag)); flag != nil {
 							// NOTE: If the default value is not boolean or blank, no
 							// assignment occurs to avoid input failures.
-
-							//
 							if data.IsBoolean(flag.Default) {
 								flag.Toggle()
 							} else if len(flag.Default) == 0 {
 								flag.SetTrue()
 							}
-
-							self.Context.Arguments = self.Context.Arguments.Add(flag)
 						}
 					}
 				}
@@ -314,7 +310,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
 					longFlagParts[0],
 					len(longFlagParts),
 				)
-				flag := self.Context.Flag(longFlagParts[0])
+				flag := cli.Context.Flag(longFlagParts[0])
 				//// TODO: Validate (which probably should be setting default)
 				if flag != nil {
 					switch len(longFlagParts) {
@@ -327,7 +323,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
 						//   An Boolean: true type attribute would solve it
 						// HasNext() check
 						// TODO: +2 because index starts at 0 len() starts at 1
-						if data.IsBoolean(flag.Default) {
+						if data.IsBoolean(flag.Default) || flag.Boolean {
 							// NOTE IS BOOLEAN
 							flag.Toggle()
 						} else if index+2 <= len(arguments[1:]) {
@@ -340,7 +336,7 @@ func (self *CLI) Parse(arguments []string) *CLI {
 								flag.SetTrue()
 							}
 
-							if self.LastCommand().Subcommands.HasCommand(arguments[index+2]) {
+							if cli.LastCommand().Subcommands.HasCommand(arguments[index+2]) {
 								fmt.Printf("Next Argument is subcommand of previous command\n")
 								// NOTE
 								// In this condition we are talking about a boolean
@@ -358,98 +354,62 @@ func (self *CLI) Parse(arguments []string) *CLI {
 
 					}
 					fmt.Printf("flag(%v) before adding...\n", flag)
-					self.Context.Arguments.Add(flag)
+					cli.Context.Arguments.Add(flag)
 				} else {
 					// TODO: There are conditions that land here
 					//       ones with default that not boolean
 					//       and has two parts
 					//       and doesnt have next argument
+					//       one of our issues with the edge condition is we
+					//       get duplicate value in flag and params if we dont
+					//       know if its a boolean or not, and this would be
+					//       cleaned up
 				}
 			}
-
-			// TODO: Ummm i dont like how this could trigger even if above is
-			//       THIS HAS TO ONLY BE CHECKED NOT ON FIRST COMMAND
-			//       THIS IS FOR SUBCOMMANDS ONLY!
-			//       Commands need to be size of 2
-			//fmt.Printf("len(self.Context.Commands)(%v)\n", len(self.Context.Commands))
-			//fmt.Printf("default, checking for 'help'...\n")
-			//if (len(argument) == 4 && argument == "help") ||
-			//	(len(argument) == 1 && argument == "h") {
-			//	if 2 <= len(self.Context.Commands) {
-			//		helpFlag := self.LastCommand().Flag("help")
-			//		if helpFlag == nil {
-			//			lastCommand := self.LastCommand()
-			//			fmt.Printf("lastCommand(%v)\n", lastCommand)
-
-			//		}
-			//	} else {
-			//		// TODO: Trigger
-			//	}
-			//}
-			// TODO: SO we are not catching HELP flags for each subcommand
-			//       if
 		} else {
-			if command := self.Context.Command.Subcommand(argument); command != nil {
+			if command := cli.Context.Command.Subcommand(argument); command != nil {
 				// Command parse
-				command.Parent = self.FirstCommand()
+				command.Parent = cli.FirstCommand()
 
-				self.Context.Commands.Add(command)
+				cli.Context.Commands.Add(command)
 				// TODO: don't we do add here? otherwise what was the poiint?
-				self.Context.Flags = append(self.Context.Flags, command.Flags...)
+				cli.Context.Flags = append(cli.Context.Flags, command.Flags...)
 
-				self.Context.Arguments = self.Context.Arguments.Add(self.FirstCommand())
+				cli.Context.Arguments = cli.Context.Arguments.Add(cli.FirstCommand())
 
-				self.Context.Command = self.FirstCommand()
+				cli.Context.Command = cli.FirstCommand()
 
 				// TODO: Should not be
 			} else if (len(argument) == 4 && argument == "help") ||
 				(len(argument) == 1 && argument == "h") {
-				// TODO: Because using help on a subcommand doesnt parse because help is
-				// global. And thats how it should work. Version doesn't need this.
-				// But I really hate this hardcoding
-				helpCommand := self.LastCommand().Subcommand("help")
+				helpCommand := cli.LastCommand().Subcommand("help")
 				if helpCommand != nil {
 					// TODO: Why is this the parent? What if we are dealing with
 					//       a subcommand of a subcommand? we would want the subcommand
 					//       not the first command
-					helpCommand.Parent = self.FirstCommand()
+					helpCommand.Parent = cli.FirstCommand()
 
-					self.Context.Commands.Add(helpCommand)
-					self.Context.Flags = append(self.Context.Flags, helpCommand.Flags...)
+					cli.Context.Commands.Add(helpCommand)
+					cli.Context.Flags = append(cli.Context.Flags, helpCommand.Flags...)
 
-					self.Context.Arguments = self.Context.Arguments.Add(
-						self.FirstCommand(),
+					cli.Context.Arguments = cli.Context.Arguments.Add(
+						cli.FirstCommand(),
 					)
 
 					// TODO: Wait wtf whattt we are setting parent to the same thing
 					//       as we are setting the fucking command this makes no fucking
 					//       sense
-					self.Context.Command = self.FirstCommand()
+					cli.Context.Command = cli.FirstCommand()
 					break
 				}
 			} else {
 				// Params parse
 				fmt.Printf("params(%v)\n", argument)
-				// TODO: SO THIS IS WHERE OUR ISSUE IS RIGHT NOW
-				//       THIS PARAM MUST BE SET TO LAST FLAG!
-
-				//flag := self.Context.Arguments.PreviousIfFlag()
-				//// THIS RETURNS WRONG TYPE OF OBJECT, WE EXPECT
-				//// what we had above
-				//fmt.Printf("previous if flag: (%v)\n", flag)
-				//if flag != nil {
-				//	if flag.Param.value == flag.Default {
-				//		flag.Param = NewParam(argument)
-				//	} else {
-				//		flag = nil
-				//	}
-				//}
-				//if flag == nil {
-				self.Context.Params = self.Context.Params.Add(
+				cli.Context.Params = cli.Context.Params.Add(
 					NewParam(argument),
 				)
-				self.Context.Arguments = self.Context.Arguments.Add(
-					self.Context.Params.First(),
+				cli.Context.Arguments = cli.Context.Arguments.Add(
+					cli.Context.Params.First(),
 				)
 			}
 		}
@@ -458,14 +418,14 @@ func (self *CLI) Parse(arguments []string) *CLI {
 
 	// for the purpose of making it easier to use
 	// to access in this function in the reverse order.
-	self.Context.Arguments = Reverse(self.Context.Arguments)
-	self.Context.Commands = ToCommands(Reverse(self.Context.Commands.Arguments()))
-	self.Context.Params = ToParams(Reverse(self.Context.Params.Arguments()))
+	cli.Context.Arguments = Reverse(cli.Context.Arguments)
+	cli.Context.Commands = ToCommands(Reverse(cli.Context.Commands.Arguments()))
+	cli.Context.Params = ToParams(Reverse(cli.Context.Params.Arguments()))
 
 	//return self
 
-	fmt.Printf("self.Context.Arguments ... len(%v)\n", len(self.Context.Arguments))
-	return self
+	fmt.Printf("self.Context.Arguments ... len(%v)\n", len(cli.Context.Arguments))
+	return cli
 }
 
 func (cli *CLI) Execute() {
@@ -478,9 +438,10 @@ func (cli *CLI) Execute() {
 	var skipCommandAction bool
 	for _, command := range cli.Context.Commands {
 		for _, flag := range command.Flags {
-			if flag.Action != nil && flag.Param != nil && data.IsTrue(flag.Param.value) {
+			if flag.Action != nil && flag.Param != nil {
 				cli.Context.Actions = append(cli.Context.Actions, flag.Action)
 				skipCommandAction = true
+				fmt.Printf("Skipping Command Action, since flag action ran!")
 				break
 			}
 		}
@@ -488,7 +449,8 @@ func (cli *CLI) Execute() {
 
 	if !skipCommandAction {
 		if 0 < len(cli.Context.Commands) {
-			command := cli.Context.Commands.First()
+			command := cli.Context.Commands.Last()
+			fmt.Printf("running command action(%v)\n", command)
 			if command.Action != nil {
 				cli.Context.Actions = append(cli.Context.Actions, command.Action)
 			}

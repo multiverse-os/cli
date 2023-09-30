@@ -37,6 +37,8 @@ func HasFlagPrefix(flag string) (FlagType, bool) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Default boolean should be true, and if we dont assign it will be false, so we
+// need to assign true somewhere; ALSO match boolean and default value
 type Flag struct {
 	Command     *Command
 	Name        string
@@ -46,6 +48,7 @@ type Flag struct {
 	Hidden      bool
 	Required    bool
 	Default     string
+	Boolean     bool
 	Action      Action
 	Param       *Param
 }
