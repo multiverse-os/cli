@@ -45,6 +45,7 @@ func Reverse(arguments []Argument) (reversedArguments []Argument) {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
+// TODO: Need to be able to convert string[] to arguments
 type arguments []Argument
 
 func Arguments(arguments ...Argument) (argumentPointers arguments) {
@@ -58,14 +59,27 @@ func (self arguments) Last() Argument  { return self[self.Count()-1] }
 func (self arguments) First() Argument { return self[0] }
 func (self arguments) Count() int      { return len(self) }
 
-func (args arguments) Add(newArgument Argument) arguments {
-	//prepended := Arguments(newArgument)
-	args = append(append(arguments{}, newArgument), args...)
-	return args
+func (self arguments) HasNext(index int) bool {
+	// NOTE
+	// Index stars from zero len() doesn't, so we check
+	// index + 2 to compensate for it starting at 0 and
+	// jumping ahead
+	return (index + 2) == len(self)
 }
 
-// TODO: Are args here are wrong, we have ltierally nmber 1 and a pointer and
-// then a full object, this is crazy shit
+func (args arguments) Add(newArgument Argument) arguments {
+	return append(append(arguments{}, newArgument), args...)
+	//return args - in case just returning it doesnt work
+}
+
+// TODO: Are args here are wrong, we have literally
+// 1 and a pointer and then a full object, this is crazy shit
+
+// This would let us check for previous argument, but would require
+// position or the current argument
+//func (args arguments) Previous() Argument {
+//	return Argument{}
+//}
 
 // AND fucking adding flags should be done as pointers again~!
 func (args arguments) PreviousIfFlag() *Flag {

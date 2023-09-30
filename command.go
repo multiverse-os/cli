@@ -45,6 +45,10 @@ func (self Command) Subcommand(name string) *Command {
 	return self.Subcommands.Name(name)
 }
 
+func (self Command) Flag(name string) *Flag {
+	return self.Flags.Name(name)
+}
+
 func (self Command) IsRoot() bool { return self.Parent == nil }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -75,10 +79,15 @@ func (self commands) Names() (commandNames []string) {
 
 // Commands Public Methods
 func HelpCommand(context *Context) error {
-	if context.Commands[(len(context.Commands)-1)].Name == "help" {
+	if context.Commands[(len(context.Commands)-1)].Name == "help" ||
+		context.Commands[(len(context.Commands)-1)].Alias == "h" {
 		context.Commands = context.Commands[0 : len(context.Commands)-1]
 	}
 	return RenderDefaultHelpTemplate(context)
+}
+
+func VersionCommand(context *Context) error {
+	return RenderDefaultVersionTemplate(context)
 }
 
 func (self commands) First() *Command { return self[0] }
@@ -88,18 +97,13 @@ func (self commands) Last() *Command { return self[self.Count()-1] }
 func (self commands) Count() int   { return len(self) }
 func (self commands) IsZero() bool { return self.Count() == 0 }
 
-func (self commands) Exists(name string) bool {
-	for _, command := range self {
-		if len(command.Name) == len(name) && command.Name == name {
-			return true
-		}
-	}
-	return false
-}
-
+// TODO: Exists() should just be
 func (self commands) HasCommand(name string) bool {
 	return self.Name(name) != nil
 }
+
+// TODO: Do we need this aliasing?
+func (self commands) Exists(name string) bool { return self.HasCommand(name) }
 
 func (self commands) Name(name string) *Command {
 	for _, subcommand := range self {
@@ -135,7 +139,7 @@ func (self commands) Reverse() (reversedCommands commands) {
 	return reversedCommands
 }
 
-func (cmds *commands) Add(command Command) {
+func (cmds *commands) Add(command *Command) {
 	command.Flags = command.Flags.SetDefaults()
-	*cmds = append(append(commands{}, &command), *cmds...)
+	*cmds = append(append(commands{}, command), *cmds...)
 }
