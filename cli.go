@@ -6,9 +6,9 @@ import (
 	"time"
 
 	data "github.com/multiverse-os/cli/data"
-	loading "github.com/multiverse-os/loading"
-	squares "github.com/multiverse-os/loading/bars/squares"
-	moon "github.com/multiverse-os/loading/spinners/moon"
+	loading "github.com/multiverse-os/cli/terminal/loading"
+	squares "github.com/multiverse-os/cli/terminal/loading/bars/squares"
+	moon "github.com/multiverse-os/cli/terminal/loading/spinners/moon"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
