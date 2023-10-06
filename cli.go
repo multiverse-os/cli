@@ -7,8 +7,6 @@ import (
 
 	data "github.com/multiverse-os/cli/data"
 	loading "github.com/multiverse-os/cli/terminal/loading"
-	squares "github.com/multiverse-os/cli/terminal/loading/bars/squares"
-	moon "github.com/multiverse-os/cli/terminal/loading/spinners/moon"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,54 +65,29 @@ func (c CLI) Warn(output ...string)  { c.Outputs.Log(WARN, output...) }
 func (c CLI) Error(output ...string) { c.Outputs.Log(ERROR, output...) }
 func (c CLI) Fatal(output ...string) { c.Outputs.Log(FATAL, output...) }
 
-type loaderType int
+type LoadingType uint8
 
 const (
-	Bar loaderType = iota
+	Bar LoadingType = iota
 	Spinner
 )
 
-//func (self loaderType) String() string {
-//  switch self {
-//  case Spinner:
-//    return "spinner"
-//  case Bar:
-//    return "bar"
-//  default: // UndefinedLoaderType
-//    return ""
-//  }
-//}
-//
-//func MarshalLoaderType(lType string) loaderType {
-//  switch lType {
-//  case Spinner.String():
-//    return Spinner
-//  default: // Bar
-//    return Bar
-//  }
-//}
-
-func (c CLI) LoadingBar() *loading.Bar {
-	return loading.ToBar(c.Loader(Bar))
+func (c CLI) Loading(lType LoadingType) loading.Loader {
+	switch lType {
+	case Bar:
+		return loading.NewBar(loading.DefaultBar())
+	case Spinner:
+		return loading.NewSpinner(loading.DefaultSpinner())
+	default:
+		return nil
+	}
 }
 
 // TODO: It would be nice to be able to pass the animation to this spinner or
 // loading bar via this and through ToSpinner()
-func (c CLI) Spinner() *loading.Spinner {
-	return loading.ToSpinner(c.Loader(Spinner))
-}
-
-func (c CLI) Loader(loader loaderType) loading.Loader {
-	switch loader {
-	case Spinner:
-		return loading.NewSpinner(moon.Animation)
-	case Bar:
-		return loading.NewBar(squares.Animation).Length(80)
-	default:
-		return nil
-	}
-	//loadingBar.Status(color.Green("Completed!")).Complete()
-}
+//func (c CLI) LoadingSpinner() *loading.Spinner {
+//	return loading.ToSpinner(c.Loader(Spinner))
+//}
 
 // TODO: Submodule problem need to resolve to get this working, but tis
 // advisable to eventually get this
