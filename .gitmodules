@@ -3,7 +3,7 @@
   url = git@github.com:multiverse-os/ansi.git
 [submodule "data"]
 	path = data
-  url = git@github.com:multiverse-os/data.git
+	url = git@github.com:multiverse-os/data.git
 [submodule "terminal/loading"]
 	path = terminal/loading
 	url = git@github.com:multiverse-os/loading.git
