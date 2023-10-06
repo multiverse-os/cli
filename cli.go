@@ -246,21 +246,12 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 // into commands. Or rather convert trailing help commands into a flag? Don't
 // fallback though on the concepts; just find better solutions
 
-func (cli *CLI) LastArgument() Argument {
-	return cli.Context.Arguments.Last()
-}
-
-func (cli *CLI) FirstCommand() *Command {
-	return cli.Context.Commands.First()
-}
-
-func (cli *CLI) LastCommand() *Command {
-	return cli.Context.Commands.Last()
-}
+func (cli *CLI) LastArgument() Argument { return cli.Context.Arguments.Last() }
+func (cli *CLI) FirstCommand() *Command { return cli.Context.Commands.First() }
+func (cli *CLI) LastCommand() *Command  { return cli.Context.Commands.Last() }
 
 func (cli *CLI) Parse(arguments []string) *CLI {
 	defer cli.benchmark(time.Now(), "benmarking argument parsing")
-
 	// NOTE
 	// Skip one because we treat the application a command so it
 	// can store the global flags. This model avoids a lot of

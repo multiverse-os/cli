@@ -7,6 +7,3 @@
 [submodule "terminal/text"]
 	path = terminal/text
 	url = git@github.com:multiverse-os/text.git
-[submodule "terminal/banner"]
-	path = terminal/banner
-	url = git@github.com:multiverse-os/banner.git
