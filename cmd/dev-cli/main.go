@@ -8,8 +8,8 @@ import (
 
 	cli "github.com/multiverse-os/cli"
 
-	rectangles "github.com/multiverse-os/loading/bars/rectangles"
-	circle "github.com/multiverse-os/loading/spinners/circle"
+	rectangles "github.com/multiverse-os/cli/terminal/loading/bars/rectangles"
+	circle "github.com/multiverse-os/cli/terminal/loading/spinners/circle"
 )
 
 func randomWait() {
@@ -54,7 +54,7 @@ func main() {
 				Alias:       "l",
 				Description: "complete a task on the list",
 				Action: func(c *cli.Context) error {
-					spinner := c.CLI.Spinner().Animation(circle.Animation)
+					spinner := c.CLI.Spinner(circle.Animation)
 
 					spinner.Start()
 					spinner.Message("Water, Dirt & Grass")
@@ -94,7 +94,7 @@ func main() {
 							},
 						),
 						Action: func(c *cli.Context) error {
-							loadingBar := c.CLI.LoadingBar().Animation(rectangles.Animation)
+							loadingBar := c.CLI.LoadingBar(rectangles.Animation)
 
 							loadingBar.Start()
 							for i := 0; i < 100; i++ {
@@ -105,10 +105,11 @@ func main() {
 							}
 							loadingBar.End()
 
-							//// NOTE: run code between two start and stop
-							//c.Cli.LoadingBar(squards.Style).Stop()
+							fmt.Printf(
+								"how many flags does context have (%v)\n",
+								len(c.Flags),
+							)
 
-							fmt.Printf("how many flags does context have (%v)\n", len(c.Flags))
 							c.CLI.Log("=====================================================")
 							c.CLI.Log("====> c.Flag(\"l\"):", c.Flag("l").String())
 							c.CLI.Log("add a thing to the list")

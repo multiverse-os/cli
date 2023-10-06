@@ -6,7 +6,6 @@ import (
 	"time"
 
 	data "github.com/multiverse-os/cli/data"
-	loading "github.com/multiverse-os/cli/terminal/loading"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -64,30 +63,6 @@ func (c CLI) Log(output ...string)   { c.Outputs.Log(DEBUG, output...) }
 func (c CLI) Warn(output ...string)  { c.Outputs.Log(WARN, output...) }
 func (c CLI) Error(output ...string) { c.Outputs.Log(ERROR, output...) }
 func (c CLI) Fatal(output ...string) { c.Outputs.Log(FATAL, output...) }
-
-type LoadingType uint8
-
-const (
-	Bar LoadingType = iota
-	Spinner
-)
-
-func (c CLI) Loading(lType LoadingType) loading.Loader {
-	switch lType {
-	case Bar:
-		return loading.NewBar(loading.DefaultBar())
-	case Spinner:
-		return loading.NewSpinner(loading.DefaultSpinner())
-	default:
-		return nil
-	}
-}
-
-// TODO: It would be nice to be able to pass the animation to this spinner or
-// loading bar via this and through ToSpinner()
-//func (c CLI) LoadingSpinner() *loading.Spinner {
-//	return loading.ToSpinner(c.Loader(Spinner))
-//}
 
 // TODO: Submodule problem need to resolve to get this working, but tis
 // advisable to eventually get this
