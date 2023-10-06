@@ -27,7 +27,7 @@ import (
 func RenderDefaultHelpTemplate(context *Context) error {
 	// NOTE: This is important for localization
 	helpOptions := map[string]string{
-		"header":      context.asciiHeader("chunky"),
+		"header":      context.bannerHeader("chunky"),
 		"description": context.Commands.First().Description,
 		"usage":       "Usage",
 		"subcommands": "Subcommands",
@@ -68,7 +68,7 @@ func (self Context) defaultVersionTemplate() string {
 // Larry3D, Letters, NancyJ, Rectangles, Relief, Small, Smisome1, Standard
 // Ticks, TicksSlant, calvins
 // TODO: Should probably make an enumerator
-func (self Context) asciiHeader(font string) string {
+func (self Context) bannerHeader(font string) string {
 	return banner.New(" "+self.Commands.First().Name).Font(font).String() +
 		self.CLI.Version.String()
 }
