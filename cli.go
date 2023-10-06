@@ -48,9 +48,9 @@ type App struct {
 }
 
 type CLI struct {
-	Name        string
-	Version     Version
-	Build       Build
+	Name    string
+	Version Version
+	//Build       Build
 	Debug       bool
 	Context     *Context
 	Outputs     Outputs
@@ -110,9 +110,9 @@ func New(appDefinition ...App) (cli *CLI, errs []error) {
 		Version: app.Version,
 		Outputs: app.Outputs,
 		Actions: app.Actions,
-		Build: Build{
-			CompiledAt: time.Now(),
-		},
+		//Build: Build{
+		//	CompiledAt: time.Now(),
+		//},
 	}
 
 	// TODO: Why is Command, Flag

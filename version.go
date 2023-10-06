@@ -43,12 +43,12 @@ type BuildInformation struct {
 	CompiledAt string
 }
 
-func (b Build) AddDeveloper(name, email string) {
-	b.Developers = append(b.Developers, Developer{
-		Name:  name,
-		Email: email,
-	})
-}
+//func (b Build) AddDeveloper(name, email string) {
+//	b.Developers = append(b.Developers, Developer{
+//		Name:  name,
+//		Email: email,
+//	})
+//}
 
 func (vc VersionComponent) String() string {
 	switch vc {
