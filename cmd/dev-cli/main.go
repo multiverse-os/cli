@@ -8,7 +8,7 @@ import (
 
 	cli "github.com/multiverse-os/cli"
 
-	"github.com/multiverse-os/cli/terminal/ansi/color"
+	color "github.com/multiverse-os/cli/terminal/ansi/color"
 	rectangles "github.com/multiverse-os/cli/terminal/loading/bars/rectangles"
 	circle "github.com/multiverse-os/cli/terminal/loading/spinners/circle"
 )
