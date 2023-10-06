@@ -1,3 +1,21 @@
 module github.com/multiverse-os/cli
 
 go 1.19
+
+replace (
+	github.com/multiverse-os/cli/terminal/ansi => ./terminal/ansi
+	github.com/multiverse-os/cli/terminal/loading => ./terminal/loading
+	github.com/multiverse-os/cli/terminal/text => ./terminal/text
+	github.com/multiverse-os/cli/terminal/text/banner => ./terminal/text/banner
+)
+
+require (
+	github.com/multiverse-os/cli/terminal/ansi v0.0.0-00010101000000-000000000000
+	github.com/multiverse-os/cli/terminal/loading v0.0.0-00010101000000-000000000000
+	github.com/multiverse-os/cli/terminal/text/banner v0.0.0-00010101000000-000000000000
+)
+
+require (
+	github.com/multiverse-os/banner v0.0.0-20231006133835-80f8c892b073 // indirect
+	golang.org/x/text v0.13.0 // indirect
+)
