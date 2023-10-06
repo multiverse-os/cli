@@ -8,6 +8,7 @@ import (
 
 	cli "github.com/multiverse-os/cli"
 
+	"github.com/multiverse-os/cli/terminal/ansi/color"
 	rectangles "github.com/multiverse-os/cli/terminal/loading/bars/rectangles"
 	circle "github.com/multiverse-os/cli/terminal/loading/spinners/circle"
 )
@@ -98,12 +99,12 @@ func main() {
 
 							loadingBar.Start()
 							for i := 0; i < 100; i++ {
-								time.Sleep(time.Duration(rand.Intn(135)+22) * time.Millisecond)
+								time.Sleep(time.Duration(rand.Intn(2)+3) * time.Second)
 								if loadingBar.Increment(1) {
 									break
 								}
 							}
-							loadingBar.End()
+							loadingBar.Status(color.Green("Completed!")).End()
 
 							fmt.Printf(
 								"how many flags does context have (%v)\n",
