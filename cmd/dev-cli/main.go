@@ -7,9 +7,8 @@ import (
 	"time"
 
 	cli "github.com/multiverse-os/cli"
-	color "github.com/multiverse-os/cli/terminal/ansi/color"
-
-	rectangles "github.com/multiverse-os/loading/bars/rectangles"
+	loading "github.com/multiverse-os/cli/terminal/loading"
+	dots "github.com/multiverse-os/cli/terminal/loading/bars/dots"
 	circle "github.com/multiverse-os/loading/spinners/circle"
 )
 
@@ -95,16 +94,7 @@ func main() {
 							},
 						),
 						Action: func(c *cli.Context) error {
-							loadingBar := c.CLI.LoadingBar(rectangles.Animation)
-
-							loadingBar.Start()
-							for i := 0; i < 100; i++ {
-								time.Sleep(time.Duration(rand.Intn(2)+3) * time.Second)
-								if loadingBar.Increment(1) {
-									break
-								}
-							}
-							loadingBar.Status(color.Green("Completed!")).End()
+							RunBarExampleWithPercent(dots.Animation)
 
 							fmt.Printf(
 								"how many flags does context have (%v)\n",
@@ -185,4 +175,16 @@ func main() {
 	if len(initErrors) == 0 {
 		cmd.Parse(os.Args).Execute()
 	}
+}
+
+func RunBarExampleWithPercent(animation []string) {
+	loadingBar := loading.NewBar(animation)
+
+	loadingBar.Start()
+	for 0 < loadingBar.RemainingTicks() {
+		randomWait()
+		loadingBar.Increment(1.5)
+	}
+
+	loadingBar.Status(loading.Text("Completed!").Color(loading.Green).String()).End()
 }
