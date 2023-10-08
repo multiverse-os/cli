@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	data "github.com/multiverse-os/cli/data"
+	data "github.com/multiverse-os/data"
 )
 
 // TODO: Create a New() function so we can hook in validations

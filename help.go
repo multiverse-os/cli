@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	data "github.com/multiverse-os/cli/data"
-	ansi "github.com/multiverse-os/cli/terminal/ansi"
-	template "github.com/multiverse-os/cli/terminal/template"
-	banner "github.com/multiverse-os/cli/terminal/text/banner"
+	ansi "github.com/multiverse-os/ansi"
+	banner "github.com/multiverse-os/banner"
+	data "github.com/multiverse-os/data"
+
+	template "github.com/multiverse-os/cli/template"
 )
 
 // TODO: Do a lot of cleanup; like there is no more expecting subcommand concept

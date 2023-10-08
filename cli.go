@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	data "github.com/multiverse-os/cli/data"
+	data "github.com/multiverse-os/data"
 )
 
 ///////////////////////////////////////////////////////////////////////////////

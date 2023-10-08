@@ -8,9 +8,9 @@ import (
 
 	cli "github.com/multiverse-os/cli"
 
-	color "github.com/multiverse-os/cli/terminal/ansi/color"
-	rectangles "github.com/multiverse-os/cli/terminal/loading/bars/rectangles"
-	circle "github.com/multiverse-os/cli/terminal/loading/spinners/circle"
+	color "github.com/multiverse-os/ansi/color"
+	rectangles "github.com/multiverse-os/loading/bars/rectangles"
+	circle "github.com/multiverse-os/loading/spinners/circle"
 )
 
 func randomWait() {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	ansi "github.com/multiverse-os/cli/terminal/ansi"
+	ansi "github.com/multiverse-os/ansi"
 )
 
 type Directories struct {

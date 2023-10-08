@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	ansi "github.com/multiverse-os/cli/terminal/ansi"
+	ansi "github.com/multiverse-os/ansi"
 )
 
 type VersionComponent int
