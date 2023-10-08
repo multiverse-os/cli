@@ -7,8 +7,8 @@ import (
 	"time"
 
 	cli "github.com/multiverse-os/cli"
+	color "github.com/multiverse-os/cli/terminal/ansi/color"
 
-	color "github.com/multiverse-os/color"
 	rectangles "github.com/multiverse-os/loading/bars/rectangles"
 	circle "github.com/multiverse-os/loading/spinners/circle"
 )
