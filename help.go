@@ -6,8 +6,8 @@ import (
 
 	ansi "github.com/multiverse-os/ansi"
 	banner "github.com/multiverse-os/banner"
-	data "github.com/multiverse-os/data"
 
+	data "github.com/multiverse-os/cli/data"
 	template "github.com/multiverse-os/cli/template"
 )
 

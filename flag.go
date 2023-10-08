@@ -3,7 +3,7 @@ package cli
 import (
 	"strings"
 
-	data "github.com/multiverse-os/data"
+	data "github.com/multiverse-os/cli/data"
 )
 
 // TODO: Provide helpers/shortcuts for accessing flag.Param.Int() directly
