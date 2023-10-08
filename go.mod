@@ -11,9 +11,10 @@ replace (
 )
 
 require (
-	github.com/multiverse-os/cli/terminal/ansi v0.0.0-00010101000000-000000000000
-	github.com/multiverse-os/cli/terminal/loading v0.0.0-00010101000000-000000000000
-	github.com/multiverse-os/cli/terminal/text/banner v0.0.0-00010101000000-000000000000
+	github.com/multiverse-os/cli/data v0.1.0
+	github.com/multiverse-os/cli/terminal/ansi v0.1.0
+	github.com/multiverse-os/cli/terminal/loading v0.1.0
+	github.com/multiverse-os/cli/terminal/text/banner v0.1.0
 )
 
 require (
