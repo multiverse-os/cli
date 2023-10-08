@@ -7,9 +7,10 @@ import (
 	"time"
 
 	cli "github.com/multiverse-os/cli"
+
 	loading "github.com/multiverse-os/cli/terminal/loading"
 	dots "github.com/multiverse-os/cli/terminal/loading/bars/dots"
-	circle "github.com/multiverse-os/loading/spinners/circle"
+	circle "github.com/multiverse-os/cli/terminal/loading/spinners/circle"
 )
 
 func randomWait() {

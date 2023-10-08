@@ -4,7 +4,5 @@ github.com/multiverse-os/banner v0.1.0 h1:VPBNBM6TNgtZfSAJeAwmSaFiVuGTqJgHBxmEyL
 github.com/multiverse-os/banner v0.1.0/go.mod h1:iKsSBKiFih4XCe4D3z4W/USY/q1ZKCMSaUFWkU/F6j4=
 github.com/multiverse-os/color v0.1.0 h1:PdKN8NclnkcSRWZ5RxvbmoT/reEP487VC3xTItd8I4c=
 github.com/multiverse-os/color v0.1.0/go.mod h1:XDxckraVEFj5OGFppaa4X2LJVwHa0URFSmEaktteHoY=
-github.com/multiverse-os/loading v0.1.0 h1:8wdrto1uvUV4lEGaY4rSWBr5z5c5NFaeKn3lBlpm824=
-github.com/multiverse-os/loading v0.1.0/go.mod h1:YoLwMjKum8PDjn69+55Zq75tAaa+G776QvuHLkWlWGE=
 golang.org/x/text v0.13.0 h1:ablQoSUd0tRdKxZewP80B+BaqeKJuVhuRxj/dkrun3k=
 golang.org/x/text v0.13.0/go.mod h1:TvPlkZtksWOMsz7fbANvkp4WM8x/WCo/om8BMLbz+aE=
