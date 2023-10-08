@@ -1,5 +1,5 @@
-github.com/multiverse-os/ansi v0.0.0-20230122075550-10efed87b9d4 h1:p+XBNkUPCBHf3fxTvcxGNZWNKIvBlTyVI33bgn/mBaw=
-github.com/multiverse-os/ansi v0.0.0-20230122075550-10efed87b9d4/go.mod h1:PD6H6rUJ4GvsipdGr0+zxn2pxLA7NCXOLDhPt7mnd/E=
+github.com/multiverse-os/ansi v0.1.0 h1:7eXsAL9bqYDMYW90lDQCkFQWNqD40OlnPh9s06ARtBg=
+github.com/multiverse-os/ansi v0.1.0/go.mod h1:PD6H6rUJ4GvsipdGr0+zxn2pxLA7NCXOLDhPt7mnd/E=
 github.com/multiverse-os/banner v0.1.0 h1:VPBNBM6TNgtZfSAJeAwmSaFiVuGTqJgHBxmEyL3m9Xw=
 github.com/multiverse-os/banner v0.1.0/go.mod h1:iKsSBKiFih4XCe4D3z4W/USY/q1ZKCMSaUFWkU/F6j4=
 github.com/multiverse-os/color v0.1.0 h1:PdKN8NclnkcSRWZ5RxvbmoT/reEP487VC3xTItd8I4c=
