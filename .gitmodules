@@ -4,3 +4,6 @@
 [submodule "terminal/ansi"]
 	path = terminal/ansi
 	url = git@github.com:multiverse-os/ansi.git
+[submodule "terminal/loading"]
+	path = terminal/loading
+	url = git@github.com:multiverse-os/loading.git
