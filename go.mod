@@ -3,6 +3,7 @@ module github.com/multiverse-os/cli
 go 1.19
 
 replace (
+	github.com/multiverse-os/cli/data => ./data
 	github.com/multiverse-os/cli/terminal/ansi => ./terminal/ansi
 	github.com/multiverse-os/cli/terminal/loading => ./terminal/loading
 	github.com/multiverse-os/cli/terminal/text => ./terminal/text
