@@ -8,13 +8,13 @@ import (
 	banner "github.com/multiverse-os/banner"
 
 	data "github.com/multiverse-os/cli/data"
-	template "github.com/multiverse-os/cli/template"
+	template "github.com/multiverse-os/cli/terminal/template"
 )
 
 // TODO: Do a lot of cleanup; like there is no more expecting subcommand concept
 // and I already did some work to make it more functional
 
-// TODO: Consider a help or tempalte object, then we easily asign things like
+// TODO: Consider a help or template object, then we easily assign things like
 // indentation, figlet font or not, and make everything here a method. then it
 // will be super easy to customize the output. be able to pass a go template or
 // definte the various aspects.
