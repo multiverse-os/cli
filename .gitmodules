@@ -7,3 +7,6 @@
 [submodule "terminal/loading"]
 	path = terminal/loading
 	url = git@github.com:multiverse-os/loading.git
+[submodule "terminal/text"]
+	path = terminal/text
+	url = git@github.com:multiverse-os/text.git
