@@ -1,0 +1,9 @@
+go 1.19
+
+use (
+	./data
+	./terminal/ansi
+	./terminal/loading
+	./terminal/text
+	./terminal/text/banner
+)
