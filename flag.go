@@ -84,6 +84,10 @@ func (f Flag) is(name string) bool {
 
 func (f Flag) HasCategory() bool { return len(f.Category) != 0 }
 
+// TODO: We repeat this validation 4 times because otherwise we can have errors
+//
+//	that could confuse developers using the framework, we should
+//	consolidate these checks to simplify the code
 func (f *Flag) String() string {
 	if f != nil && f.Param != nil {
 		return f.Param.value
@@ -92,9 +96,29 @@ func (f *Flag) String() string {
 	}
 }
 
-func (f *Flag) Int() int         { return f.Param.Int() }
-func (f *Flag) Bool() bool       { return f.Param.Bool() }
-func (f *Flag) Float64() float64 { return f.Param.Float64() }
+func (f *Flag) Int() int {
+	if f != nil && f.Param != nil {
+		return f.Param.Int()
+	} else {
+		return 0
+	}
+}
+
+func (f *Flag) Bool() bool {
+	if f != nil && f.Param != nil {
+		return f.Param.Bool()
+	} else {
+		return false
+	}
+}
+
+func (f *Flag) Float64() float64 {
+	if f != nil && f.Param != nil {
+		return f.Param.Float64()
+	} else {
+		return 0
+	}
+}
 
 // TODO
 // Path / File

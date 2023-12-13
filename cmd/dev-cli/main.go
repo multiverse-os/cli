@@ -130,6 +130,9 @@ func main() {
 				Description: "show and item in the list",
 				Action: func(c *cli.Context) error {
 					c.CLI.Log("example action")
+
+					fmt.Printf("test flag s %v\n", c.Flag("p").Float64())
+
 					return nil
 				},
 			},
