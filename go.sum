@@ -1,4 +1,4 @@
 github.com/multiverse-os/banner v0.1.0 h1:VPBNBM6TNgtZfSAJeAwmSaFiVuGTqJgHBxmEyL3m9Xw=
 github.com/multiverse-os/banner v0.1.0/go.mod h1:iKsSBKiFih4XCe4D3z4W/USY/q1ZKCMSaUFWkU/F6j4=
-golang.org/x/text v0.13.0 h1:ablQoSUd0tRdKxZewP80B+BaqeKJuVhuRxj/dkrun3k=
-golang.org/x/text v0.13.0/go.mod h1:TvPlkZtksWOMsz7fbANvkp4WM8x/WCo/om8BMLbz+aE=
+golang.org/x/text v0.14.0 h1:ScX5w1eTa3QqT8oi6+ziP7dTV1S2+ALU0bI+0zXKWiQ=
+golang.org/x/text v0.14.0/go.mod h1:18ZOQIKpY8NJVqYksKHtTdi31H5itFRjB5/qKTNYzSU=
