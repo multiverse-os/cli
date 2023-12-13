@@ -11,6 +11,8 @@ require (
 
 require github.com/multiverse-os/banner v0.1.0 // indirect
 
+//require github.com/multiverse-os/banner v0.1.0 // indirect
+
 replace (
 	github.com/multiverse-os/cli/data => ./data
 	github.com/multiverse-os/cli/terminal/ansi => ./terminal/ansi
