@@ -25,7 +25,7 @@ require golang.org/x/text v0.13.0 // indirect
 //)
 
 replace (
-	github.com/multiverse-os/cli/data => ./data
+	//github.com/multiverse-os/cli/data => ./data
 	github.com/multiverse-os/cli/terminal/ansi => ./terminal/ansi
 	github.com/multiverse-os/cli/terminal/loading => ./terminal/loading
 	github.com/multiverse-os/cli/terminal/text => ./terminal/text
