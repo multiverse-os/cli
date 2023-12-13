@@ -56,7 +56,7 @@ type Flag struct {
 // TODO: This is should be BOTH setting the default, AND its
 //
 //	not even being used!
-func ValidateFlag(flag *Flag) error {
+func ValidateFlag(flag Flag) error {
 	// TODO: Validate param
 	if 32 < len(flag.Name) {
 		return ErrInvalidArgumentLength
@@ -75,7 +75,7 @@ func ValidateFlag(flag *Flag) error {
 	return nil
 }
 
-func (f *Flag) IsValid() bool { return ValidateFlag(f) != nil }
+func (f Flag) IsValid() bool { return ValidateFlag(f) != nil }
 
 func (f Flag) is(name string) bool {
 	return (len(f.Name) == len(name) && f.Name == name) ||
@@ -92,9 +92,9 @@ func (f *Flag) String() string {
 	}
 }
 
-func (f Flag) Int() int         { return f.Param.Int() }
-func (f Flag) Bool() bool       { return f.Param.Bool() }
-func (f Flag) Float64() float64 { return f.Param.Float64() }
+func (f *Flag) Int() int         { return f.Param.Int() }
+func (f *Flag) Bool() bool       { return f.Param.Bool() }
+func (f *Flag) Float64() float64 { return f.Param.Float64() }
 
 // TODO
 // Path / File
