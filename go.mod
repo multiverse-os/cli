@@ -9,9 +9,8 @@ require (
 	github.com/multiverse-os/cli/terminal/text/banner v0.1.0
 )
 
+// THIS IS BECAUSE OF banner/big
 require github.com/multiverse-os/banner v0.1.0 // indirect
-
-//require github.com/multiverse-os/banner v0.1.0 // indirect
 
 replace (
 	github.com/multiverse-os/cli/data => ./data
