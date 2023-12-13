@@ -56,7 +56,7 @@ type Flag struct {
 // TODO: This is should be BOTH setting the default, AND its
 //
 //	not even being used!
-func ValidateFlag(flag Flag) error {
+func ValidateFlag(flag *Flag) error {
 	// TODO: Validate param
 	if 32 < len(flag.Name) {
 		return ErrInvalidArgumentLength
