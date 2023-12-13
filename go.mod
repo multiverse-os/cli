@@ -31,5 +31,4 @@ replace (
 	github.com/multiverse-os/cli/terminal/loading => ./terminal/loading
 	github.com/multiverse-os/cli/terminal/text => ./terminal/text
 	github.com/multiverse-os/cli/terminal/text/banner => ./terminal/text/banner
-
 )
