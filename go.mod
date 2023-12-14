@@ -9,7 +9,8 @@ require (
 	github.com/multiverse-os/cli/terminal/text/banner v0.1.0
 )
 
-// THIS IS BECAUSE OF banner/big
+// This is a result of having banner have its own cmd folder which provides an
+// example
 require github.com/multiverse-os/banner v0.1.0 // indirect
 
 replace (
