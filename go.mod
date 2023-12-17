@@ -16,6 +16,8 @@ require (
 	github.com/multiverse-os/cli/terminal/text/banner v0.1.0
 )
 
-require github.com/multiverse-os/banner v0.1.0
+require github.com/multiverse-os/banner v0.1.0 // indirect
 
+//github.com/multiverse-os/banner/fonts/big v0.0.0-20231217224509-6c8731036547 // indirect
+//github.com/multiverse-os/banner/fonts/giant v0.0.0-20231217224509-6c8731036547 // indirect
 require golang.org/x/text v0.14.0 // indirect
