@@ -1,6 +1,4 @@
-github.com/multiverse-os/banner/fonts/big v0.0.0-20231217224509-6c8731036547 h1:xWwZYMPsEZxnieeasqLS9i09yRC0qVtip3Hg9UsOSh0=
-github.com/multiverse-os/banner/fonts/big v0.0.0-20231217224509-6c8731036547/go.mod h1:Bjwz7JMlIQEyEjrGi9dCT7i0Y6biYSwRR850vkbwuOQ=
-github.com/multiverse-os/banner/fonts/giant v0.0.0-20231217224509-6c8731036547 h1:WU3DXzy8OALENmBW9whxFTtnGwkZssIb0oX/7SSkb/s=
-github.com/multiverse-os/banner/fonts/giant v0.0.0-20231217224509-6c8731036547/go.mod h1:/GozpQBnW047bkff5e7hOopxFqGwWjDvcKZU7sHhK2I=
+github.com/multiverse-os/banner v0.1.0 h1:VPBNBM6TNgtZfSAJeAwmSaFiVuGTqJgHBxmEyL3m9Xw=
+github.com/multiverse-os/banner v0.1.0/go.mod h1:iKsSBKiFih4XCe4D3z4W/USY/q1ZKCMSaUFWkU/F6j4=
 golang.org/x/text v0.14.0 h1:ScX5w1eTa3QqT8oi6+ziP7dTV1S2+ALU0bI+0zXKWiQ=
 golang.org/x/text v0.14.0/go.mod h1:18ZOQIKpY8NJVqYksKHtTdi31H5itFRjB5/qKTNYzSU=
