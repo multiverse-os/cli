@@ -1,8 +1,0 @@
-go 1.19
-
-use (
-  ./terminal/text/banner
-  ./terminal/loading
-  ./terminal/ansi
-)
-
