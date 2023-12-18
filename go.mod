@@ -14,6 +14,7 @@ require (
 	github.com/multiverse-os/cli/terminal/ansi v0.1.0
 	github.com/multiverse-os/cli/terminal/loading v0.1.0
 	github.com/multiverse-os/cli/terminal/text/banner v0.1.0
+//github.com/multiverse-os/cli/terminal/text/banner v0.1.0
 )
 
 require github.com/multiverse-os/banner v0.1.0 // indirect
