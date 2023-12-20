@@ -23,19 +23,16 @@ Example output from application using the `cli` framework:
 
 ```
 [DEBUG][Benchmark] benmarking argument parsing [ 4.1µs ]
+  Maglev v0.1.0
+  A command-line tool for controling the maglev server, scaffolding boilerplate code, and executing developer defined commands
 
-　 █▀▀ ▀▀█▀▀ █▀▀█ █▀▀█ █▀▀ █  █  ▀  █▀▀█ █  █ █▀▀█ █▀▀█ █▀▀▄ 
-　 ▀▀█   █   █▄▄█ █▄▄▀ ▀▀█ █▀▀█ ▀█▀ █  █ █▄▄█ █▄▄█ █▄▄▀ █  █ 
-　 ▀▀▀   ▀   ▀  ▀ ▀ ▀▀ ▀▀▀ ▀  ▀ ▀▀▀ █▀▀▀ ▄▄▄█ ▀  ▀ ▀ ▀▀ ▀▀▀  0.1.1
-  A command-line tool for controling the starshipyard server, scaffolding boilerplate code, and executing developer defined commands
-
-  Usage starshipyard [options] [subcommand] [parameters]
+  Usage maglev [options] [subcommand] [parameters]
 
   Subcommands
-    console, c        Start the starship yard console interface
-    new, n            Create a new starship project
+    console, c        Start the maglev console interface
+    new, n            Create a new maglev project
     generate, g       Generate new go source code for models, controllers, and views
-    server, s         Options for controlling starshipyard HTTP server
+    server, s         Options for controlling maglev HTTP server
     version, v        outputs version
 
   Flags
