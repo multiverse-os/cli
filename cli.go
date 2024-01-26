@@ -375,8 +375,6 @@ func (cli *CLI) Execute() {
 	// them in the expected left to right order, despite it being easier for us
 	defer cli.benchmark(time.Now(), "benmarking action execution")
 	for _, action := range cli.Context.Actions {
-		if len(cli.Context.Actions) != 0 {
-			action(cli.Context)
-		}
+		action(cli.Context)
 	}
 }
